@@ -1,4 +1,8 @@
-export const EXTRACTION_PROMPT = `You are analyzing a question image for a student question bank app.
+// Prompts for AI tasks - Centralized prompt management
+
+export const PROMPTS = {
+  // Question extraction from image
+  extraction: `You are analyzing a question image for a student question bank app.
 
 Extract the following information from this image:
 
@@ -23,9 +27,10 @@ IMPORTANT:
 - For chemistry: Use $\\ce{H2O}$ for chemical formulas
 - Identify the question type accurately
 - Be specific with chapter and topics
-- Return ONLY valid JSON, no markdown or explanation`
+- Return ONLY valid JSON, no markdown or explanation`,
 
-export const DUPLICATE_ANALYSIS_PROMPT = `Compare these two questions and determine if they are duplicates:
+  // Duplicate detection between two questions
+  duplicateAnalysis: `Compare these two questions and determine if they are duplicates:
 
 Question A:
 {questionA}
@@ -51,9 +56,22 @@ SAME = Same concept AND same approach (true duplicate)
 DIFFERENT_APPROACH = Same concept but different solving method (add as new solution)
 DIFFERENT_QUESTION = Different concept entirely (not a duplicate)
 
-Return ONLY valid JSON.`
+Return ONLY valid JSON.`,
 
-export const CHART_GENERATION_PROMPT = `Generate personalized question charts for this user:
+  // Image validation
+  imageValidation: `Is this image a valid educational question (from a textbook, exam, worksheet, etc.)?
+
+Return JSON:
+{
+  "isValid": true | false,
+  "isBlurry": true | false,
+  "reason": "Brief explanation if invalid"
+}
+
+Return ONLY valid JSON.`,
+
+  // Chart/feed generation
+  chartGeneration: `Generate personalized question charts for this user:
 
 User Stats:
 - Weak chapters: {weakChapters}
@@ -83,4 +101,17 @@ Prioritization:
 - 20% confidence builders (easier questions from strong areas)
 - 10% important/popular questions
 
-Return ONLY valid JSON.`
+Return ONLY valid JSON.`,
+} as const
+
+// Helper to replace placeholders in prompts
+export function formatPrompt(
+  prompt: string,
+  replacements: Record<string, string>
+): string {
+  let formatted = prompt
+  for (const [key, value] of Object.entries(replacements)) {
+    formatted = formatted.replace(new RegExp(`\\{${key}\\}`, 'g'), value)
+  }
+  return formatted
+}
