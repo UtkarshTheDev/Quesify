@@ -123,3 +123,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* KaTeX overrides for dark theme */
+.katex {
+  color: inherit;
+}
+
+.katex .mord,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .minner {
+  color: inherit;
+}
