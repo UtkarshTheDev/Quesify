@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2, Clipboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface DropzoneProps {
@@ -27,6 +27,34 @@ export function Dropzone({ onFileSelect, isProcessing, selectedFile, onClear }: 
     maxFiles: 1,
     disabled: isProcessing,
   })
+
+  // Handle paste event for clipboard images
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      if (isProcessing || selectedFile) return
+
+      const items = event.clipboardData?.items
+      if (!items) return
+
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (file) {
+            // Create a new file with a proper name
+            const namedFile = new File([file], `pasted-image-${Date.now()}.png`, {
+              type: file.type,
+            })
+            onFileSelect(namedFile)
+            event.preventDefault()
+            break
+          }
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [onFileSelect, isProcessing, selectedFile])
 
   if (selectedFile) {
     return (
@@ -71,7 +99,11 @@ export function Dropzone({ onFileSelect, isProcessing, selectedFile, onClear }: 
       <p className="text-sm text-muted-foreground mt-1">
         or click to select from your device
       </p>
-      <p className="text-xs text-muted-foreground mt-4">
+      <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+        <Clipboard className="h-3 w-3" />
+        <span>You can also paste an image with Ctrl+V / Cmd+V</span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
         Supports PNG, JPG, JPEG, WebP (max 10MB)
       </p>
     </div>
