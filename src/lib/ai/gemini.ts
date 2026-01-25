@@ -8,7 +8,7 @@ export async function extractQuestionFromImage(
   imageBase64: string,
   mimeType: string
 ): Promise<GeminiExtractionResult> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const result = await model.generateContent([
     {
@@ -40,7 +40,7 @@ export async function checkDuplicate(
   questionA: string,
   questionB: string
 ): Promise<DuplicateCheckResult> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = DUPLICATE_ANALYSIS_PROMPT
     .replace('{questionA}', questionA)
@@ -80,7 +80,7 @@ export async function validateImage(
   imageBase64: string,
   mimeType: string
 ): Promise<{ isValid: boolean; reason?: string }> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const result = await model.generateContent([
     {
