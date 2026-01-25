@@ -50,6 +50,40 @@ export async function POST(request: NextRequest) {
     // Step 4: Generate embedding for duplicate detection
     const embedding = await ai.generateEmbedding(extractionResult.question_text)
 
+    // Step 5: Check for duplicates
+    let duplicateResult = null
+    try {
+      // 5a. Vector search for similar questions
+      const { data: similarQuestions } = await supabase.rpc('match_questions', {
+        query_embedding: embedding,
+        match_threshold: 0.85, // 85% similarity threshold
+        match_count: 3
+      })
+
+      if (similarQuestions && similarQuestions.length > 0) {
+        // 5b. AI verification for the most similar question
+        // We only check the top match to save AI tokens and time
+        const topMatch = similarQuestions[0]
+
+        console.log('Found similar question:', topMatch.id, 'Similarity:', topMatch.similarity)
+
+        const analysis = await ai.checkDuplicate(
+          extractionResult.question_text,
+          topMatch.question_text
+        )
+
+        if (analysis.is_duplicate) {
+          duplicateResult = {
+            ...analysis,
+            matched_question_id: topMatch.id
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Duplicate check failed:', err)
+      // Continue without duplicate check - don't block upload
+    }
+
     // Return extracted data for user review (don't save yet)
     return NextResponse.json({
       success: true,
@@ -57,6 +91,7 @@ export async function POST(request: NextRequest) {
         ...extractionResult,
         image_url: imageUrl,
         embedding,
+        duplicate_check: duplicateResult
       },
     })
   } catch (error) {

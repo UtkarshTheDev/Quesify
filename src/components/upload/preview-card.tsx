@@ -7,11 +7,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Latex } from '@/components/ui/latex'
-import { Check, Edit2, Loader2 } from 'lucide-react'
-import type { GeminiExtractionResult } from '@/lib/types'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Check, Edit2, Loader2, AlertTriangle, Copy } from 'lucide-react'
+import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
 interface PreviewCardProps {
-  data: GeminiExtractionResult & { image_url: string; embedding: number[] }
+  data: GeminiExtractionResult & {
+    image_url: string;
+    embedding: number[];
+    duplicate_check?: DuplicateCheckResult | null;
+  }
   onSave: (data: GeminiExtractionResult & { image_url: string; embedding: number[] }) => Promise<void>
   isSaving: boolean
 }
@@ -45,6 +50,39 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Duplicate Warning */}
+        {data.duplicate_check?.is_duplicate && (
+          <Alert variant="destructive" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/50">
+            <AlertTriangle className="h-4 w-4 stroke-yellow-600" />
+            <AlertTitle>Potential Duplicate Found</AlertTitle>
+            <AlertDescription>
+              <p className="mt-1">
+                This question seems very similar to an existing one in your bank.
+                {data.duplicate_check.differences && (
+                  <span className="block mt-1 font-medium">Difference: {data.duplicate_check.differences}</span>
+                )}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-500/50 hover:bg-yellow-500/10"
+                  onClick={() => window.open(`/dashboard/questions/${data.duplicate_check?.matched_question_id}`, '_blank')}
+                >
+                  View Existing
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hover:bg-yellow-500/10"
+                >
+                  Save Anyway
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Question */}
         <div className="space-y-2">
           <Label>Question</Label>
