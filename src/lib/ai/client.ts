@@ -66,7 +66,7 @@ class AIClient {
     return result.embedding.values
   }
 
-  // Parse JSON response with cleanup
+  // Parse JSON response with cleanup and robust repair
   parseJsonResponse<T>(response: string): T {
     const cleaned = response
       .replace(/```json\n?/g, '')
@@ -76,8 +76,58 @@ class AIClient {
     try {
       return JSON.parse(cleaned) as T
     } catch (error) {
-      console.error('Failed to parse AI response:', cleaned)
-      throw new Error('Failed to parse AI response. Please try again.')
+      console.log('Standard JSON parse failed, attempting repair...')
+
+      // Robust repair for common LLM JSON errors (LaTeX backslashes, newlines)
+      let fixed = ''
+      let inString = false
+
+      for (let i = 0; i < cleaned.length; i++) {
+        const char = cleaned[i]
+
+        if (inString) {
+          if (char === '\\') {
+            // Check next char
+            const nextChar = cleaned[i + 1]
+            const validEscapes = ['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u']
+
+            if (validEscapes.includes(nextChar)) {
+              // Valid escape sequence, keep it
+              fixed += char + nextChar
+              i++
+            } else {
+              // Invalid escape sequence (like \v, \c, or \ followed by space for LaTeX)
+              // Escape the backslash
+              fixed += '\\\\'
+            }
+          } else if (char === '"') {
+            inString = false
+            fixed += char
+          } else if (char === '\n') {
+            // Escape literal newlines in strings
+            fixed += '\\n'
+          } else if (char === '\t') {
+            // Escape literal tabs
+            fixed += '\\t'
+          } else if (char === '\r') {
+            // Ignore carriage returns
+          } else {
+            fixed += char
+          }
+        } else {
+          if (char === '"') {
+            inString = true
+          }
+          fixed += char
+        }
+      }
+
+      try {
+        return JSON.parse(fixed) as T
+      } catch (retryError) {
+        console.error('Failed to parse AI response after repair:', fixed)
+        throw new Error('Failed to parse AI response. Please try again.')
+      }
     }
   }
 }
