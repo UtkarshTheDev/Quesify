@@ -5,9 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Dropzone } from '@/components/upload/dropzone'
 import { PreviewCard } from '@/components/upload/preview-card'
 import { toast } from 'sonner'
-import type { GeminiExtractionResult } from '@/lib/types'
+import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
-type ExtractedData = GeminiExtractionResult & { image_url: string; embedding: number[] }
+type ExtractedData = GeminiExtractionResult & {
+  image_url: string;
+  embedding: number[];
+  duplicate_check?: DuplicateCheckResult | null;
+}
 
 export default function UploadPage() {
   const router = useRouter()

@@ -29,6 +29,12 @@ interface ChartGenerationResponse {
   }>
 }
 
+interface SolutionGenerationResponse {
+  solution_text: string
+  numerical_answer: string | null
+  approach_description: string
+}
+
 /**
  * AI Service - Centralized AI operations
  */
@@ -104,6 +110,26 @@ export const ai = {
       confidence: parsed.confidence,
       differences: parsed.differences,
     }
+  },
+
+  /**
+   * Generate a solution for a question
+   */
+  async generateSolution(
+    questionText: string,
+    questionType: string,
+    subject: string
+  ): Promise<SolutionGenerationResponse> {
+    const client = getAIClient()
+
+    const prompt = formatPrompt(PROMPTS.solutionGeneration, {
+      questionText,
+      questionType,
+      subject,
+    })
+
+    const response = await client.generateText(prompt)
+    return client.parseJsonResponse<SolutionGenerationResponse>(response)
   },
 
   /**

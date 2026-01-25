@@ -102,6 +102,29 @@ Prioritization:
 - 10% important/popular questions
 
 Return ONLY valid JSON.`,
+
+  // Solution generation
+  solutionGeneration: `You are an expert tutor solving a student's question.
+
+Question:
+{questionText}
+
+Type: {questionType}
+Subject: {subject}
+
+Provide a clear, step-by-step solution.
+
+Return JSON:
+{
+  "solution_text": "Full explanation in LaTeX. Break down into steps. Use $...$ for inline math and $$...$$ for block math.",
+  "numerical_answer": "Final numerical value if applicable, or null",
+  "approach_description": "One sentence summary of the strategy used (e.g. 'Conservation of Energy', 'Integration by parts')"
+}
+
+IMPORTANT:
+- Use proper LaTeX for all math
+- Be educational - explain the 'why', not just the 'how'
+- Return ONLY valid JSON`,
 } as const
 
 // Helper to replace placeholders in prompts
