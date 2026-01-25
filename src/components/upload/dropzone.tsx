@@ -1,0 +1,79 @@
+'use client'
+
+import { useCallback } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { Upload, X, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface DropzoneProps {
+  onFileSelect: (file: File) => void
+  isProcessing: boolean
+  selectedFile: File | null
+  onClear: () => void
+}
+
+export function Dropzone({ onFileSelect, isProcessing, selectedFile, onClear }: DropzoneProps) {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles[0]) {
+      onFileSelect(acceptedFiles[0])
+    }
+  }, [onFileSelect])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
+    },
+    maxFiles: 1,
+    disabled: isProcessing,
+  })
+
+  if (selectedFile) {
+    return (
+      <div className="relative rounded-lg border border-border overflow-hidden">
+        <img
+          src={URL.createObjectURL(selectedFile)}
+          alt="Selected question"
+          className="w-full max-h-96 object-contain bg-muted"
+        />
+        {isProcessing ? (
+          <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="text-sm">Processing with AI...</span>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={onClear}
+            className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-background"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      {...getRootProps()}
+      className={cn(
+        'border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors',
+        isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+      )}
+    >
+      <input {...getInputProps()} />
+      <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+      <p className="text-lg font-medium">
+        {isDragActive ? 'Drop the image here' : 'Drag & drop a question image'}
+      </p>
+      <p className="text-sm text-muted-foreground mt-1">
+        or click to select from your device
+      </p>
+      <p className="text-xs text-muted-foreground mt-4">
+        Supports PNG, JPG, JPEG, WebP (max 10MB)
+      </p>
+    </div>
+  )
+}
