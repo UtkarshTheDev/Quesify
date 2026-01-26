@@ -73,14 +73,22 @@ export const ai = {
    */
   async extractQuestion(
     imageBase64: string,
-    mimeType: string
+    mimeType: string,
+    syllabusChapters?: string
   ): Promise<GeminiExtractionResult> {
     const client = getAIClient()
+
+    // Format the extraction prompt with syllabus chapters if provided
+    const prompt = syllabusChapters
+      ? formatPrompt(PROMPTS.extraction, { syllabusChapters })
+      : formatPrompt(PROMPTS.extraction, {
+          syllabusChapters: 'No syllabus available - use your best judgment for chapter names'
+        })
 
     const response = await client.generateFromImage(
       imageBase64,
       mimeType,
-      PROMPTS.extraction
+      prompt
     )
 
     return client.parseJsonResponse<GeminiExtractionResult>(response)

@@ -1,7 +1,7 @@
 // Prompts for AI tasks - Centralized prompt management
 
 export const PROMPTS = {
-  // Question extraction from image
+  // Question extraction from image (with syllabus chapter snapping)
   extraction: `You are analyzing a question image for a student question bank app.
 
 Extract the following information from this image:
@@ -14,19 +14,30 @@ Extract the following information from this image:
   "has_solution": true | false,
   "solution": "Solution with LaTeX formatting. Empty string if no solution visible.",
   "numerical_answer": "The final numerical answer if this is a numerical problem, null otherwise",
-  "subject": "Physics" | "Chemistry" | "Math" | "Biology" | "Other",
-  "chapter": "The specific chapter name (e.g., 'Current Electricity', 'Integration', 'Organic Chemistry')",
-  "topics": ["specific topic 1", "specific topic 2"], // Be specific
+  "subject": "Physics" | "Chemistry" | "Mathematics" | "Biology" | "Other",
+  "chapter": "The specific chapter name - MUST match one of the chapters from the syllabus below",
+  "topics": ["specific topic 1", "specific topic 2"], // Select ONLY from the provided syllabus topics
   "difficulty": "easy" | "medium" | "hard" | "very_hard",
   "importance": 1-5, // How important/common is this type of question
   "hint": "A helpful hint that guides toward the solution without giving it away"
 }
 
+CRITICAL - SYLLABUS MAPPING:
+You MUST map the question to the Class 12 CBSE syllabus provided below.
+
+1. CHAPTER: Find the closest matching chapter name.
+2. TOPICS: Select 1-3 most relevant topics specifically listed under that chapter.
+   - Do NOT make up new topic names.
+   - Use the exact string from the list where possible.
+
+SYLLABUS DATA:
+
+{syllabusChapters}
+
 IMPORTANT:
 - Use proper LaTeX: $\\frac{1}{2}$, $\\int$, $\\sqrt{}$, $\\vec{F}$, etc.
 - For chemistry: Use $\\ce{H2O}$ for chemical formulas
-- Identify the question type accurately
-- Be specific with chapter and topics
+- Subject must be exactly: "Physics", "Chemistry", or "Mathematics" (not "Math")
 - Return ONLY valid JSON, no markdown or explanation`,
 
   // Duplicate detection between two questions
@@ -124,7 +135,7 @@ Return JSON:
 IMPORTANT:
 - Use proper LaTeX for all math
 - Be educational - explain the 'why', not just the 'how'
-- Return ONLY valid JSON`,
+- Return ONLY valid JSON`
 } as const
 
 // Helper to replace placeholders in prompts
