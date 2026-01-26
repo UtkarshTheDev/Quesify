@@ -24,33 +24,32 @@ export default function UploadPage() {
   // Analysis states for progressive feedback
   const [analysisStatus, setAnalysisStatus] = useState({
     extracting: false,
+    extractError: null as string | null,
     solving: false,
+    solveError: null as string | null,
     classifying: false,
-    finalizing: false
+    classifyError: null as string | null,
+    finalizing: false,
+    finalizeError: null as string | null,
   })
 
-  const handleFileSelect = async (file: File) => {
-    setSelectedFile(file)
-    setIsProcessing(true)
-    setExtractedData(null)
-    setAnalysisStatus({ extracting: true, solving: false, classifying: false, finalizing: false })
-
+  // Phase 1: Extraction
+  const runExtract = async (file: File) => {
+    setAnalysisStatus(prev => ({ ...prev, extracting: true, extractError: null }))
     try {
-      // PHASE 1: Extraction
       const formData = new FormData()
       formData.append('file', file)
 
-      const extractRes = await fetch('/api/upload/extract', {
+      const res = await fetch('/api/upload/extract', {
         method: 'POST',
         body: formData,
       })
-      const extractResult = await extractRes.json()
+      const result = await res.json()
 
-      if (!extractRes.ok) throw new Error(extractResult.error || 'Extraction failed')
+      if (!res.ok) throw new Error(result.error || 'Extraction failed')
 
-      // Show base data immediately
       const initialData: ExtractedData = {
-        ...extractResult.data,
+        ...result.data,
         embedding: [],
         solution: '',
         hint: '',
@@ -60,86 +59,131 @@ export default function UploadPage() {
         topics: []
       }
       setExtractedData(initialData)
-      setAnalysisStatus(prev => ({ ...prev, extracting: false, solving: true, classifying: true }))
-      setIsProcessing(false) // Base processing done, card is visible
+      setAnalysisStatus(prev => ({ ...prev, extracting: false }))
 
-      // PHASE 2 & 3: Parallel Background Tasks
-      const solvePromise = fetch('/api/upload/solve', {
+      // Kick off background tasks automatically after extraction
+      runSolve(result.data.question_text, result.data.type, result.data.subject)
+      runClassify(result.data.question_text)
+    } catch (error) {
+      setAnalysisStatus(prev => ({
+        ...prev,
+        extracting: false,
+        extractError: error instanceof Error ? error.message : 'Extraction failed'
+      }))
+      toast.error('Extraction failed')
+    }
+  }
+
+  // Phase 2: Solving
+  const runSolve = async (text: string, type: string, subject: string) => {
+    setAnalysisStatus(prev => ({ ...prev, solving: true, solveError: null }))
+    try {
+      const res = await fetch('/api/upload/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question_text: extractResult.data.question_text,
-          type: extractResult.data.type,
-          subject: extractResult.data.subject
-        })
-      }).then(r => r.json())
+        body: JSON.stringify({ question_text: text, type, subject })
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Solving failed')
 
-      const classifyPromise = fetch('/api/upload/classify', {
+      setExtractedData(prev => prev ? ({
+        ...prev,
+        solution: result.data.solution,
+        hint: result.data.hint,
+        numerical_answer: result.data.numerical_answer
+      }) : null)
+      setAnalysisStatus(prev => ({ ...prev, solving: false }))
+      checkAllDone(text)
+    } catch (error) {
+      setAnalysisStatus(prev => ({
+        ...prev,
+        solving: false,
+        solveError: error instanceof Error ? error.message : 'Solving failed'
+      }))
+    }
+  }
+
+  // Phase 3: Classification
+  const runClassify = async (text: string) => {
+    setAnalysisStatus(prev => ({ ...prev, classifying: true, classifyError: null }))
+    try {
+      const res = await fetch('/api/upload/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: extractResult.data.question_text })
-      }).then(r => r.json())
-
-      // Await them separately to update UI as they arrive
-      solvePromise.then(res => {
-        if (res.success) {
-          setExtractedData(prev => prev ? ({
-            ...prev,
-            solution: res.data.solution,
-            hint: res.data.hint,
-            numerical_answer: res.data.numerical_answer
-          }) : null)
-        }
-        setAnalysisStatus(prev => ({ ...prev, solving: false }))
+        body: JSON.stringify({ question_text: text })
       })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Classification failed')
 
-      classifyPromise.then(res => {
-        if (res.success) {
-          setExtractedData(prev => prev ? ({
-            ...prev,
-            subject: res.data.subject,
-            chapter: res.data.chapter,
-            topics: res.data.topics,
-            difficulty: res.data.difficulty,
-            importance: res.data.importance
-          }) : null)
-        }
-        setAnalysisStatus(prev => ({ ...prev, classifying: false }))
-      })
+      setExtractedData(prev => prev ? ({
+        ...prev,
+        subject: result.data.subject,
+        chapter: result.data.chapter,
+        topics: result.data.topics,
+        difficulty: result.data.difficulty,
+        importance: result.data.importance
+      }) : null)
+      setAnalysisStatus(prev => ({ ...prev, classifying: false }))
+      checkAllDone(text)
+    } catch (error) {
+      setAnalysisStatus(prev => ({
+        ...prev,
+        classifying: false,
+        classifyError: error instanceof Error ? error.message : 'Classification failed'
+      }))
+    }
+  }
 
-      // Wait for both to trigger finalization (duplicate check/embeddings)
-      await Promise.allSettled([solvePromise, classifyPromise])
+  // Check if we should run finalization
+  const checkAllDone = (text: string) => {
+    setAnalysisStatus(prev => {
+      if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError) {
+        runFinalize(text)
+      }
+      return prev
+    })
+  }
 
-      setAnalysisStatus(prev => ({ ...prev, finalizing: true }))
-      const finalizeRes = await fetch('/api/upload/finalize', {
+  // Phase 4: Finalize (Embeddings/Duplicates)
+  const runFinalize = async (text: string) => {
+    setAnalysisStatus(prev => ({ ...prev, finalizing: true, finalizeError: null }))
+    try {
+      const res = await fetch('/api/upload/finalize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: extractResult.data.question_text })
+        body: JSON.stringify({ question_text: text })
       })
-      const finalizeResult = await finalizeRes.json()
-
-      if (finalizeResult.success) {
+      const result = await res.json()
+      if (result.success) {
         setExtractedData(prev => prev ? ({
           ...prev,
-          embedding: finalizeResult.data.embedding,
-          duplicate_check: finalizeResult.data.duplicate_check
+          embedding: result.data.embedding,
+          duplicate_check: result.data.duplicate_check
         }) : null)
       }
       setAnalysisStatus(prev => ({ ...prev, finalizing: false }))
-
-      toast.success('Analysis complete! Review and save.')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Processing failed. Please try again.')
-      setSelectedFile(null)
-      setIsProcessing(false)
-      setAnalysisStatus({ extracting: false, solving: false, classifying: false, finalizing: false })
+      setAnalysisStatus(prev => ({ ...prev, finalizing: false, finalizeError: 'Deduplication check failed' }))
     }
+  }
+
+  const handleFileSelect = async (file: File) => {
+    setSelectedFile(file)
+    setIsProcessing(true)
+    setExtractedData(null)
+    await runExtract(file)
+    setIsProcessing(false)
   }
 
   const handleClear = () => {
     setSelectedFile(null)
     setExtractedData(null)
-    setAnalysisStatus({ extracting: false, solving: false, classifying: false, finalizing: false })
+    setAnalysisStatus({
+      extracting: false, extractError: null,
+      solving: false, solveError: null,
+      classifying: false, classifyError: null,
+      finalizing: false, finalizeError: null
+    })
   }
 
   const handleSave = async (data: ExtractedData) => {
@@ -188,6 +232,9 @@ export default function UploadPage() {
           status={analysisStatus}
           onSave={handleSave}
           isSaving={isSaving}
+          onRetryExtract={() => selectedFile && runExtract(selectedFile)}
+          onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject)}
+          onRetryClassify={() => runClassify(extractedData.question_text)}
         />
       )}
     </div>
