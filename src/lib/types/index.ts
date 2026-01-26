@@ -21,6 +21,7 @@ export interface GeminiExtractionResult {
   difficulty: 'easy' | 'medium' | 'hard' | 'very_hard'
   importance: number
   hint: string
+  correct_option?: number | null
 }
 
 // Duplicate check result
