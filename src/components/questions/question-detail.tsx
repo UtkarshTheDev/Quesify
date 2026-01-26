@@ -45,6 +45,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('question')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isMarkingSolved, setIsMarkingSolved] = useState(false)
 
   const handleGenerateSolution = async () => {
     setIsGenerating(true)
@@ -67,6 +68,32 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
       toast.error(error instanceof Error ? error.message : 'Something went wrong')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleMarkSolved = async () => {
+    setIsMarkingSolved(true)
+    try {
+      const response = await fetch('/api/questions/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: question.id,
+          solved: true,
+          timeSpent: 0
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update status')
+      }
+
+      toast.success('Question marked as solved! Streak updated.')
+      router.refresh()
+    } catch (error) {
+      toast.error('Failed to mark as solved')
+    } finally {
+      setIsMarkingSolved(false)
     }
   }
 
@@ -317,6 +344,26 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                   </span>
                 </div>
               </div>
+
+              {!stats?.solved && (
+                <Button
+                  className="w-full mt-4"
+                  onClick={handleMarkSolved}
+                  disabled={isMarkingSolved}
+                >
+                  {isMarkingSolved ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Mark as Solved
+                    </>
+                  )}
+                </Button>
+              )}
             </CardContent>
           </Card>
 

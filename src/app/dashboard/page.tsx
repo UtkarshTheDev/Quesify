@@ -4,9 +4,13 @@ import { Upload, BookOpen, ChevronRight, LayoutGrid, Sparkles } from 'lucide-rea
 import Link from 'next/link'
 import { QuestionCard } from '@/components/questions/question-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { ChartsSection, ChartsSkeleton } from '@/components/dashboard/charts-section'
 import { Suspense } from 'react'
+import {
+  UserQuestionWithStatsJoinResult,
+  UserQuestionSubjectJoinResult,
+  extractQuestion
+} from '@/lib/types'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -63,8 +67,10 @@ export default async function DashboardPage() {
 
   // Aggregate subjects
   const subjectCounts: Record<string, number> = {}
-  allQuestions?.forEach((item: any) => {
-    const subject = item.question?.subject || 'Uncategorized'
+  const questionsData = allQuestions as UserQuestionSubjectJoinResult[] | null
+  questionsData?.forEach((item) => {
+    const q = extractQuestion(item.question)
+    const subject = q?.subject || 'Uncategorized'
     subjectCounts[subject] = (subjectCounts[subject] || 0) + 1
   })
 
@@ -145,12 +151,16 @@ export default async function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recentQuestions?.map((item: any) => (
-            <QuestionCard
-              key={item.question.id}
-              question={item.question}
-            />
-          ))}
+          {(recentQuestions as UserQuestionWithStatsJoinResult[] | null)?.map((item) => {
+             const question = extractQuestion(item.question)
+             if (!question) return null
+             return (
+              <QuestionCard
+                key={question.id}
+                question={question}
+              />
+            )
+          })}
         </div>
       </section>
     </div>
