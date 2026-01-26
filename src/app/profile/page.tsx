@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Zap, BookOpen, Trophy, Download } from 'lucide-react'
+import { Zap, BookOpen, Trophy, Download, CheckCircle2, XCircle, Clock, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function ProfilePage() {
@@ -20,6 +22,24 @@ export default async function ProfilePage() {
     .select('*')
     .eq('user_id', user.id)
     .single()
+
+  const { data: recentActivity } = await supabase
+    .from('user_question_stats')
+    .select(`
+      updated_at,
+      solved,
+      failed,
+      attempts,
+      question:questions (
+        id,
+        chapter,
+        subject,
+        difficulty
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+    .limit(5)
 
   if (!profile) {
     return (
@@ -122,7 +142,52 @@ export default async function ProfilePage() {
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">No recent activity recorded.</p>
+              {recentActivity && recentActivity.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivity.map((activity, idx) => {
+                    // Type assertion since fetch result can be generic
+                    const question = activity.question as any
+                    if (!question) return null
+
+                    return (
+                      <div key={idx} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                        <div className="mt-1">
+                          {activity.solved ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : activity.failed ? (
+                            <XCircle className="h-5 w-5 text-red-500" />
+                          ) : (
+                            <Clock className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium text-sm">
+                              {activity.solved ? 'Solved' : activity.failed ? 'Attempted' : 'Practiced'}{' '}
+                              <span className="text-muted-foreground">
+                                {question.subject} question
+                              </span>
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(activity.updated_at), 'MMM d, h:mm a')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {question.chapter}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/dashboard/questions/${question.id}`}>
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">No recent activity recorded.</p>
+              )}
             </CardContent>
           </Card>
         </div>
