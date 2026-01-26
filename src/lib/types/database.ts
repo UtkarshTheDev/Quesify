@@ -32,6 +32,7 @@ export interface Solution {
   likes: number
   is_ai_best: boolean
   created_at: string
+  updated_at: string
 }
 
 export interface UserQuestion {
