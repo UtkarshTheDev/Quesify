@@ -2,8 +2,12 @@
 export const AI_CONFIG = {
   // Models
   models: {
-    // Main model for text generation, image analysis, etc.
-    default: 'gemini-2.0-flash',
+    // Default/Fast model for high-speed tasks (extraction, validation)
+    fast: 'gemini-2.5-flash-lite',
+    // Reasoning model for complex logic (solutions)
+    reasoning: 'gemini-3-flash-preview',
+    // Vision model for image analysis
+    vision: 'gemini-2.5-flash',
     // Embedding model for vector search
     embedding: 'text-embedding-004',
   },
@@ -19,6 +23,9 @@ export const AI_CONFIG = {
     maxAttempts: 3,
     delayMs: 1000,
   },
+
+  // Debugging
+  debug: process.env.NODE_ENV === 'development',
 } as const
 
 export type ModelType = keyof typeof AI_CONFIG.models
