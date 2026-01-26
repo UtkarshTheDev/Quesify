@@ -206,13 +206,24 @@ export async function getAllSyllabusFromDB(): Promise<Record<string, SyllabusDat
   }
 }
 
+// Simple in-memory cache
+const syllabusCache: Record<string, SyllabusData> = {}
+const allSyllabusCache: { data: Record<string, SyllabusData> | null, timestamp: number } = { data: null, timestamp: 0 }
+const CACHE_TTL = 1000 * 60 * 60 // 1 hour
+
 /**
  * Get syllabus data for a subject with fallback to static data
  */
 export async function getSyllabus(subject: string): Promise<SyllabusData> {
+  // Check cache
+  if (syllabusCache[subject]) {
+    return syllabusCache[subject]
+  }
+
   // Try database first
   const dbData = await getSyllabusFromDB(subject)
   if (dbData) {
+    syllabusCache[subject] = dbData
     return dbData
   }
 
@@ -220,7 +231,7 @@ export async function getSyllabus(subject: string): Promise<SyllabusData> {
   console.log(`Using static syllabus data for ${subject}`)
   const staticEntries = getSyllabusBySubject(subject)
 
-  return {
+  const result = {
     subject,
     chapters: staticEntries.map(entry => ({
       chapter: entry.chapter,
@@ -228,15 +239,25 @@ export async function getSyllabus(subject: string): Promise<SyllabusData> {
       priority: entry.priority
     }))
   }
+
+  syllabusCache[subject] = result
+  return result
 }
 
 /**
  * Get syllabus data for all subjects with fallback to static data
  */
 export async function getAllSyllabus(): Promise<Record<string, SyllabusData>> {
+  // Check cache
+  if (allSyllabusCache.data && (Date.now() - allSyllabusCache.timestamp < CACHE_TTL)) {
+    return allSyllabusCache.data
+  }
+
   // Try database first
   const dbData = await getAllSyllabusFromDB()
   if (Object.keys(dbData).length > 0) {
+    allSyllabusCache.data = dbData
+    allSyllabusCache.timestamp = Date.now()
     return dbData
   }
 
@@ -259,6 +280,8 @@ export async function getAllSyllabus(): Promise<Record<string, SyllabusData>> {
     return acc
   }, {} as Record<string, SyllabusData>)
 
+  allSyllabusCache.data = grouped
+  allSyllabusCache.timestamp = Date.now()
   return grouped
 }
 
