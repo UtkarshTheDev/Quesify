@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { SolutionSteps } from '@/components/questions/solution-steps'
 import { Latex } from '@/components/ui/latex'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Check, Edit2, Loader2, AlertTriangle, Copy } from 'lucide-react'
@@ -17,17 +18,38 @@ interface PreviewCardProps {
     embedding: number[];
     duplicate_check?: DuplicateCheckResult | null;
   }
-  onSave: (data: GeminiExtractionResult & { image_url: string; embedding: number[] }) => Promise<void>
+  onSave: (data: GeminiExtractionResult & {
+    image_url: string;
+    embedding: number[];
+    existing_question_id?: string;
+  }) => Promise<void>
   isSaving: boolean
 }
 
 export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
   const [editMode, setEditMode] = useState(false)
-  const [editedData, setEditedData] = useState(data)
+  const [editedData, setEditedData] = useState({
+    ...data,
+    hint: data.hint || '',
+    solution: data.solution || '',
+    numerical_answer: data.numerical_answer || ''
+  })
 
   const handleSave = async () => {
     await onSave(editedData)
   }
+
+  const handleLinkToExisting = async () => {
+    if (!data.duplicate_check?.matched_question_id) return
+
+    // We pass the current edited data (in case they fixed the solution)
+    // but include the existing ID to trigger the link logic in the API
+    await onSave({
+      ...editedData,
+      existing_question_id: data.duplicate_check.matched_question_id
+    })
+  }
+
 
   const difficultyColors: Record<string, string> = {
     easy: 'bg-green-500/20 text-green-400',
@@ -64,6 +86,16 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
               </p>
               <div className="mt-3 flex gap-2">
                 <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  onClick={handleLinkToExisting}
+                  disabled={isSaving}
+                >
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+                  Link as Solution
+                </Button>
+                <Button
                   variant="outline"
                   size="sm"
                   className="border-yellow-500/50 hover:bg-yellow-500/10"
@@ -75,8 +107,10 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
                   variant="ghost"
                   size="sm"
                   className="hover:bg-yellow-500/10"
+                  onClick={handleSave}
+                  disabled={isSaving}
                 >
-                  Save Anyway
+                  Save as New
                 </Button>
               </div>
             </AlertDescription>
@@ -88,24 +122,24 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
           <Label>Question</Label>
           {editMode ? (
             <textarea
-              className="w-full min-h-32 p-3 rounded-md bg-muted border"
+              className="w-full min-h-32 p-3 rounded-md bg-muted border font-mono text-sm leading-relaxed"
               value={editedData.question_text}
               onChange={(e) => setEditedData({ ...editedData, question_text: e.target.value })}
             />
           ) : (
-            <div className="p-3 rounded-md bg-muted">
+            <div className="p-4 rounded-md bg-muted/30 border border-border/50 text-base leading-loose">
               <Latex>{editedData.question_text}</Latex>
             </div>
           )}
         </div>
 
         {/* Options (if MCQ) */}
-        {editedData.options.length > 0 && (
+        {editedData.options && editedData.options.length > 0 && (
           <div className="space-y-2">
             <Label>Options</Label>
             <div className="space-y-2">
               {editedData.options.map((option, index) => (
-                <div key={index} className="p-2 rounded-md bg-muted">
+                <div key={index} className="p-3 rounded-md bg-muted/30 border border-border/50 text-base leading-relaxed">
                   <Latex>{option}</Latex>
                 </div>
               ))}
@@ -119,13 +153,13 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
             <Label>Solution</Label>
             {editMode ? (
               <textarea
-                className="w-full min-h-32 p-3 rounded-md bg-muted border"
+                className="w-full min-h-32 p-3 rounded-md bg-muted border font-mono text-sm leading-relaxed"
                 value={editedData.solution}
                 onChange={(e) => setEditedData({ ...editedData, solution: e.target.value })}
               />
             ) : (
-              <div className="p-3 rounded-md bg-muted">
-                <Latex>{editedData.solution}</Latex>
+              <div className="p-4 rounded-md bg-muted/30 border border-border/50">
+                <SolutionSteps content={editedData.solution} />
               </div>
             )}
           </div>
@@ -136,13 +170,13 @@ export function PreviewCard({ data, onSave, isSaving }: PreviewCardProps) {
           <Label>Hint</Label>
           {editMode ? (
             <textarea
-              className="w-full min-h-20 p-3 rounded-md bg-muted border"
+              className="w-full min-h-20 p-3 rounded-md bg-muted border font-mono text-sm leading-relaxed"
               value={editedData.hint}
               onChange={(e) => setEditedData({ ...editedData, hint: e.target.value })}
             />
           ) : (
-            <div className="p-3 rounded-md bg-muted text-sm">
-              {editedData.hint}
+            <div className="p-4 rounded-md bg-muted/20 border border-yellow-500/20 text-base leading-loose italic text-muted-foreground">
+              <Latex>{editedData.hint}</Latex>
             </div>
           )}
         </div>
