@@ -93,7 +93,7 @@ export const ai = {
       'vision'
     )
 
-    return client.parseToonResponse<GeminiExtractionResult>(response)
+    return client.parseAiJson<GeminiExtractionResult>(response)
   },
 
   /**
@@ -111,7 +111,7 @@ export const ai = {
     })
 
     const response = await client.generateText(prompt, 'fast')
-    const parsed = client.parseJsonResponse<DuplicateAnalysisResponse>(response)
+    const parsed = client.parseAiJson<DuplicateAnalysisResponse>(response)
 
     return {
       is_duplicate: parsed.verdict === 'SAME',
@@ -139,7 +139,25 @@ export const ai = {
     })
 
     const response = await client.generateText(prompt, 'reasoning')
-    return client.parseToonResponse<SolutionGenerationResponse>(response)
+    return client.parseAiJson<SolutionGenerationResponse>(response)
+  },
+
+  /**
+   * Classify a question and map to syllabus
+   */
+  async classifyQuestion(
+    questionText: string,
+    syllabusChapters: string
+  ): Promise<GeminiExtractionResult> {
+    const client = getAIClient()
+
+    const prompt = formatPrompt(PROMPTS.classification, {
+      questionText,
+      syllabusChapters,
+    })
+
+    const response = await client.generateText(prompt, 'fast')
+    return client.parseAiJson<GeminiExtractionResult>(response)
   },
 
   /**
@@ -191,7 +209,7 @@ export const ai = {
     })
 
     const response = await client.generateText(prompt, 'reasoning')
-    const parsed = client.parseToonResponse<ChartGenerationResponse>(response)
+    const parsed = client.parseAiJson<ChartGenerationResponse>(response)
 
     return parsed.charts.map((chart, index) => ({
       id: `chart-${Date.now()}-${index}`,
@@ -218,7 +236,7 @@ export const ai = {
   ): Promise<T> {
     const client = getAIClient()
     const response = await client.generateFromImage(imageBase64, mimeType, prompt, 'vision')
-    return client.parseJsonResponse<T>(response)
+    return client.parseAiJson<T>(response)
   },
 }
 

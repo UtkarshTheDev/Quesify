@@ -329,12 +329,15 @@ export function formatSyllabusForPrompt(syllabusData: SyllabusData): string {
 
 /**
  * Format all syllabus data for AI prompt
+ * Now optimized for JSON retrieval by providing clear subject-chapter hierarchy
  */
 export function formatAllSyllabusForPrompt(allSyllabus: Record<string, SyllabusData>): string {
   return Object.entries(allSyllabus)
     .map(([subject, data]) => {
-      const chapters = formatSyllabusForPrompt(data)
-      return `${subject}:\n${chapters}`
+      const chapters = data.chapters
+        .map(ch => `- ${ch.chapter}`)
+        .join('\n')
+      return `[SUBJECT: ${subject}]\n${chapters}`
     })
     .join('\n\n')
 }
