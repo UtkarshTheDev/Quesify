@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { User, Zap, BookOpen, Trophy } from 'lucide-react'
+import { Zap, BookOpen, Trophy, Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -24,7 +25,7 @@ export default async function ProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <h1 className="text-2xl font-bold mb-4">Profile not found</h1>
-        <p className="text-muted-foreground">We couldn't load your profile information.</p>
+        <p className="text-muted-foreground">We couldn&apos;t load your profile information.</p>
       </div>
     )
   }
@@ -62,6 +63,20 @@ export default async function ProfilePage() {
                 <div className="text-2xl font-bold">{profile.total_solved}</div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wider">Solved</div>
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="pt-2">
+              <a href="/api/export" download className="w-full block">
+                <Button variant="outline" className="w-full gap-2">
+                  <Download className="h-4 w-4" />
+                  Export My Data
+                </Button>
+              </a>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Download a CSV of all your questions
+              </p>
             </div>
           </CardContent>
         </Card>
