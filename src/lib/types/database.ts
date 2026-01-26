@@ -108,3 +108,33 @@ export interface QuestionWithStats extends Question {
   stats: UserQuestionStats | null
   solutions: Solution[]
 }
+
+// Supabase join result types
+// When joining tables, Supabase may return arrays or single objects depending on the relationship
+// These types properly handle both cases
+
+export interface UserQuestionJoinResult {
+  added_at: string
+  question: Question | Question[] | null
+}
+
+export interface UserQuestionWithStatsJoinResult {
+  added_at: string
+  question: QuestionWithSolutionCount | QuestionWithSolutionCount[] | null
+}
+
+export interface QuestionWithSolutionCount extends Question {
+  solutions: { count: number }[]
+  user_question_stats: UserQuestionStats[]
+}
+
+export interface UserQuestionSubjectJoinResult {
+  question: { subject: string | null } | { subject: string | null }[] | null
+}
+
+// Helper function to extract a single question from join result
+export function extractQuestion<T>(joined: T | T[] | null): T | null {
+  if (joined === null) return null
+  if (Array.isArray(joined)) return joined[0] ?? null
+  return joined
+}
