@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai'
 import { AI_CONFIG, ModelType } from './config'
+import { parseToonResponse, repairAndParseJson } from './toon'
 
 // Singleton AI client
 class AIClient {
@@ -23,7 +24,7 @@ class AIClient {
   }
 
   // Get a model instance (cached)
-  getModel(type: ModelType = 'default'): GenerativeModel {
+  getModel(type: ModelType = 'fast'): GenerativeModel {
     const modelName = AI_CONFIG.models[type]
 
     if (!this.models.has(modelName)) {
@@ -34,8 +35,8 @@ class AIClient {
   }
 
   // Generate text content
-  async generateText(prompt: string): Promise<string> {
-    const model = this.getModel('default')
+  async generateText(prompt: string, modelType: ModelType = 'fast'): Promise<string> {
+    const model = this.getModel(modelType)
     const result = await model.generateContent(prompt)
     return result.response.text()
   }
@@ -44,9 +45,10 @@ class AIClient {
   async generateFromImage(
     imageBase64: string,
     mimeType: string,
-    prompt: string
+    prompt: string,
+    modelType: ModelType = 'vision'
   ): Promise<string> {
-    const model = this.getModel('default')
+    const model = this.getModel(modelType)
     const result = await model.generateContent([
       {
         inlineData: {
@@ -66,6 +68,16 @@ class AIClient {
     return result.embedding.values
   }
 
+  // Parse TOON response
+  parseToonResponse<T>(response: string): T {
+    if (AI_CONFIG.debug) {
+      console.log('--- RAW AI RESPONSE ---')
+      console.log(response)
+      console.log('-----------------------')
+    }
+    return parseToonResponse<T>(response)
+  }
+
   // Parse JSON response with cleanup and robust repair
   parseJsonResponse<T>(response: string): T {
     const cleaned = response
@@ -74,60 +86,10 @@ class AIClient {
       .trim()
 
     try {
-      return JSON.parse(cleaned) as T
+      return repairAndParseJson<T>(cleaned)
     } catch (error) {
-      console.log('Standard JSON parse failed, attempting repair...')
-
-      // Robust repair for common LLM JSON errors (LaTeX backslashes, newlines)
-      let fixed = ''
-      let inString = false
-
-      for (let i = 0; i < cleaned.length; i++) {
-        const char = cleaned[i]
-
-        if (inString) {
-          if (char === '\\') {
-            // Check next char
-            const nextChar = cleaned[i + 1]
-            const validEscapes = ['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u']
-
-            if (validEscapes.includes(nextChar)) {
-              // Valid escape sequence, keep it
-              fixed += char + nextChar
-              i++
-            } else {
-              // Invalid escape sequence (like \v, \c, or \ followed by space for LaTeX)
-              // Escape the backslash
-              fixed += '\\\\'
-            }
-          } else if (char === '"') {
-            inString = false
-            fixed += char
-          } else if (char === '\n') {
-            // Escape literal newlines in strings
-            fixed += '\\n'
-          } else if (char === '\t') {
-            // Escape literal tabs
-            fixed += '\\t'
-          } else if (char === '\r') {
-            // Ignore carriage returns
-          } else {
-            fixed += char
-          }
-        } else {
-          if (char === '"') {
-            inString = true
-          }
-          fixed += char
-        }
-      }
-
-      try {
-        return JSON.parse(fixed) as T
-      } catch (retryError) {
-        console.error('Failed to parse AI response after repair:', fixed)
-        throw new Error('Failed to parse AI response. Please try again.')
-      }
+      console.error('Failed to parse AI response:', cleaned)
+      throw new Error('Failed to parse AI response. Please try again.')
     }
   }
 }

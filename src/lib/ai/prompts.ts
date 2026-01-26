@@ -2,46 +2,41 @@
 
 export const PROMPTS = {
   // Question extraction from image (with syllabus chapter snapping)
-  extraction: `You are analyzing a question image for a student question bank app.
+  extraction: `You are an expert educational content extractor.
+Analyze the question image and return the data in structured TOON format.
 
-Extract the following information from this image:
+STYLING & FORMAT RULES:
+1. Quote all strings that contain spaces, backslashes (\\), or special characters.
+2. WHITESPACE: Be extremely generous with vertical whitespace.
+   - Use triple-escaped newlines ("\\\\n\\\\n\\\\n") between discrete steps.
+   - Use double-escaped newlines ("\\\\n\\\\n") between equations or logical blocks within a step.
+3. Use 2-space indentation for the root structure.
+4. Return ONLY the TOON block.
 
-{
-  "question_text": "Full question with LaTeX formatting (use $...$ for inline math, $$...$$ for block math). Include all mathematical expressions properly formatted.",
-  "options": ["A) option text", "B) option text", ...], // Empty array [] if not MCQ. Include LaTeX for math.
-  "type": "MCQ" | "VSA" | "SA" | "LA" | "CASE_STUDY",
-  "has_diagram": true | false, // true if the question contains any diagram, graph, circuit, or figure
-  "has_solution": true | false,
-  "solution": "Solution with LaTeX formatting. Empty string if no solution visible.",
-  "numerical_answer": "The final numerical answer if this is a numerical problem, null otherwise",
-  "subject": "Physics" | "Chemistry" | "Mathematics" | "Biology" | "Other",
-  "chapter": "The specific chapter name - MUST match one of the chapters from the syllabus below",
-  "topics": ["specific topic 1", "specific topic 2"], // Select ONLY from the provided syllabus topics
-  "difficulty": "easy" | "medium" | "hard" | "very_hard",
-  "importance": 1-5, // How important/common is this type of question
-  "hint": "A helpful hint that guides toward the solution without giving it away"
-}
+MANDATORY FIELDS:
+- question_text: Full question with LaTeX.
+- options[N]: Array of options (if MCQ).
+- type: MCQ | VSA | SA | LA | CASE_STUDY.
+- solution: Detailed step-by-step solution. Break into clear parts.
+- hint: Provide a 1-2 sentence hint.
+- subject | chapter | topics[N]: Map correctly.
 
-CRITICAL - SYLLABUS MAPPING:
-You MUST map the question to the Class 12 CBSE syllabus provided below.
-
-1. CHAPTER: Find the closest matching chapter name.
-2. TOPICS: Select 1-3 most relevant topics specifically listed under that chapter.
-   - Do NOT make up new topic names.
-   - Use the exact string from the list where possible.
+EXAMPLE SOLUTION STRUCTURE:
+solution: "Step 1: Identify the given values.\\\\n\\\\n\\\\nStep 2: Apply the formula: $F=ma$\\\\n\\\\n$F = 5 \\\\times 10 = 50N$\\\\n\\\\n\\\\nStep 3: Final answer is 50N."
 
 SYLLABUS DATA:
-
 {syllabusChapters}
 
 IMPORTANT:
-- Use proper LaTeX: $\\frac{1}{2}$, $\\int$, $\\sqrt{}$, $\\vec{F}$, etc.
-- For chemistry: Use $\\ce{H2O}$ for chemical formulas
-- Subject must be exactly: "Physics", "Chemistry", or "Mathematics" (not "Math")
-- Return ONLY valid JSON, no markdown or explanation`,
+- Ensure the solution is human-readable and clean.
+- Return ONLY the TOON block.`,
 
   // Duplicate detection between two questions
-  duplicateAnalysis: `Compare these two questions and determine if they are duplicates:
+  duplicateAnalysis: `Compare these two questions and determine if they are duplicates in TOON format.
+  
+STYLING RULES:
+1. Quote strings with spaces or special characters.
+2. Return ONLY the TOON block.
 
 Question A:
 {questionA}
@@ -49,37 +44,32 @@ Question A:
 Question B:
 {questionB}
 
-Analyze:
-1. Are they testing the SAME concept?
-2. Is the solving approach the SAME?
-3. Are there any tricky differences (different constraints, edge cases, numerical values)?
+analysis{same_concept,same_approach,differences,verdict,confidence}:
+  true,true,"Description of differences","SAME",0.95
 
-Return JSON:
-{
-  "same_concept": true | false,
-  "same_approach": true | false,
-  "differences": "Description of key differences if any",
-  "verdict": "SAME" | "DIFFERENT_APPROACH" | "DIFFERENT_QUESTION",
-  "confidence": 0.0-1.0
-}
-
-SAME = Same concept AND same approach (true duplicate)
-DIFFERENT_APPROACH = Same concept but different solving method (add as new solution)
-DIFFERENT_QUESTION = Different concept entirely (not a duplicate)
-
-Return ONLY valid JSON.`,
+Return ONLY valid TOON.`,
 
   // Image validation
-  imageValidation: `Is this image a valid educational question (from a textbook, exam, worksheet, etc.)?
+  imageValidation: `Analyze if this image is a valid educational question.
+Return results in TOON format.
 
-Return JSON:
-{
-  "isValid": true | false,
-  "isBlurry": true | false,
-  "reason": "Brief explanation if invalid"
-}
+validation{isValid,isBlurry,reason}:
+  true,false,"Valid question text detected"
 
-Return ONLY valid JSON.`,
+Return ONLY valid TOON.`,
+
+  // Content tweaking
+  contentTweaking: `You are an expert tutor refining educational content.
+
+Original Content ({contentType}):
+"{originalContent}"
+
+User Instruction: "{userInstruction}"
+
+Task: Rewrite the content according to the instruction.
+Maintain TOON rules: quote LaTeX, be generous with whitespace (\\\\n\\\\n).
+
+Return ONLY the rewritten content text.`,
 
   // Chart/feed generation
   chartGeneration: `Generate personalized question charts for this user:
@@ -87,32 +77,36 @@ Return ONLY valid JSON.`,
 User Stats:
 - Weak chapters: {weakChapters}
 - Recent focus: {recentSubjects}
-- Struggle rates by topic: {struggleRates}
-- Total questions available: {totalQuestions}
+- Struggle rates: {struggleRates}
 
-Available question IDs by category:
+Available IDs:
 {questionCategories}
 
-Generate 3-5 personalized chart recommendations:
-{
-  "charts": [
-    {
-      "name": "Creative, engaging chart name",
-      "description": "Why this chart helps the student",
-      "question_ids": ["id1", "id2", ...],
-      "count": 10,
-      "type": "daily_feed" | "topic_review" | "quick_mcq" | "weak_areas"
-    }
-  ]
-}
+Generate 3-5 personalized chart recommendations in TOON format:
 
-Prioritization:
-- 40% from weak chapters (high fail rate)
-- 30% from recent uploads/focus
-- 20% confidence builders (easier questions from strong areas)
-- 10% important/popular questions
+charts[N]{name,description,question_ids,count,type}:
+  "Daily Drive","Practice weak areas",[id1, id2],10,daily_feed
 
-Return ONLY valid JSON.`,
+Return ONLY valid TOON format.`,
+
+  // Classification & Metadata
+  classification: `Map the following question to the provided syllabus and estimate levels.
+Return ONLY structured TOON format.
+
+STYLING RULES:
+1. Quote strings with spaces, backslashes (\\), or special characters.
+2. Use 2-space indentation.
+
+QUESTION TEXT:
+{questionText}
+
+SYLLABUS DATA:
+{syllabusChapters}
+
+metadata{subject,chapter,topics[N],difficulty,importance}:
+  "Subject Name","Chapter Name",["Topic A", "Topic B"],"medium",3
+
+Return ONLY the TOON block.`,
 
   // Solution generation
   solutionGeneration: `You are an expert tutor solving a student's question.
@@ -123,19 +117,25 @@ Question:
 Type: {questionType}
 Subject: {subject}
 
-Provide a clear, step-by-step solution.
+Provide a clear, step-by-step solution in TOON format.
 
-Return JSON:
-{
-  "solution_text": "Full explanation in LaTeX. Break down into steps. Use $...$ for inline math and $$...$$ for block math.",
-  "numerical_answer": "Final numerical value if applicable, or null",
-  "approach_description": "One sentence summary of the strategy used (e.g. 'Conservation of Energy', 'Integration by parts')"
-}
+FORMAT RULES:
+1. WHITESPACE: Be extremely generous with vertical whitespace.
+2. For line breaks between major steps, use triple-escaped newlines ("\\\\n\\\\n\\\\n").
+3. For breaks between lines/equations within a step, use double-escaped newlines ("\\\\n\\\\n").
+4. Discrete Steps: Label them clearly (Step 1, Step 2, ...).
+
+EXAMPLE SOLUTION:
+solution_text: "Step 1: Formula definition\\\\n\\\\n\\\\nStep 2: Integration process\\\\n\\\\n$\\\\int x dx = \\\\frac{x^2}{2}$\\\\n\\\\n\\\\nStep 3: Conclusion."
+
+REQUIRED STRUCTURE:
+solution_text: "Full explanation with generous spacing."
+numerical_answer: "Final numerical value or null"
+approach_description: "Summary of strategy"
 
 IMPORTANT:
-- Use proper LaTeX for all math
-- Be educational - explain the 'why', not just the 'how'
-- Return ONLY valid JSON`
+- HIGHLIGHTING: Use **Bold** for concepts, \`\\\\boxed{...}\` for results.
+- RETURN ONLY VALID TOON block.`
 } as const
 
 // Helper to replace placeholders in prompts
