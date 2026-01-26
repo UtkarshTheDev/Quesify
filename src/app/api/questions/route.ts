@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import type { GeminiExtractionResult } from '@/lib/types'
+import type { GeminiExtractionResult, Question } from '@/lib/types'
 
 interface SaveQuestionRequest extends GeminiExtractionResult {
   image_url: string
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    let query = supabase
+    const query = supabase
       .from('user_questions')
       .select(`
         question:questions(
@@ -140,13 +140,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter by subject/chapter if provided (post-query filtering)
-    let questions = data?.map(d => d.question).filter(Boolean) || []
+    let questions = (data?.map(d => d.question).filter(Boolean) || []) as unknown as Question[]
 
     if (subject) {
-      questions = questions.filter((q: any) => q.subject === subject)
+      questions = questions.filter((q) => q.subject === subject)
     }
     if (chapter) {
-      questions = questions.filter((q: any) => q.chapter === chapter)
+      questions = questions.filter((q) => q.chapter === chapter)
     }
 
     return NextResponse.json({
