@@ -1,12 +1,16 @@
+import { Suspense } from 'react'
 import { LoginButton } from '@/components/auth/login-button'
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8 text-center">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Quesify</h1>
-          <p className="text-muted-foreground">
+        <div className="space-y-4">
+          <div className="flex justify-center flex-col items-center gap-4">
+            <img src="/logo.svg" alt="Quesify Logo" className="h-20 w-20 rounded-2xl shadow-2xl" />
+            <h1 className="font-outfit text-5xl font-black tracking-tighter">QUESIFY</h1>
+          </div>
+          <p className="text-muted-foreground text-lg">
             AI-Powered Question Bank for Smart Practice
           </p>
         </div>
@@ -20,7 +24,9 @@ export default function LoginPage() {
         </div>
 
         <div className="pt-4">
-          <LoginButton />
+          <Suspense fallback={<div className="h-10 w-full max-w-sm bg-muted animate-pulse rounded-md mx-auto" />}>
+            <LoginButton />
+          </Suspense>
         </div>
 
         <p className="text-xs text-muted-foreground">
