@@ -146,7 +146,12 @@ export default async function ProfilePage() {
                 <div className="space-y-4">
                   {recentActivity.map((activity, idx) => {
                     // Type assertion since fetch result can be generic
-                    const question = activity.question as any
+                    const question = activity.question as unknown as {
+                       id: string;
+                       chapter: string;
+                       subject: string;
+                       difficulty: string;
+                    }
                     if (!question) return null
 
                     return (
