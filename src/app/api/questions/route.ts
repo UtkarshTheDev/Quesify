@@ -5,6 +5,7 @@ import type { GeminiExtractionResult, Question } from '@/lib/types'
 interface SaveQuestionRequest extends GeminiExtractionResult {
   image_url: string
   embedding: number[]
+  existing_question_id?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -18,6 +19,72 @@ export async function POST(request: NextRequest) {
 
     const body: SaveQuestionRequest = await request.json()
 
+    // Scenario 1: Linking to an existing question (Duplicate/Variation)
+    if (body.existing_question_id) {
+      const questionId = body.existing_question_id
+
+      // Verify question exists
+      const { data: existingQuestion, error: fetchError } = await supabase
+        .from('questions')
+        .select('id')
+        .eq('id', questionId)
+        .single()
+
+      if (fetchError || !existingQuestion) {
+        return NextResponse.json({ error: 'Existing question not found' }, { status: 404 })
+      }
+
+      // Check if already linked
+      const { data: existingLink } = await supabase
+        .from('user_questions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('question_id', questionId)
+        .single()
+
+      if (!existingLink) {
+        // Create link
+        await supabase
+          .from('user_questions')
+          .insert({
+            user_id: user.id,
+            question_id: questionId,
+            is_owner: false, // Not the original uploader
+            is_contributor: !!body.solution // Is a contributor if adding a solution
+          })
+      }
+
+      // Add new solution if provided (rely on content presence)
+      if (body.solution && body.solution.trim().length > 0) {
+        console.log('Adding solution for linked question:', questionId)
+        const { error: solutionError } = await supabase
+          .from('solutions')
+          .insert({
+            question_id: questionId,
+            contributor_id: user.id,
+            solution_text: body.solution,
+            numerical_answer: body.numerical_answer || null,
+            approach_description: body.hint ? `Approach (Hint: ${body.hint})` : 'Alternative solution',
+            is_ai_best: false, // variation solution
+            updated_at: new Date().toISOString(),
+          })
+
+        if (solutionError) {
+          console.error('Solution insert error:', solutionError)
+        } else {
+          // Increment solutions count/stats if needed
+          await supabase.rpc('increment_solutions_count', { question_id: questionId })
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        question: existingQuestion,
+        linked: true
+      })
+    }
+
+    // Scenario 2: Creating a new question
     // TODO: Check for duplicates using embedding similarity
     // For MVP, we'll skip duplicate detection and save directly
 
@@ -47,20 +114,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to save question' }, { status: 500 })
     }
 
-    // Create solution if provided
-    if (body.solution && body.has_solution) {
+    // Create solution if provided (rely on content presence)
+    if (body.solution && body.solution.trim().length > 0) {
+      console.log('Saving solution for new question:', question.id)
       const { error: solutionError } = await supabase
         .from('solutions')
         .insert({
           question_id: question.id,
           contributor_id: user.id,
           solution_text: body.solution,
-          numerical_answer: body.numerical_answer,
+          numerical_answer: body.numerical_answer || null,
           is_ai_best: true,
+          updated_at: new Date().toISOString(),
         })
 
       if (solutionError) {
         console.error('Solution insert error:', solutionError)
+      } else {
+        console.log('Solution saved successfully')
       }
     }
 

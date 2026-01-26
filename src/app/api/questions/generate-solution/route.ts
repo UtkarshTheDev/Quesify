@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
         numerical_answer: solutionData.numerical_answer,
         approach_description: solutionData.approach_description,
         is_ai_best: true, // Mark as AI generated/best
-        likes: 0
+        likes: 0,
+        updated_at: new Date().toISOString()
       })
       .select()
       .single()
