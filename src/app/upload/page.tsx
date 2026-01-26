@@ -11,6 +11,7 @@ type ExtractedData = GeminiExtractionResult & {
   image_url: string;
   embedding: number[];
   duplicate_check?: DuplicateCheckResult | null;
+  existing_question_id?: string;
 }
 
 export default function UploadPage() {
