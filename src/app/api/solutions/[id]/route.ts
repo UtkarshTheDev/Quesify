@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
 
     // Verify ownership
@@ -32,17 +32,27 @@ export async function PATCH(
     }
 
     // Update
+    console.log('Updating solution:', id, 'Payload:', body)
+
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    }
+
+    if (body.solution_text !== undefined) updateData.solution_text = body.solution_text
+    if (body.numerical_answer !== undefined) updateData.numerical_answer = body.numerical_answer
+    if (body.approach_description !== undefined) updateData.approach_description = body.approach_description
+
     const { error: updateError } = await supabase
       .from('solutions')
-      .update({
-        solution_text: body.solution_text,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
 
     if (updateError) {
+      console.error('Solution update error:', updateError)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
+
+    console.log('Solution updated successfully')
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -55,7 +65,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -65,7 +75,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Verify ownership
     const { data: solution, error: fetchError } = await supabase
