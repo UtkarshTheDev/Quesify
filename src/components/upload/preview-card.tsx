@@ -20,9 +20,13 @@ interface PreviewCardProps {
   }
   status: {
     extracting: boolean;
+    extractError: string | null;
     solving: boolean;
+    solveError: string | null;
     classifying: boolean;
+    classifyError: string | null;
     finalizing: boolean;
+    finalizeError: string | null;
   }
   onSave: (data: GeminiExtractionResult & {
     image_url: string;
@@ -30,12 +34,21 @@ interface PreviewCardProps {
     existing_question_id?: string;
   }) => Promise<void>
   isSaving: boolean
+  onRetryExtract?: () => void
+  onRetrySolve?: () => void
+  onRetryClassify?: () => void
 }
 
-export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps) {
+export function PreviewCard({
+  data,
+  status,
+  onSave,
+  isSaving,
+  onRetryExtract,
+  onRetrySolve,
+  onRetryClassify
+}: PreviewCardProps) {
   const [editMode, setEditMode] = useState(false)
-
-  // Use data directly but allow local overrides in edit mode
   const [localEdits, setLocalEdits] = useState<Partial<GeminiExtractionResult> | null>(null)
 
   const displayData = {
@@ -72,6 +85,29 @@ export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps
     </div>
   )
 
+  interface ProgressLinkProps {
+    label: string;
+    isLoading: boolean;
+    error: string | null;
+    done: boolean;
+    onRetry?: () => void;
+  }
+
+  const ProgressLink = ({ label, isLoading, error, done, onRetry }: ProgressLinkProps) => (
+    <div className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-white/5">
+      <span className="text-muted-foreground">{label}</span>
+      {error ? (
+        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={onRetry}>
+          <AlertTriangle className="h-3 w-3" />
+        </Button>
+      ) : isLoading ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : done ? (
+        <Check className="h-3 w-3 text-green-500" />
+      ) : null}
+    </div>
+  );
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8 items-start animate-in fade-in duration-1000">
       {/* LEFT COLUMN: Question & Solution Stream */}
@@ -101,16 +137,23 @@ export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps
             {/* Question */}
             <div className="space-y-3">
               <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">The Question</Label>
-              {editMode ? (
-                <textarea
-                  className="w-full min-h-32 p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
-                  value={displayData.question_text}
-                  onChange={(e) => setLocalEdits({ ...localEdits, question_text: e.target.value })}
-                />
-              ) : (
-                <div className="p-5 rounded-2xl bg-primary/[0.03] ring-1 ring-white/5 shadow-inner text-xl leading-relaxed">
-                  <Latex>{displayData.question_text}</Latex>
+              {status.extractError ? (
+                <div className="p-8 rounded-2xl bg-destructive/5 border border-destructive/20 text-center space-y-3">
+                  <p className="text-sm text-destructive font-medium">{status.extractError}</p>
+                  <Button variant="outline" size="sm" onClick={onRetryExtract}>Try Again</Button>
                 </div>
+              ) : (
+                editMode ? (
+                  <textarea
+                    className="w-full min-h-32 p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
+                    value={displayData.question_text}
+                    onChange={(e) => setLocalEdits({ ...localEdits, question_text: e.target.value })}
+                  />
+                ) : (
+                  <div className="p-5 rounded-2xl bg-primary/[0.03] ring-1 ring-white/5 shadow-inner text-xl leading-relaxed">
+                    <Latex>{displayData.question_text}</Latex>
+                  </div>
+                )
               )}
             </div>
 
@@ -134,13 +177,32 @@ export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps
         {/* Detailed Solution Card (Directly below Question, matching width) */}
         <Card className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0">
           <CardHeader className="bg-muted/20 border-b border-border/40 pt-6 pb-0">
-            <CardTitle className="text-xl font-bold flex items-center gap-3">
-              {status.solving ? <Loader2 className="h-5 w-5 animate-spin" /> : <div className="w-2 h-2 rounded-full bg-primary" />}
-              Step-by-Step Solution
-            </CardTitle>
+            <div className="flex items-center justify-between pb-4">
+              <CardTitle className="text-xl font-bold flex items-center gap-3">
+                {status.solving ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : <div className="w-2 h-2 rounded-full bg-primary" />}
+                Step-by-Step Solution
+              </CardTitle>
+              {status.solveError && (
+                <Button variant="ghost" size="sm" className="h-8 text-destructive hover:bg-destructive/10" onClick={onRetrySolve}>
+                  <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+                  Retry Solve
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-8">
-            {status.solving ? (
+            {status.solveError ? (
+              <div className="py-12 text-center space-y-4">
+                <div className="p-3 rounded-full bg-destructive/10 w-12 h-12 mx-auto flex items-center justify-center text-destructive">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-destructive">Analysis Failed</p>
+                  <p className="text-xs text-muted-foreground px-12 leading-relaxed">The AI was unable to generate a solution for this mathematical problem. This can happen with very low-quality images or ambiguous text.</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={onRetrySolve} className="rounded-xl">Regenerate Solution</Button>
+              </div>
+            ) : status.solving ? (
               <div className="space-y-6">
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="h-40 w-full" />
@@ -184,30 +246,41 @@ export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps
               <Label className="uppercase tracking-widest text-[10px] font-bold text-primary/70">AI Progress Tracker</Label>
               {status.finalizing || status.solving || status.classifying ? (
                 <Badge variant="secondary" className="animate-pulse bg-primary/20 text-primary border-none text-[10px]">Processing</Badge>
+              ) : (status.solveError || status.classifyError || status.extractError) ? (
+                <Badge variant="destructive" className="bg-destructive/20 text-destructive border-none text-[10px]">Attention Required</Badge>
               ) : (
                 <Badge variant="secondary" className="bg-green-500/20 text-green-500 border-none text-[10px]">Ready</Badge>
               )}
             </div>
 
             <div className="grid grid-cols-1 gap-2.5">
-              <div className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-white/5">
-                <span className="text-muted-foreground">Reading Question Text</span>
-                {status.extracting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 text-green-500" />}
-              </div>
-              <div className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-white/5">
-                <span className="text-muted-foreground">Thinking through Solution</span>
-                {status.solving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 text-green-500" />}
-              </div>
-              <div className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-white/5">
-                <span className="text-muted-foreground">Organizing by Subject</span>
-                {status.classifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 text-green-500" />}
-              </div>
+              <ProgressLink
+                label="Reading Question Text"
+                isLoading={status.extracting}
+                error={status.extractError}
+                done={!status.extracting && !status.extractError && !!data.question_text}
+                onRetry={onRetryExtract}
+              />
+              <ProgressLink
+                label="Thinking through Solution"
+                isLoading={status.solving}
+                error={status.solveError}
+                done={!status.solving && !status.solveError && !!data.solution}
+                onRetry={onRetrySolve}
+              />
+              <ProgressLink
+                label="Organizing by Subject"
+                isLoading={status.classifying}
+                error={status.classifyError}
+                done={!status.classifying && !status.classifyError && data.subject !== 'Pending...'}
+                onRetry={onRetryClassify}
+              />
             </div>
 
             <Button
               className="w-full h-12 rounded-xl text-sm font-bold shadow-lg mt-2 ring-1 ring-white/10 hover:scale-[1.02] active:scale-95 transition-all"
               onClick={handleSave}
-              disabled={isSaving || status.solving || status.classifying || status.extracting}
+              disabled={isSaving || status.solving || status.classifying || status.extracting || !!status.extractError}
             >
               {isSaving ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Adding to Bank...</>
@@ -220,11 +293,17 @@ export function PreviewCard({ data, status, onSave, isSaving }: PreviewCardProps
 
         {/* Classification Summary */}
         <Card className="border-none shadow-lg bg-card/40 backdrop-blur-sm ring-1 ring-white/5">
-          <CardHeader className="pb-3 border-b border-border/40">
+          <CardHeader className="pb-3 border-b border-border/40 flex flex-row items-center justify-between">
             <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">Classification</Label>
+            {status.classifyError && <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={onRetryClassify}><AlertTriangle className="h-3 w-3" /></Button>}
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            {status.classifying ? (
+            {status.classifyError ? (
+              <div className="text-center py-4 space-y-2">
+                <p className="text-[10px] text-destructive leading-tight px-4 font-medium">{status.classifyError}</p>
+                <Button variant="link" className="h-auto p-0 text-[10px] text-primary" onClick={onRetryClassify}>Retry Classification</Button>
+              </div>
+            ) : status.classifying ? (
               <div className="space-y-4">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
