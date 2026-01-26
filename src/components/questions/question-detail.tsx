@@ -1,5 +1,6 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element */
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
@@ -8,28 +9,20 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  BookOpen,
   Hash,
   Share2,
-  MoreVertical,
-  Edit,
+  Edit2,
   Trash2,
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Loader2
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,16 +33,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Latex } from '@/components/ui/latex'
 import type { Question, Solution, UserQuestionStats } from '@/lib/types'
 
@@ -66,20 +51,58 @@ interface QuestionDetailProps {
 
 export function QuestionDetail({ question, userId }: QuestionDetailProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('question')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isMarkingSolved, setIsMarkingSolved] = useState(false)
 
-  // Delete & Edit states
+  // Edit States
+  const [isEditingHint, setIsEditingHint] = useState(false)
+  const [isEditingTags, setIsEditingTags] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Form Data
+  const [editForm, setEditForm] = useState({
+    hint: question.hint || '',
+  })
+  const [tagInput, setTagInput] = useState(question.topics.join(', '))
+
+  // Delete State
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState({
-    question_text: question.question_text,
-    options: question.options || [],
-    hint: question.hint || ''
-  })
+
+  const handleSave = async (section: 'hint' | 'tags') => {
+    setIsSaving(true)
+    try {
+      const payload: Partial<Question> = {}
+
+      if (section === 'hint') {
+        payload.hint = editForm.hint
+      } else if (section === 'tags') {
+        const newTopics = tagInput.split(',').map(t => t.trim()).filter(Boolean)
+        payload.topics = newTopics
+      }
+
+      const response = await fetch(`/api/questions/${question.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update question')
+      }
+
+      toast.success('Saved successfully')
+
+      if (section === 'hint') setIsEditingHint(false)
+      if (section === 'tags') setIsEditingTags(false)
+
+      router.refresh()
+    } catch {
+      toast.error('Failed to save changes')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -89,40 +112,15 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
       })
 
       if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to delete question')
+        throw new Error('Failed to delete question')
       }
 
       toast.success('Question deleted successfully')
       router.push('/dashboard/questions')
       router.refresh()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete question')
+    } catch {
+      toast.error('Failed to delete question')
       setIsDeleting(false)
-    }
-  }
-
-  const handleEdit = async () => {
-    setIsEditing(true)
-    try {
-      const response = await fetch(`/api/questions/${question.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
-      })
-
-      if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to update question')
-      }
-
-      toast.success('Question updated successfully')
-      setShowEditDialog(false)
-      router.refresh()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update question')
-    } finally {
-      setIsEditing(false)
     }
   }
 
@@ -135,16 +133,12 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
         body: JSON.stringify({ questionId: question.id }),
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to generate solution')
-      }
+      if (!response.ok) throw new Error('Failed to generate solution')
 
       toast.success('Solution generated successfully!')
       router.refresh()
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Something went wrong')
+    } catch {
+      toast.error('Something went wrong')
     } finally {
       setIsGenerating(false)
     }
@@ -163,13 +157,11 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to update status')
-      }
+      if (!response.ok) throw new Error('Failed to update status')
 
-      toast.success('Question marked as solved! Streak updated.')
+      toast.success('Question marked as solved!')
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error('Failed to mark as solved')
     } finally {
       setIsMarkingSolved(false)
@@ -184,13 +176,11 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
         method: 'DELETE',
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to delete solution')
-      }
+      if (!response.ok) throw new Error('Failed to delete solution')
 
       toast.success('Solution deleted successfully')
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete solution')
     }
   }
@@ -223,31 +213,10 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
             <Share2 className="h-4 w-4" />
             Share
           </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Question
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -267,110 +236,17 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
             >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
+              {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
-            <DialogDescription>
-              Make changes to the question text or options here.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="question_text">Question Text (LaTeX supported)</Label>
-                <AIContentAssistant
-                  content={editForm.question_text}
-                  contentType="question"
-                  onContentChange={(val) => setEditForm(prev => ({ ...prev, question_text: val }))}
-                />
-              </div>
-              <Textarea
-                id="question_text"
-                className="min-h-[150px] font-mono"
-                value={editForm.question_text}
-                onChange={(e) => setEditForm(prev => ({ ...prev, question_text: e.target.value }))}
-              />
-            </div>
-
-            {question.type === 'MCQ' && (
-              <div className="space-y-4">
-                <Label>Options</Label>
-                {editForm.options?.map((option, idx) => (
-                  <div key={idx} className="flex gap-2 items-start">
-                    <span className="mt-3 font-mono text-sm text-muted-foreground w-6">
-                      {String.fromCharCode(65 + idx)}.
-                    </span>
-                    <Textarea
-                      value={option}
-                      onChange={(e) => {
-                        const newOptions = [...(editForm.options || [])]
-                        newOptions[idx] = e.target.value
-                        setEditForm(prev => ({ ...prev, options: newOptions }))
-                      }}
-                      className="flex-1 font-mono h-20"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="hint">Hint (Optional)</Label>
-                <AIContentAssistant
-                  content={editForm.hint}
-                  contentType="hint"
-                  onContentChange={(val) => setEditForm(prev => ({ ...prev, hint: val }))}
-                />
-              </div>
-              <Textarea
-                id="hint"
-                className="min-h-[100px] font-mono"
-                value={editForm.hint}
-                onChange={(e) => setEditForm(prev => ({ ...prev, hint: e.target.value }))}
-                placeholder="Add a hint to help solve this problem..."
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isEditing}>
-              Cancel
-            </Button>
-            <Button onClick={handleEdit} disabled={isEditing}>
-              {isEditing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column - Question & Solutions */}
+        {/* Left Column */}
         <div className="md:col-span-2 space-y-6">
+
+          {/* Question Card */}
           <Card>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -385,15 +261,23 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                     {question.chapter}
                   </CardTitle>
                 </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Question Text */}
+              {/* Read Only View */}
               <div className="prose dark:prose-invert max-w-none">
                 <Latex>{question.question_text}</Latex>
               </div>
 
-              {/* Options if MCQ */}
               {question.options && question.options.length > 0 && (
                 <div className="space-y-2 pt-2">
                   <p className="font-medium text-sm text-muted-foreground">Options:</p>
@@ -408,7 +292,6 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                 </div>
               )}
 
-              {/* Image if available */}
               {question.image_url && (
                 <div className="mt-4 rounded-lg overflow-hidden border">
                   <img
@@ -421,6 +304,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
             </CardContent>
           </Card>
 
+          {/* Solutions & Hints Tabs */}
           <Tabs defaultValue="solutions" className="w-full">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="solutions">Solutions ({question.solutions.length})</TabsTrigger>
@@ -465,19 +349,63 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
             </TabsContent>
 
             <TabsContent value="hint" className="mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  {question.hint ? (
+              <Card className={isEditingHint ? "ring-1 ring-ring transition-all duration-200" : ""}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Hint</CardTitle>
+                    {!isEditingHint && (
+                      <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(true)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isEditingHint ? (
+                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                      <Textarea
+                        value={editForm.hint}
+                        onChange={(e) => setEditForm(prev => ({...prev, hint: e.target.value}))}
+                        className="min-h-[100px] font-mono resize-y"
+                        placeholder="Add a hint..."
+                      />
+
+                      <div className="rounded-md border bg-muted/50 p-4">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Preview:</p>
+                        <div className="prose dark:prose-invert max-w-none text-sm">
+                          <Latex>{editForm.hint || 'Nothing to preview'}</Latex>
+                        </div>
+                      </div>
+
+                      <AIContentAssistant
+                        content={editForm.hint}
+                        contentType="hint"
+                        onContentChange={(val) => setEditForm(prev => ({...prev, hint: val}))}
+                      />
+
+                      <div className="flex items-center justify-end gap-2 pt-2">
+                        <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(false)}>
+                          Cancel
+                        </Button>
+                        <Button size="sm" onClick={() => handleSave('hint')} disabled={isSaving}>
+                          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Save Hint
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="flex gap-3">
                       <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center">
                         <HelpCircle className="h-4 w-4 text-yellow-500" />
                       </div>
-                      <div className="prose dark:prose-invert">
-                        <p className="mt-1">{question.hint}</p>
+                      <div className="prose dark:prose-invert flex-1">
+                        {question.hint ? (
+                          <Latex>{question.hint}</Latex>
+                        ) : (
+                          <p className="text-muted-foreground italic">No hint provided.</p>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-4">No hints available for this question.</p>
                   )}
                 </CardContent>
               </Card>
@@ -562,19 +490,49 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Metadata</CardTitle>
+              {!isEditingTags && (
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditingTags(true)}>
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              )}
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 mt-2">
               <div className="space-y-2">
-                <span className="text-xs text-muted-foreground">Topics</span>
-                <div className="flex flex-wrap gap-2">
-                  {question.topics.map(topic => (
-                    <Badge key={topic} variant="secondary" className="text-xs">
-                      {topic}
-                    </Badge>
-                  ))}
+                <div className="flex justify-between items-center">
+                   <span className="text-xs text-muted-foreground">Topics</span>
                 </div>
+                {isEditingTags ? (
+                  <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      placeholder="Calculus, Derivatives, etc."
+                      className="h-8 text-xs"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="h-7 text-xs flex-1" onClick={() => setIsEditingTags(false)}>
+                        Cancel
+                      </Button>
+                      <Button size="sm" className="h-7 text-xs flex-1" onClick={() => handleSave('tags')} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {question.topics.length > 0 ? (
+                      question.topics.map(topic => (
+                        <Badge key={topic} variant="secondary" className="text-xs">
+                          {topic}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">No topics</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

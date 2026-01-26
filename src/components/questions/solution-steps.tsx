@@ -9,24 +9,22 @@ interface SolutionStepsProps {
 }
 
 export function SolutionSteps({ content, className }: SolutionStepsProps) {
-  // Split content by double newlines to get potential steps
-  // We filter out empty strings
-  const rawSteps = content.split(/\n\s*\n/).filter(step => step.trim().length > 0)
+  // Normalize literal \n into actual newlines if AI sends them as strings
+  const normalizedContent = content.replace(/\\n/g, '\n')
 
-  // Improved step detection:
-  // Sometimes "Step 1" might be inline.
-  // For now, we'll treat each paragraph as a meaningful chunk/step.
+  // Split content by double newlines or single newlines if they start with Step X
+  // We filter out empty strings
+  const rawSteps = normalizedContent.split(/\n\s*\n/).filter(step => step.trim().length > 0)
 
   return (
     <div className={cn("space-y-0", className)}>
       {rawSteps.map((stepContent, index) => {
-        // Check if the step starts with a bold header like "**Step 1:**" or "**Analysis:**"
-        // Regex looks for: Start of string, optional markup, "Step/Part/Phase" word, number, separator
-        const isExplicitStep = /^(?:\*\*|__)?(?:Step|Part|Phase)\s+\d+(?:[:.]|\s)(?:\*\*|__)?/i.test(stepContent)
+        // Check if the step starts with a bold header like "**Step 1:**" or "Step 1:"
+        const isExplicitStep = /^(?:\*\*|__)?(?:Step|Part|Phase)\s+\d+(?:[:.]|\s)(?:\*\*|__)?/i.test(stepContent.trim())
 
         return (
-          <div key={index} className="relative pl-8 pb-8 last:pb-0 group">
-            {/* Connector Line - only show if not the last item */}
+          <div key={index} className="relative pl-8 pb-12 last:pb-0 group">
+            {/* Connector Line */}
             {index !== rawSteps.length - 1 && (
               <div
                 className="absolute left-[11px] top-8 bottom-0 w-px bg-border group-hover:bg-primary/20 transition-colors"
@@ -36,7 +34,7 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
 
             {/* Step Number/Bullet */}
             <div className={cn(
-              "absolute left-0 top-0 h-6 w-6 rounded-full border flex items-center justify-center text-[10px] font-mono font-medium z-10 transition-colors shadow-sm",
+              "absolute left-0 top-[2px] h-6 w-6 rounded-full border flex items-center justify-center text-[10px] font-mono font-medium z-10 transition-colors shadow-sm",
               isExplicitStep
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-background text-muted-foreground border-border group-hover:border-primary/50"
@@ -45,9 +43,9 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
             </div>
 
             {/* Content */}
-            <div className="pt-0.5 min-w-0">
-              <div className="prose dark:prose-invert max-w-none text-sm">
-                <Latex>{stepContent}</Latex>
+            <div className="pt-0 min-w-0">
+              <div className="prose dark:prose-invert max-w-none text-base leading-loose whitespace-pre-wrap">
+                <Latex>{stepContent.trim()}</Latex>
               </div>
             </div>
           </div>
