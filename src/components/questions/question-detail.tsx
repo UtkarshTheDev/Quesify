@@ -1,8 +1,8 @@
 'use client'
 
 /* eslint-disable @next/next/no-img-element */
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -45,14 +45,24 @@ interface QuestionDetailProps {
   question: Question & {
     solutions: Solution[]
     user_question_stats: UserQuestionStats[]
+    user_questions?: { id: string }[]
+    author?: {
+      display_name: string | null
+      avatar_url: string | null
+    }
   }
-  userId: string
+  userId: string | null
+  isPublic?: boolean
 }
 
-export function QuestionDetail({ question, userId }: QuestionDetailProps) {
+export function QuestionDetail({ question, userId, isPublic = false }: QuestionDetailProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const hasAttemptedAutoAdd = useRef(false)
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [isMarkingSolved, setIsMarkingSolved] = useState(false)
+  const [isAddingToBank, setIsAddingToBank] = useState(false)
 
   // Edit States
   const [isEditingHint, setIsEditingHint] = useState(false)
@@ -123,6 +133,45 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
       setIsDeleting(false)
     }
   }
+
+  const handleAddToBank = async () => {
+    if (!userId) {
+      // Redirect to login with post-login action
+      const currentPath = window.location.pathname
+      const nextUrl = `${currentPath}?action=add-to-bank`
+      router.push(`/login?next=${encodeURIComponent(nextUrl)}`)
+      return
+    }
+
+    setIsAddingToBank(true)
+    try {
+      const response = await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          existing_question_id: question.id,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to add to bank')
+
+      toast.success('Added to your bank!')
+      router.push(`/dashboard/questions/${question.id}`)
+      router.refresh()
+    } catch {
+      toast.error('Failed to add to bank')
+    } finally {
+      setIsAddingToBank(false)
+    }
+  }
+
+  // Handle auto-add after login
+  useEffect(() => {
+    if (userId && searchParams.get('action') === 'add-to-bank' && !hasAttemptedAutoAdd.current) {
+      hasAttemptedAutoAdd.current = true
+      handleAddToBank()
+    }
+  }, [userId, searchParams])
 
   const handleGenerateSolution = async () => {
     setIsGenerating(true)
@@ -209,12 +258,57 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
         </Button>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
+          {isPublic && userId !== question.owner_id && (!question.user_questions || question.user_questions.length === 0) && (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2 font-bold bg-primary hover:bg-primary/90 rounded-full"
+              onClick={handleAddToBank}
+              disabled={isAddingToBank}
+            >
+              {isAddingToBank ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Hash className="h-4 w-4" />
+              )}
+              Add to Bank
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 transition-all hover:bg-primary/5 hover:text-primary active:scale-95"
+            onClick={() => {
+              const url = `${window.location.origin}/question/${question.id}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Link copied to clipboard');
+            }}
+          >
             <Share2 className="h-4 w-4" />
             Share
           </Button>
         </div>
       </div>
+
+      {/* Author Profile - ONLY in public mode or if explicitly shared */}
+      {isPublic && (
+        <div className="flex items-center gap-3 px-1 py-1 bg-primary/5 rounded-full w-fit pr-4 ring-1 ring-primary/10 mb-2">
+          <div className="h-8 w-8 rounded-full overflow-hidden border border-primary/20 bg-background flex items-center justify-center shrink-0">
+            {question.author?.avatar_url ? (
+              <img src={question.author.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Hash className="h-4 w-4 text-primary/40" />
+            )}
+          </div>
+          <div className="flex flex-col -space-y-0.5">
+            <span className="text-[10px] uppercase tracking-wider font-bold text-primary/60">Contributed by</span>
+            <span className="text-sm font-bold text-foreground">
+              {question.author?.display_name || 'Anonymous User'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -262,14 +356,16 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                   </CardTitle>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {userId === question.owner_id && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -333,14 +429,17 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                     <p className="text-sm text-muted-foreground mb-4">
                       Generate an AI solution or write your own.
                     </p>
-                    <Button onClick={handleGenerateSolution} disabled={isGenerating}>
+                    <Button
+                      onClick={userId ? handleGenerateSolution : () => router.push('/login')}
+                      disabled={isGenerating}
+                    >
                       {isGenerating ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Generating...
                         </>
                       ) : (
-                        'Generate AI Solution'
+                        userId ? 'Generate AI Solution' : 'Login to Generate Solution'
                       )}
                     </Button>
                   </CardContent>
@@ -365,7 +464,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                     <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
                       <Textarea
                         value={editForm.hint}
-                        onChange={(e) => setEditForm(prev => ({...prev, hint: e.target.value}))}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, hint: e.target.value }))}
                         className="min-h-[100px] font-mono resize-y"
                         placeholder="Add a hint..."
                       />
@@ -380,7 +479,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                       <AIContentAssistant
                         content={editForm.hint}
                         contentType="hint"
-                        onContentChange={(val) => setEditForm(prev => ({...prev, hint: val}))}
+                        onContentChange={(val) => setEditForm(prev => ({ ...prev, hint: val }))}
                       />
 
                       <div className="flex items-center justify-end gap-2 pt-2">
@@ -469,9 +568,10 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
 
               {!stats?.solved && (
                 <Button
-                  className="w-full mt-4"
-                  onClick={handleMarkSolved}
+                  className="w-full mt-4 font-bold"
+                  onClick={userId ? handleMarkSolved : () => router.push('/login')}
                   disabled={isMarkingSolved}
+                  variant={userId ? 'default' : 'secondary'}
                 >
                   {isMarkingSolved ? (
                     <>
@@ -481,7 +581,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Mark as Solved
+                      {userId ? 'Mark as Solved' : 'Login to solve'}
                     </>
                   )}
                 </Button>
@@ -501,7 +601,7 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
             <CardContent className="space-y-4 mt-2">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                   <span className="text-xs text-muted-foreground">Topics</span>
+                  <span className="text-xs text-muted-foreground">Topics</span>
                 </div>
                 {isEditingTags ? (
                   <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200">
@@ -556,6 +656,28 @@ export function QuestionDetail({ question, userId }: QuestionDetailProps) {
           </Card>
         </div>
       </div>
+
+      {/* Guest CTA Banner - ONLY when not logged in AND in public mode */}
+      {
+        !userId && isPublic && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl z-50 animate-in slide-in-from-bottom-8 duration-700">
+            <div className="bg-foreground text-background shadow-2xl rounded-2xl p-4 md:p-6 flex items-center justify-between gap-6 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[60px] -translate-y-1/2 translate-x-1/2" />
+              <div className="space-y-1 relative z-10">
+                <h3 className="font-bold text-lg leading-tight">Master this topic with Quesify</h3>
+                <p className="text-sm text-background/70 max-w-sm hidden sm:block">
+                  Sign up to save this question, track your progress, and see more expert solutions.
+                </p>
+              </div>
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 shrink-0 relative z-10 font-bold"
+                onClick={() => router.push('/login')}
+              >
+                Sign Up Free
+              </Button>
+            </div>
+          </div>
+        )}
     </div>
   )
 }
