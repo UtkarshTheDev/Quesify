@@ -51,7 +51,8 @@ export const ai = {
     const response = await client.generateFromImage(
       imageBase64,
       mimeType,
-      PROMPTS.imageValidation
+      PROMPTS.imageValidation,
+      'fast'
     )
 
     try {
@@ -82,16 +83,17 @@ export const ai = {
     const prompt = syllabusChapters
       ? formatPrompt(PROMPTS.extraction, { syllabusChapters })
       : formatPrompt(PROMPTS.extraction, {
-          syllabusChapters: 'No syllabus available - use your best judgment for chapter names'
-        })
+        syllabusChapters: 'No syllabus available - use your best judgment for chapter names'
+      })
 
     const response = await client.generateFromImage(
       imageBase64,
       mimeType,
-      prompt
+      prompt,
+      'vision'
     )
 
-    return client.parseJsonResponse<GeminiExtractionResult>(response)
+    return client.parseToonResponse<GeminiExtractionResult>(response)
   },
 
   /**
@@ -108,7 +110,7 @@ export const ai = {
       questionB,
     })
 
-    const response = await client.generateText(prompt)
+    const response = await client.generateText(prompt, 'fast')
     const parsed = client.parseJsonResponse<DuplicateAnalysisResponse>(response)
 
     return {
@@ -136,8 +138,28 @@ export const ai = {
       subject,
     })
 
-    const response = await client.generateText(prompt)
-    return client.parseJsonResponse<SolutionGenerationResponse>(response)
+    const response = await client.generateText(prompt, 'reasoning')
+    return client.parseToonResponse<SolutionGenerationResponse>(response)
+  },
+
+  /**
+   * Tweak content based on user instruction
+   */
+  async tweakContent(
+    originalContent: string,
+    contentType: 'solution' | 'hint' | 'question' | 'tags',
+    userInstruction: string
+  ): Promise<string> {
+    const client = getAIClient()
+
+    const prompt = formatPrompt(PROMPTS.contentTweaking, {
+      originalContent,
+      contentType,
+      userInstruction,
+    })
+
+    const response = await client.generateText(prompt, 'fast')
+    return response.trim()
   },
 
   /**
@@ -168,8 +190,8 @@ export const ai = {
       questionCategories: JSON.stringify(params.questionCategories),
     })
 
-    const response = await client.generateText(prompt)
-    const parsed = client.parseJsonResponse<ChartGenerationResponse>(response)
+    const response = await client.generateText(prompt, 'reasoning')
+    const parsed = client.parseToonResponse<ChartGenerationResponse>(response)
 
     return parsed.charts.map((chart, index) => ({
       id: `chart-${Date.now()}-${index}`,
@@ -183,7 +205,7 @@ export const ai = {
    */
   async generateText(prompt: string): Promise<string> {
     const client = getAIClient()
-    return client.generateText(prompt)
+    return client.generateText(prompt, 'fast')
   },
 
   /**
@@ -195,7 +217,7 @@ export const ai = {
     prompt: string
   ): Promise<T> {
     const client = getAIClient()
-    const response = await client.generateFromImage(imageBase64, mimeType, prompt)
+    const response = await client.generateFromImage(imageBase64, mimeType, prompt, 'vision')
     return client.parseJsonResponse<T>(response)
   },
 }
