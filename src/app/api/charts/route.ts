@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -36,7 +36,20 @@ export async function POST(request: NextRequest) {
     const questionMap: Record<string, string[]> = {}
     let totalQuestions = 0
 
-    stats?.forEach((stat: any) => {
+    type StatWithQuestion = {
+      solved: boolean
+      failed: boolean
+      attempts: number
+      question: {
+        id: string
+        chapter: string | null
+        subject: string | null
+        topics: string[]
+      }
+    }
+
+    stats?.forEach((statData) => {
+      const stat = statData as unknown as StatWithQuestion
       const question = stat.question
       if (!question) return
 

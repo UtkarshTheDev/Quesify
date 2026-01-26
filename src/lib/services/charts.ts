@@ -1,6 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 import type { Chart } from '@/lib/types'
+import { extractQuestion } from '@/lib/types'
+
+interface StatsQuestionData {
+  id: string
+  chapter: string | null
+  subject: string | null
+  topics: string[]
+}
+
+interface StatsJoinResult {
+  solved: boolean
+  failed: boolean
+  attempts: number
+  question: StatsQuestionData | StatsQuestionData[] | null
+}
 
 export async function generateUserCharts(userId: string): Promise<Chart[]> {
   const supabase = await createClient()
@@ -30,8 +45,10 @@ export async function generateUserCharts(userId: string): Promise<Chart[]> {
   const questionMap: Record<string, string[]> = {}
   let totalQuestions = 0
 
-  stats?.forEach((stat: any) => {
-    const question = stat.question
+  const statsData = stats as unknown as StatsJoinResult[] | null
+
+  statsData?.forEach((stat) => {
+    const question = extractQuestion(stat.question)
     if (!question) return
 
     // Track recent subjects
@@ -57,7 +74,7 @@ export async function generateUserCharts(userId: string): Promise<Chart[]> {
 
   // Determine weak chapters (> 30% fail rate)
   const weakChapters = Object.entries(chapterStats)
-    .filter(([_, data]) => (data.failed / data.total) > 0.3)
+    .filter(([, data]) => (data.failed / data.total) > 0.3)
     .map(([chapter]) => chapter)
 
   // Calculate struggle rates for AI context
