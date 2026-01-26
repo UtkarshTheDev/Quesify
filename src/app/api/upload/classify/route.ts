@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { ai } from '@/lib/ai'
 import { getAllSyllabus } from '@/lib/services/syllabus'
-import { formatSyllabusAsToon } from '@/lib/ai/toon'
+import { ai } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
     try {
@@ -19,9 +18,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
         }
 
-        // Prepare Syllabus Context
+        // Prepare Syllabus Context 
         const allSyllabus = await getAllSyllabus()
-        const syllabusPromptText = formatSyllabusAsToon(allSyllabus)
+        const syllabusPromptText = JSON.stringify(allSyllabus)
 
         // Analyze Classification
         const classificationResult = await ai.classifyQuestion(
