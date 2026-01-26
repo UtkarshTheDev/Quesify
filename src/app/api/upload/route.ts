@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 import { uploadQuestionImage } from '@/lib/storage/upload'
+import {
+  getSyllabus,
+  getAllSyllabus,
+  formatSyllabusWithTopics,
+  formatAllSyllabusWithTopics
+} from '@/lib/services/syllabus'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const subject = formData.get('subject') as string | null
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -41,19 +48,36 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Step 2: Extract question data with AI
-    const extractionResult = await ai.extractQuestion(base64, file.type)
+    // Step 2: Prepare Syllabus Context (Smart Single-Pass)
+    // If user selected a subject, we send only that subject's detailed syllabus.
+    // Otherwise, we send the full syllabus. Gemini Flash can handle the context easily.
+    let syllabusPromptText = ''
 
-    // Step 3: Upload image to storage
+    if (subject && ['Physics', 'Chemistry', 'Mathematics'].includes(subject)) {
+      const syllabusData = await getSyllabus(subject)
+      syllabusPromptText = `SELECTED SUBJECT: ${subject}\n\n` + formatSyllabusWithTopics(syllabusData)
+    } else {
+      const allSyllabus = await getAllSyllabus()
+      syllabusPromptText = formatAllSyllabusWithTopics(allSyllabus)
+    }
+
+    // Step 3: Extract question data with AI (using detailed syllabus for snapping)
+    const extractionResult = await ai.extractQuestion(
+      base64,
+      file.type,
+      syllabusPromptText
+    )
+
+    // Step 4: Upload image to storage
     const imageUrl = await uploadQuestionImage(file, user.id)
 
-    // Step 4: Generate embedding for duplicate detection
+    // Step 5: Generate embedding for duplicate detection
     const embedding = await ai.generateEmbedding(extractionResult.question_text)
 
-    // Step 5: Check for duplicates
+    // Step 6: Check for duplicates
     let duplicateResult = null
     try {
-      // 5a. Vector search for similar questions
+      // 6a. Vector search for similar questions
       const { data: similarQuestions } = await supabase.rpc('match_questions', {
         query_embedding: embedding,
         match_threshold: 0.85, // 85% similarity threshold
@@ -61,7 +85,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (similarQuestions && similarQuestions.length > 0) {
-        // 5b. AI verification for the most similar question
+        // 6b. AI verification for the most similar question
         // We only check the top match to save AI tokens and time
         const topMatch = similarQuestions[0]
 
@@ -102,3 +126,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
