@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 
 interface SolutionCardProps {
   solution: Solution
-  currentUserId: string
+  currentUserId: string | null
   onDelete?: (id: string) => void
   onUpdate?: () => void
 }
