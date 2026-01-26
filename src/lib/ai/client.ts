@@ -70,7 +70,7 @@ class AIClient {
   /**
    * Universal JSON handler for AI responses.
    * Extracts JSON from markdown blocks (```json ... ```) or raw strings.
-   * Includes a repair layer for "lazy" JSON with unescaped backslashes (common in LaTeX).
+   * Includes a 3-tier repair layer for "lazy" JSON with unescaped backslashes and literal newlines.
    */
   parseAiJson<T>(response: string): T {
     if (AI_CONFIG.debug) {
@@ -80,44 +80,54 @@ class AIClient {
     }
 
     try {
-      // 1. Extract content from code blocks if present
+      // 1. Extract content from code blocks
       const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
-      let cleaned = jsonMatch ? jsonMatch[1] : response
+      const rawText = jsonMatch ? jsonMatch[1] : response
+      let cleaned = rawText.trim().replace(/^JSON:\s*/i, '')
 
-      // 2. Initial cleanup
-      cleaned = cleaned.trim().replace(/^JSON:\s*/i, '')
+      // TIER 1: Standard Parse
+      try {
+        return JSON.parse(cleaned) as T
+      } catch (e) {
+        // Continue to Tier 2
+      }
 
-      // 3. REPAIR LAYER: Handle unescaped backslashes in LaTeX
-      // LLMs often forget to double-escape backslashes in JSON strings (e.g., writing \pi instead of \\pi)
-      // We escape all backslashes first, then "revert" the valid JSON escape sequences.
+      // TIER 2: SMART BACKSLASH REPAIR
+      // LLMs often forget to escape backslashes in JSON strings (e.g., writing \int instead of \\int)
+      // We escape every backslash, then REVERT the ones that were already correctly escaped 
+      // or are part of valid JSON escape sequences.
       let repaired = cleaned
-        .replace(/\\/g, '\\\\') // Double every backslash
-        // Revert valid JSON escapes: \", \\, \/, \b, \f, \n, \r, \t
-        // We look for \\ followed by the escape char and turn it into \ followed by the char
+        .replace(/\\/g, '\\\\') // Step 1: Double every backslash
+        // Step 2: Revert valid JSON escapes (", \, /, b, f, n, r, t, uXXXX)
+        // We look for \\ followed by the escape char or u + 4 digits
         .replace(/\\\\(["\\\/bfnrt])/g, '\\$1')
-        // Revert unicode escapes: \uXXXX
         .replace(/\\\\u([0-9a-fA-F]{4})/g, '\\u$1')
-
-      // 4. Handle a common edge case where the AI returns raw multiline strings that are technically invalid JSON
-      // but meant to be newlines
-      repaired = repaired.replace(/\n/g, '\\n')
-
-      // Wait, if I replace literal newlines with \n, I might break the JSON structure if they are OUTSIDE strings.
-      // Actually, standard AI JSON uses literal newlines for readability.
-      // Most of the time, the AI returns valid JSON structure with multiline strings.
-      // Let's try parsing first, and only do more invasive repairs if it fails.
 
       try {
         return JSON.parse(repaired) as T
-      } catch (innerError) {
-        // If the double-escape failed (likely due to newlines outside strings), try the original cleaned version
-        // but with a lighter repair.
-        const lightRepair = cleaned.replace(/\\(?![/"\\bfnrtu])/g, '\\\\')
-        return JSON.parse(lightRepair) as T
+      } catch (e) {
+        // Continue to Tier 3
+      }
+
+      // TIER 3: AGGRESSIVE LITERAL CLEANUP
+      // Some models return literal newlines or tabs INSIDE strings, which is invalid JSON.
+      // We try to escape them IF they look like they are inside a JSON string.
+      // This is a last resort as it's regex-heavy.
+      let aggressiveRepaired = repaired
+        // Replace literal newlines/tabs ONLY inside "..." blocks
+        .replace(/"([\s\S]*?)"/g, (match, p1) => {
+          return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t')}"`
+        })
+
+      try {
+        return JSON.parse(aggressiveRepaired) as T
+      } catch (error) {
+        console.error('Final Parse Failure. Repaired text:', aggressiveRepaired)
+        throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('JSON Parse Failure. Error:', error)
-      throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('JSON Extraction Failure:', error)
+      throw new Error(`Failed to process AI response: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 }
