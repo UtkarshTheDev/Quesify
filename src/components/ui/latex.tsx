@@ -37,7 +37,26 @@ export function Latex({ children }: LatexProps) {
             </span>
           )
         }
-        return <span key={index}>{part}</span>
+
+        // Handle bold text in non-math parts
+        const subParts = part.split(/(\*\*.*?\*\*|__.*?__)/g)
+        return (
+          <span key={index}>
+            {subParts.map((subPart, subIndex) => {
+              if (
+                (subPart.startsWith('**') && subPart.endsWith('**')) ||
+                (subPart.startsWith('__') && subPart.endsWith('__'))
+              ) {
+                return (
+                  <strong key={subIndex} className="font-bold text-foreground">
+                    {subPart.slice(2, -2)}
+                  </strong>
+                )
+              }
+              return subPart
+            })}
+          </span>
+        )
       })}
     </span>
   )
