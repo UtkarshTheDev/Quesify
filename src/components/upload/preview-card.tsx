@@ -78,12 +78,23 @@ export function PreviewCard({
   const Skeleton = ({ className }: { className?: string }) => (
     <div className={`animate-pulse bg-muted/50 rounded-md ${className}`} />
   )
-
   const SectionFade = ({ children, isLoaded }: { children: React.ReactNode, isLoaded: boolean }) => (
     <div className={`transition-all duration-700 ${isLoaded ? 'animate-in fade-in slide-in-from-bottom-2' : ''}`}>
       {children}
     </div>
   )
+
+  // Robust math preparation for the final answer
+  const prepareMath = (text: string) => {
+    if (!text) return "";
+    // Remove any leftover manual \boxed (we render the box in UI)
+    const clean = text.replace(/\\boxed\{([\s\S]*?)\}/g, '$1').trim();
+    // Wrap in display math if not already wrapped
+    if (clean.startsWith('$')) return clean;
+    return `$$${clean}$$`;
+  };
+
+  const stripBoxed = (text: string) => text.replace(/\\boxed\{([\s\S]*?)\}/g, '$1').trim()
 
   interface ProgressLinkProps {
     label: string;
@@ -158,16 +169,33 @@ export function PreviewCard({
             </div>
 
             {/* Options */}
-            {displayData.options && displayData.options.length > 0 && (
+            {!status.extractError && displayData.options && displayData.options.length > 0 && (
               <div className="space-y-3 pb-2">
                 <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">Choices</Label>
                 <div className="grid gap-3">
-                  {displayData.options.map((option, index) => (
-                    <div key={index} className="group p-4 rounded-xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-muted/30 transition-all flex gap-3 items-start">
-                      <span className="mt-1 w-6 h-6 flex items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-bold shrink-0">{String.fromCharCode(65 + index)}</span>
-                      <div className="flex-1 pt-0.5"><Latex>{option}</Latex></div>
-                    </div>
-                  ))}
+                  {displayData.options.map((option, index) => {
+                    const isCorrect = displayData.correct_option === index;
+                    return (
+                      <div
+                        key={index}
+                        className={`group p-4 rounded-xl border transition-all flex gap-3 items-start ${isCorrect
+                          ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary),0.1)]'
+                          : 'bg-muted/20 border-transparent hover:border-primary/20 hover:bg-muted/30'
+                          }`}
+                      >
+                        <span className={`mt-1 w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0 ${isCorrect ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
+                          }`}>
+                          {String.fromCharCode(65 + index)}
+                        </span>
+                        <div className="flex-1 pt-0.5"><Latex>{option}</Latex></div>
+                        {isCorrect && (
+                          <Badge variant="secondary" className="bg-primary/20 text-primary border-none text-[8px] uppercase tracking-wider py-0 px-1.5 h-4">
+                            Correct
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -176,8 +204,8 @@ export function PreviewCard({
 
         {/* Detailed Solution Card (Directly below Question, matching width) */}
         <Card className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0">
-          <CardHeader className="bg-muted/20 border-b border-border/40 pt-6 pb-0">
-            <div className="flex items-center justify-between pb-4">
+          <CardHeader className="bg-muted/20 border-b border-border/40 p-6">
+            <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-bold flex items-center gap-3">
                 {status.solving ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : <div className="w-2 h-2 rounded-full bg-primary" />}
                 Step-by-Step Solution
@@ -218,14 +246,17 @@ export function PreviewCard({
                 ) : (
                   <div className="space-y-10">
                     <div className="solution-content">
-                      <SolutionSteps content={displayData.solution} />
+                      {/* We keep a simple stripBoxed for the steps as a safety, but prepareMath handles the final result highlight */}
+                      <SolutionSteps content={(displayData.solution || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1')} />
                     </div>
 
                     {displayData.numerical_answer && (
-                      <div className="mt-8 pt-8 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <span className="text-sm font-bold text-primary uppercase tracking-tighter">Final Evaluation</span>
-                        <div className="bg-primary/10 ring-1 ring-primary/30 shadow-inner px-8 py-3 rounded-2xl text-center">
-                          <code className="text-xl font-black text-primary tracking-widest"><Latex>{displayData.numerical_answer}</Latex></code>
+                      <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <span className="text-sm font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
+                        <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-6 py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
+                          <div className="text-lg font-bold text-foreground">
+                            <Latex>{`$${stripBoxed(displayData.numerical_answer)}$`}</Latex>
+                          </div>
                         </div>
                       </div>
                     )}

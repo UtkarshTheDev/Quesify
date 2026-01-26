@@ -109,7 +109,7 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate }: So
       <CardContent className="space-y-4 overflow-x-auto">
         {isEditing ? (
           <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-             <Textarea
+            <Textarea
               value={editedText}
               onChange={(e) => setEditedText(e.target.value)}
               className="min-h-[300px] font-mono resize-y"
@@ -124,10 +124,10 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate }: So
             </div>
 
             <AIContentAssistant
-               content={editedText}
-               contentType="solution"
-               onContentChange={setEditedText}
-             />
+              content={editedText}
+              contentType="solution"
+              onContentChange={setEditedText}
+            />
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -148,11 +148,13 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate }: So
             <SolutionSteps content={solution.solution_text} />
 
             {solution.numerical_answer && (
-              <div className="pt-2 border-t mt-4">
-                <span className="font-medium mr-2">Final Answer:</span>
-                <span className="font-mono bg-muted px-2 py-1 rounded inline-block">
-                  <Latex>{solution.numerical_answer}</Latex>
-                </span>
+              <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-sm font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
+                <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-6 py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
+                  <div className="text-lg font-bold text-foreground">
+                    <Latex>{`$${(solution.numerical_answer || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1').trim()}$`}</Latex>
+                  </div>
+                </div>
               </div>
             )}
           </>
