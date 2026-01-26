@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
             contributor_id: user.id,
             solution_text: body.solution,
             numerical_answer: body.numerical_answer || null,
+            correct_option: body.correct_option ?? null,
             approach_description: body.hint ? `Approach (Hint: ${body.hint})` : 'Alternative solution',
             is_ai_best: false, // variation solution
             updated_at: new Date().toISOString(),
@@ -124,6 +125,7 @@ export async function POST(request: NextRequest) {
           contributor_id: user.id,
           solution_text: body.solution,
           numerical_answer: body.numerical_answer || null,
+          correct_option: body.correct_option ?? null,
           is_ai_best: true,
           updated_at: new Date().toISOString(),
         })

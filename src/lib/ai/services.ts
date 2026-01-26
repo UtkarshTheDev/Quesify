@@ -32,6 +32,7 @@ interface ChartGenerationResponse {
 interface SolutionGenerationResponse {
   solution_text: string
   numerical_answer: string | null
+  correct_option: number | null
   approach_description: string
 }
 
@@ -56,7 +57,7 @@ export const ai = {
     )
 
     try {
-      const parsed = client.parseJsonResponse<ImageValidationResponse>(response)
+      const parsed = client.parseAiJson<ImageValidationResponse>(response)
 
       if (parsed.isBlurry) {
         return { isValid: false, reason: 'Image is too blurry. Please upload a clearer image.' }

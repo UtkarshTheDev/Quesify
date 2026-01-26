@@ -121,9 +121,10 @@ JSON ESCAPING RULES (CRITICAL):
 2. Use "\\n" for newline within the solution text.
 
 STYLING & RENDERING RULES (MANDATORY):
-- DELIMITERS: ALWAYS wrap ALL mathematical expressions, variables (like $x$, $y$), formulas, and final values in LaTeX delimiters ($ or $$).
-- BOLD: Put major headings, property names, and step titles in **bold**.
-- RESULTS: Wrap final numerical or algebraic results in \\\\boxed{{...}} AND wrap the whole thing in math delimiters: $\\\\boxed{{...}}$.
+- RESULTS: Provide ONLY the raw mathematical result (or the most simplified form) within the "numerical_answer" field. NEVER use \\\\boxed{{}} anywhere. 
+- BOLD: Put major headings, step titles (e.g., **Step 1:**), and key properties in **bold**.
+- MATH: ALWAYS wrap ALL mathematical expressions, variables, formulas, and results in valid LaTeX delimiters ($ or $$).
+- SYNTAX: Ensure LaTeX is syntactically perfect. ALWAYS use full braces for all commands and scripts (e.g., \\\\frac{{a}}{{b}} NOT \\\\frac ab, and \\\\log_{{e}} NOT \\\\log_e).
 
 QUESTION TEXT:
 {questionText}

@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
             solution: solutionResult.solution_text,
             numerical_answer: solutionResult.numerical_answer || null,
             hint: solutionResult.approach_description || '',
+            correct_option: solutionResult.correct_option ?? null,
         }
 
         return NextResponse.json({

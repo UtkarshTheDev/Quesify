@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
             topics: Array.isArray(rawExtraction.topics) ? rawExtraction.topics : [],
             difficulty: rawExtraction.difficulty || 'medium',
             importance: rawExtraction.importance || 3,
+            correct_option: rawExtraction.correct_option ?? null,
         }
 
         // Step 3: Upload image to storage

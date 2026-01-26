@@ -31,6 +31,7 @@ export interface Solution {
   approach_description: string | null
   likes: number
   is_ai_best: boolean
+  correct_option: number | null
   created_at: string
   updated_at: string
 }
