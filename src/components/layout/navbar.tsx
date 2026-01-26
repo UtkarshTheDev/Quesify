@@ -25,8 +25,9 @@ export async function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 flex h-14 items-center">
         <div className="mr-4 flex">
-          <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold text-xl">Quesify</span>
+          <Link href="/dashboard" className="mr-6 flex items-center space-x-2 transition-transform hover:scale-105 active:scale-95">
+            <img src="/logo.svg" alt="Quesify Logo" className="h-8 w-8 rounded-lg" />
+            <span className="font-outfit font-bold text-xl tracking-tighter">QUESIFY</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Link href="/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">
