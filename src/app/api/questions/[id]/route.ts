@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function DELETE(
   request: NextRequest,
@@ -31,7 +32,43 @@ export async function DELETE(
 
     // 2. Perform deletions based on ownership
     if (isOwner) {
-      console.log(`[Delete] Authorized purge for question ${id} by owner ${user.id}`)
+      console.log(`[Delete] Authorized purge attempt for question ${id} by owner ${user.id}`)
+
+      // Check if others are using it (BYPASS RLS with Admin Client)
+      const adminSupabase = createAdminClient()
+      const { count: otherUsersCount, error: countError } = await adminSupabase
+        .from('user_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('question_id', id)
+        .neq('user_id', user.id)
+
+      if (countError) {
+        console.error('[Delete] Failed to check usage stats:', countError)
+        // Fail safe: assume shared if check fails? Or fail delete?
+        // Better to fail safe and soft delete if unsure, but for now let's just log and proceed cautiously or error.
+        // Let's error to prevent data loss.
+        return NextResponse.json({ error: 'Failed to verify question usage' }, { status: 500 })
+      }
+
+      if (otherUsersCount && otherUsersCount > 0) {
+        console.log(`[Delete] Question ${id} is shared with ${otherUsersCount} other users. Soft removing for owner.`)
+        
+        const { error: luqErr } = await supabase
+          .from('user_questions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('question_id', id)
+
+        if (luqErr) return NextResponse.json({ error: luqErr.message }, { status: 500 })
+
+        return NextResponse.json({
+          success: true,
+          softDelete: true,
+          message: 'Question removed from your library. It remains on the platform as it is being practiced by other students.'
+        })
+      }
+
+      console.log(`[Delete] No other users. Purging question ${id}`)
 
       // a. Storage Cleanup (Buckets don't cascade)
       if (question.image_url) {
