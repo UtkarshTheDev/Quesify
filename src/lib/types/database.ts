@@ -34,6 +34,10 @@ export interface Solution {
   correct_option: number | null
   created_at: string
   updated_at: string
+  author?: {
+    display_name: string | null
+    avatar_url: string | null
+  }
 }
 
 export interface UserQuestion {
