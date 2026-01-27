@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function DELETE(
   request: NextRequest,
@@ -34,13 +33,12 @@ export async function DELETE(
     if (isOwner) {
       console.log(`[Delete] Authorized purge attempt for question ${id} by owner ${user.id}`)
 
-      // Check if others are using it (BYPASS RLS with Admin Client)
-      const adminSupabase = createAdminClient()
-      const { count: otherUsersCount, error: countError } = await adminSupabase
-        .from('user_questions')
-        .select('*', { count: 'exact', head: true })
-        .eq('question_id', id)
-        .neq('user_id', user.id)
+      // Check if others are using it (BYPASS RLS with RPC)
+      // We use an RPC function that is SECURITY DEFINER to safely count other users
+      // without exposing the service role key in the application code.
+      const { data: otherUsersCount, error: countError } = await supabase.rpc('get_other_users_count', { 
+        q_id: id 
+      })
 
       if (countError) {
         console.error('[Delete] Failed to check usage stats:', countError)
