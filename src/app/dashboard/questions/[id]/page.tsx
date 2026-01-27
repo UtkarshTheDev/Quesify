@@ -4,6 +4,9 @@ import { notFound, redirect } from 'next/navigation'
 import { QuestionDetail } from '@/components/questions/question-detail'
 import { Question, Solution, UserQuestionStats } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -33,13 +36,12 @@ export default async function DashboardQuestionPage({ params }: PageProps) {
     redirect(`/question/${id}`)
   }
 
-  // Fetch question with solutions and user stats
-  // We DON'T fetch the author here as per request (cleaner dashboard view)
+  // Fetch question with top solution and user stats
   const { data: question, error } = await supabase
     .from('questions')
     .select(`
       *,
-      solutions (
+      solutions:solutions (
         *
       ),
       user_question_stats (
@@ -48,7 +50,16 @@ export default async function DashboardQuestionPage({ params }: PageProps) {
     `)
     .eq('id', id)
     .order('likes', { referencedTable: 'solutions', ascending: false })
+    .order('is_ai_best', { referencedTable: 'solutions', ascending: false })
+    .order('created_at', { referencedTable: 'solutions', ascending: false })
+    .limit(1, { referencedTable: 'solutions' })
     .single()
+
+  // Fetch total solutions count
+  const { count: totalSolutionsCount } = await supabase
+    .from('solutions')
+    .select('*', { count: 'exact', head: true })
+    .eq('question_id', id)
 
   if (error || !question) {
     console.error('Error fetching question:', error)
@@ -61,12 +72,13 @@ export default async function DashboardQuestionPage({ params }: PageProps) {
   }
 
   return (
-    <div className="container py-6">
+    <div className="py-6">
       <Suspense fallback={<div className="h-24 w-full bg-muted animate-pulse rounded-md" />}>
         <QuestionDetail
           question={question as unknown as QuestionWithDetails}
           userId={user.id}
           isPublic={false}
+          totalSolutionsCount={totalSolutionsCount || 0}
         />
       </Suspense>
     </div>
