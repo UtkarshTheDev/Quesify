@@ -15,17 +15,28 @@ interface QuestionDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onDelete: () => void
   isDeleting: boolean
+  isShared?: boolean
+  usageCount?: number | null
 }
 
-export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting }: QuestionDeleteDialogProps) {
+export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting, isShared, usageCount }: QuestionDeleteDialogProps) {
+  // Determine if other users have this question
+  const hasOtherUsers = usageCount !== undefined && usageCount !== null && usageCount > 0
+  
   return (
     <AlertDialog open={show} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {hasOtherUsers ? 'Remove from your library?' : (isShared ? 'Remove from your library?' : 'Are you absolutely sure?')}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the question
-            and all associated solutions from our servers.
+            {hasOtherUsers 
+              ? `Warning: This question is being practiced by ${usageCount} other student${usageCount !== 1 ? 's' : ''}. Deleting it will remove it only from your library. It will remain on the platform.`
+              : (isShared 
+                ? "This question is being practiced by other students. You can only remove it from your own library, but it will remain on the platform for others to use."
+                : "This action cannot be undone. This will permanently delete the question and all associated solutions from our servers.")
+            }
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
