@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Outfit } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from '@/components/providers'
 
