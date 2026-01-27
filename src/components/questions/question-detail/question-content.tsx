@@ -6,10 +6,14 @@ import { Latex } from '@/components/ui/latex'
 import { Trash2 } from 'lucide-react'
 import type { Question } from '@/lib/types'
 
+import { cn } from '@/lib/utils'
+
 interface QuestionContentProps {
   question: Question
   userId: string | null
   setShowDeleteDialog: (show: boolean) => void
+  revealed?: boolean
+  correctOption?: number | null
 }
 
 const difficultyColors = {
@@ -19,7 +23,7 @@ const difficultyColors = {
   very_hard: 'bg-red-500/10 text-red-500 hover:bg-red-500/20',
 }
 
-export function QuestionContent({ question, userId, setShowDeleteDialog }: QuestionContentProps) {
+export function QuestionContent({ question, userId, setShowDeleteDialog, revealed, correctOption }: QuestionContentProps) {
   return (
     <Card>
       <CardHeader>
@@ -57,12 +61,33 @@ export function QuestionContent({ question, userId, setShowDeleteDialog }: Quest
           <div className="space-y-2 pt-2">
             <p className="font-medium text-sm text-muted-foreground">Options:</p>
             <div className="grid gap-2">
-              {question.options.map((option, idx) => (
-                <div key={idx} className="p-3 rounded-md bg-muted/50 border flex gap-3">
-                  <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + idx)}.</span>
-                  <Latex>{option}</Latex>
-                </div>
-              ))}
+              {question.options.map((option, idx) => {
+                const isCorrect = revealed && idx === correctOption
+                return (
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      "p-3 rounded-md transition-all duration-500 flex gap-3 border",
+                      isCorrect 
+                        ? "bg-green-500/10 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.1)] scale-[1.02]" 
+                        : "bg-muted/50 border-transparent"
+                    )}
+                  >
+                    <span className={cn(
+                      "font-mono",
+                      isCorrect ? "text-green-500 font-bold" : "text-muted-foreground"
+                    )}>
+                      {String.fromCharCode(65 + idx)}.
+                    </span>
+                    <div className={cn(
+                      "flex-1",
+                      isCorrect ? "text-green-600 dark:text-green-400 font-medium" : ""
+                    )}>
+                      <Latex>{option}</Latex>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import type { Question } from '@/lib/types'
+import type { Question, UserQuestionStats, Solution } from '@/lib/types'
 
 interface UseQuestionDetailParams {
   question: Question & {
-    solutions: unknown[]
+    solutions: Solution[]
     user_question_stats: unknown[]
     user_questions?: { id: string }[]
     author?: {
@@ -33,6 +33,26 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
   const [tagInput, setTagInput] = useState(question.topics.join(', '))
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isRevealed, setIsRevealed] = useState(false)
+  const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null)
+  const [moreSolutions, setMoreSolutions] = useState<Solution[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  const loadMoreSolutions = useCallback(async () => {
+    setIsLoadingMore(true)
+    try {
+      const response = await fetch(`/api/solutions?questionId=${question.id}&offset=1&limit=20`)
+      if (!response.ok) throw new Error('Failed to fetch')
+      const data = await response.json()
+      if (data.solutions) {
+        setMoreSolutions(data.solutions)
+      }
+    } catch (error) {
+      console.error('Failed to load more solutions:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [question.id])
 
   const handleSave = async (section: 'hint' | 'tags') => {
     setIsSaving(true)
@@ -205,6 +225,13 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     handleGenerateSolution,
     handleMarkSolved,
     handleSolutionDelete,
-    stats: question.user_question_stats?.[0] || null,
+    isRevealed,
+    setIsRevealed,
+    selectedSolutionId,
+    setSelectedSolutionId,
+    moreSolutions,
+    isLoadingMore,
+    loadMoreSolutions,
+    stats: (question.user_question_stats?.[0] || null) as UserQuestionStats | null,
   }
 }
