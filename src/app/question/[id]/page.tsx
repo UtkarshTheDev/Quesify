@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         ? `${cleanText.substring(0, 50)}...` 
         : cleanText
 
-    const title = `${question.subject ? `${question.subject}: ` : ''}${truncatedTitle} - Quesify`
+    const title = `${truncatedTitle} - Quesify`
     const description = `Practice ${question.subject} - ${question.chapter}: ${cleanText.substring(0, 150)}...`
 
     return {
