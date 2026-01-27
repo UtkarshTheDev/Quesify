@@ -14,6 +14,8 @@ interface QuestionContentProps {
   setShowDeleteDialog: (show: boolean) => void
   revealed?: boolean
   correctOption?: number | null
+  fetchSharingStats?: () => Promise<{ count: number }>
+  sharingStats?: { count: number } | null
 }
 
 const difficultyColors = {
@@ -23,7 +25,7 @@ const difficultyColors = {
   very_hard: 'bg-red-500/10 text-red-500 hover:bg-red-500/20',
 }
 
-export function QuestionContent({ question, userId, setShowDeleteDialog, revealed, correctOption }: QuestionContentProps) {
+export function QuestionContent({ question, userId, setShowDeleteDialog, revealed, correctOption, fetchSharingStats, sharingStats }: QuestionContentProps) {
   return (
     <Card>
       <CardHeader>
@@ -45,7 +47,13 @@ export function QuestionContent({ question, userId, setShowDeleteDialog, reveale
               variant="ghost"
               size="icon"
               className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              onClick={() => setShowDeleteDialog(true)}
+              onClick={async () => {
+                // Fetch sharing stats before showing dialog if fetchSharingStats is provided
+                if (fetchSharingStats) {
+                  await fetchSharingStats();
+                }
+                setShowDeleteDialog(true);
+              }}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
