@@ -1,18 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Edit2, HelpCircle, Loader2 } from 'lucide-react'
+import { Edit2, HelpCircle, Loader2, Sparkles, BookOpen, MessageSquare } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { Latex } from '@/components/ui/latex'
 import type { Question, Solution } from '@/lib/types'
 import { SolutionCard } from '@/components/questions/solution-card'
 import { AIContentAssistant } from '@/components/ai/content-assistant'
+import { RevealSolutionPlaceholder } from '@/components/questions/reveal-solution-placeholder'
+import { SolutionCardList } from '@/components/questions/solution-card-list'
+import { cn } from '@/lib/utils'
 
 interface QuestionTabsProps {
   question: Question & { solutions: Solution[] }
@@ -24,6 +26,14 @@ interface QuestionTabsProps {
   handleGenerateSolution: () => void
   handleSolutionDelete: (solutionId: string) => void
   handleSave: (section: 'hint' | 'tags') => void
+  totalSolutionsCount: number
+  isRevealed: boolean
+  setIsRevealed: (show: boolean) => void
+  selectedSolutionId: string | null
+  setSelectedSolutionId: (id: string | null) => void
+  moreSolutions: Solution[]
+  isLoadingMore: boolean
+  loadMoreSolutions: () => void
 }
 
 export function QuestionTabs({
@@ -36,127 +46,278 @@ export function QuestionTabs({
   handleGenerateSolution,
   handleSolutionDelete,
   handleSave,
+  totalSolutionsCount,
+  isRevealed,
+  setIsRevealed,
+  selectedSolutionId,
+  setSelectedSolutionId,
+  moreSolutions,
+  isLoadingMore,
+  loadMoreSolutions,
 }: QuestionTabsProps) {
   const router = useRouter()
   const [isEditingHint, setIsEditingHint] = useState(false)
+  const [activeSolutionTab, setActiveSolutionTab] = useState<'best' | 'more'>('best')
+
+  const bestSolution = question.solutions[0] || null
+
+  useEffect(() => {
+    if (isRevealed && totalSolutionsCount > 1 && moreSolutions.length === 0) {
+      loadMoreSolutions()
+    }
+  }, [isRevealed, totalSolutionsCount, moreSolutions.length, loadMoreSolutions])
+
+  const handleSelectSolution = (id: string) => {
+    setSelectedSolutionId(id)
+  }
+
+  const currentSolution = selectedSolutionId 
+    ? moreSolutions.find(s => s.id === selectedSolutionId)
+    : bestSolution
 
   return (
-    <Tabs defaultValue="solutions" className="w-full">
-      <TabsList className="w-full justify-start">
-        <TabsTrigger value="solutions">Solutions ({question.solutions.length})</TabsTrigger>
-        <TabsTrigger value="hint">Hint</TabsTrigger>
-        <TabsTrigger value="notes">My Notes</TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <Tabs defaultValue="solutions" className="w-full">
+        <div className="flex items-center justify-between pb-1 overflow-x-auto no-scrollbar">
+          <TabsList className="w-full justify-start !h-auto p-1 bg-muted/60 rounded-xl min-w-max">
+            <TabsTrigger 
+              value="solutions" 
+              className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <BookOpen className="h-4 w-4" />
+              Solutions {totalSolutionsCount > 0 && <span className="opacity-60 font-normal text-xs ml-1">({totalSolutionsCount})</span>}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="hint"
+              className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Hint
+            </TabsTrigger>
+            <TabsTrigger 
+              value="notes"
+              className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Notes
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      <TabsContent value="solutions" className="space-y-4 mt-4">
-        {question.solutions.length > 0 ? (
-          question.solutions.map((solution) => (
-            <SolutionCard
-              key={solution.id}
-              solution={solution}
-              currentUserId={userId}
-              onDelete={handleSolutionDelete}
-              onUpdate={() => router.refresh()}
+        <TabsContent value="solutions" className="mt-4 outline-none">
+          {!isRevealed ? (
+            <RevealSolutionPlaceholder 
+              onReveal={() => setIsRevealed(true)} 
+              solutionCount={totalSolutionsCount} 
             />
-          ))
-        ) : (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                <HelpCircle className="h-6 w-6 text-muted-foreground" />
+          ) : totalSolutionsCount === 0 ? (
+            <Card className="border-dashed bg-muted/5">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <HelpCircle className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="font-medium">No solutions yet</p>
+                <p className="text-sm text-muted-foreground mb-6 max-w-[250px]">
+                  Be the first to provide a solution or generate one using AI.
+                </p>
+                <Button
+                  onClick={userId ? handleGenerateSolution : () => router.push('/login')}
+                  disabled={isGenerating}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      {userId ? 'Generate AI Solution' : 'Login to Generate'}
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
+                  {totalSolutionsCount > 1 && (
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b">
+                      <div className="flex p-0.5 bg-muted/50 rounded-lg border w-fit">
+                        <button
+                          onClick={() => {
+                            setActiveSolutionTab('best')
+                            setSelectedSolutionId(null)
+                          }}
+                          className={cn(
+                            "px-4 py-2 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all flex-1 md:flex-none text-center",
+                            activeSolutionTab === 'best' && !selectedSolutionId
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )}
+                        >
+                          Top Pick
+                        </button>
+                        <button
+                          onClick={() => setActiveSolutionTab('more')}
+                          className={cn(
+                            "px-4 py-2 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all flex-1 md:flex-none text-center",
+                            activeSolutionTab === 'more'
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )}
+                        >
+                          Community ({totalSolutionsCount - 1})
+                        </button>
+                      </div>
+                      
+                      {selectedSolutionId && activeSolutionTab === 'more' && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 text-[10px] uppercase font-bold tracking-widest text-primary hover:bg-primary/5 px-2"
+                          onClick={() => setSelectedSolutionId(null)}
+                        >
+                          Back to List
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="p-0.5">
+                    {activeSolutionTab === 'best' ? (
+                      <div className="animate-in fade-in duration-300">
+                        <SolutionCard
+                          solution={bestSolution!}
+                          currentUserId={userId}
+                          onDelete={handleSolutionDelete}
+                          onUpdate={() => router.refresh()}
+                          isHighlighted={true}
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-3 md:p-4 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                        {selectedSolutionId ? (
+                           <div className="animate-in fade-in duration-300">
+                             <SolutionCard
+                               solution={moreSolutions.find(s => s.id === selectedSolutionId)!}
+                               currentUserId={userId}
+                               onDelete={handleSolutionDelete}
+                               onUpdate={() => router.refresh()}
+                               isHighlighted={true}
+                             />
+                           </div>
+                        ) : isLoadingMore ? (
+                          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+                            <p className="text-sm text-muted-foreground font-medium">Fetching solutions...</p>
+                          </div>
+                        ) : (
+                          <SolutionCardList 
+                            solutions={moreSolutions} 
+                            onSelect={handleSelectSolution}
+                            activeSolutionId={selectedSolutionId}
+                            currentUserId={userId}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <p className="font-medium">No solutions yet</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Generate an AI solution or write your own.
-              </p>
-              <Button
-                onClick={userId ? handleGenerateSolution : () => router.push('/login')}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  userId ? 'Generate AI Solution' : 'Login to Generate Solution'
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="hint" className="mt-6 outline-none">
+          <Card className={cn(
+            "transition-all duration-300 border bg-muted/5", 
+            isEditingHint ? "ring-2 ring-primary/20 border-primary/30" : ""
+          )}>
+            <CardHeader className="pb-3 border-b bg-muted/10">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-primary">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  Strategic Hint
+                </CardTitle>
+                {!isEditingHint && (
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsEditingHint(true)}>
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
                 )}
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {isEditingHint ? (
+                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                  <Textarea
+                    value={editForm.hint}
+                    onChange={(e) => setEditForm({ ...editForm, hint: e.target.value })}
+                    className="min-h-[120px] font-mono resize-y bg-background"
+                    placeholder="Add a strategic hint..."
+                  />
+
+                  <div className="rounded-md border bg-muted/30 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Preview</p>
+                    <div className="prose dark:prose-invert max-w-none text-sm">
+                      <Latex>{editForm.hint || 'No content to preview'}</Latex>
+                    </div>
+                  </div>
+
+                  <AIContentAssistant
+                    content={editForm.hint}
+                    contentType="hint"
+                    onContentChange={(val) => setEditForm({ ...editForm, hint: val })}
+                  />
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t mt-4">
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(false)}>
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={() => handleSave('hint')} disabled={isSaving}>
+                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Save Hint
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-4">
+                  <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center border border-yellow-500/20">
+                    <HelpCircle className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div className="prose dark:prose-invert flex-1 pt-1">
+                    {question.hint ? (
+                      <Latex>{question.hint}</Latex>
+                    ) : (
+                      <p className="text-muted-foreground italic text-sm">No hint provided for this question.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notes" className="mt-6 outline-none">
+          <Card className="border-dashed bg-muted/5">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <MessageSquare className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="font-medium">Personal Notes</p>
+              <p className="text-sm text-muted-foreground max-w-[250px]">
+                Keep track of your thoughts, mistakes, and key takeaways for this question.
+              </p>
+              <Button variant="outline" className="mt-6 cursor-not-allowed opacity-50">
+                Coming Soon
               </Button>
             </CardContent>
           </Card>
-        )}
-      </TabsContent>
-
-      <TabsContent value="hint" className="mt-4">
-        <Card className={isEditingHint ? "ring-1 ring-ring transition-all duration-200" : ""}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Hint</CardTitle>
-              {!isEditingHint && (
-                <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(true)}>
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isEditingHint ? (
-              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                <Textarea
-                  value={editForm.hint}
-                  onChange={(e) => setEditForm({ ...editForm, hint: e.target.value })}
-                  className="min-h-[100px] font-mono resize-y"
-                  placeholder="Add a hint..."
-                />
-
-                <div className="rounded-md border bg-muted/50 p-4">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Preview:</p>
-                  <div className="prose dark:prose-invert max-w-none text-sm">
-                    <Latex>{editForm.hint || 'Nothing to preview'}</Latex>
-                  </div>
-                </div>
-
-                <AIContentAssistant
-                  content={editForm.hint}
-                  contentType="hint"
-                  onContentChange={(val) => setEditForm({ ...editForm, hint: val })}
-                />
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(false)}>
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={() => handleSave('hint')} disabled={isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Hint
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center">
-                  <HelpCircle className="h-4 w-4 text-yellow-500" />
-                </div>
-                <div className="prose dark:prose-invert flex-1">
-                  {question.hint ? (
-                    <Latex>{question.hint}</Latex>
-                  ) : (
-                    <p className="text-muted-foreground italic">No hint provided.</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="notes" className="mt-4">
-        <Card>
-          <CardContent className="pt-6 text-center text-muted-foreground">
-            Personal notes feature coming soon.
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+      </Tabs>
+    </div>
   )
 }
