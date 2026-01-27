@@ -42,19 +42,24 @@ export async function PATCH(
     if (body.numerical_answer !== undefined) updateData.numerical_answer = body.numerical_answer
     if (body.approach_description !== undefined) updateData.approach_description = body.approach_description
 
-    const { error: updateError } = await supabase
+    const { data: updated, error: updateError, count } = await supabase
       .from('solutions')
       .update(updateData)
       .eq('id', id)
+      .select()
 
     if (updateError) {
       console.error('Solution update error:', updateError)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    console.log('Solution updated successfully')
+    if (!updated || updated.length === 0) {
+      return NextResponse.json({ error: 'Failed to update: No rows matched or permission denied' }, { status: 403 })
+    }
 
-    return NextResponse.json({ success: true })
+    console.log('Solution updated successfully:', updated[0].id)
+
+    return NextResponse.json({ success: true, data: updated[0] })
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal Server Error' },

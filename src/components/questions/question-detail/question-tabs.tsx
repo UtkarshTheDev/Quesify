@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Edit2, HelpCircle, Loader2, Sparkles, BookOpen, MessageSquare } from 'lucide-react'
 
@@ -70,10 +70,6 @@ export function QuestionTabs({
   const handleSelectSolution = (id: string) => {
     setSelectedSolutionId(id)
   }
-
-  const currentSolution = selectedSolutionId 
-    ? moreSolutions.find(s => s.id === selectedSolutionId)
-    : bestSolution
 
   return (
     <div className="space-y-6">
@@ -202,13 +198,19 @@ export function QuestionTabs({
                       <div className="p-3 md:p-4 animate-in fade-in slide-in-from-bottom-2 duration-400">
                         {selectedSolutionId ? (
                            <div className="animate-in fade-in duration-300">
-                             <SolutionCard
-                               solution={moreSolutions.find(s => s.id === selectedSolutionId)!}
-                               currentUserId={userId}
-                               onDelete={handleSolutionDelete}
-                               onUpdate={() => router.refresh()}
-                               isHighlighted={true}
-                             />
+                        <SolutionCard
+                          solution={moreSolutions.find(s => s.id === selectedSolutionId)!}
+                          currentUserId={userId}
+                          onDelete={(id) => {
+                            handleSolutionDelete(id)
+                            setSelectedSolutionId(null)
+                          }}
+                          onUpdate={() => {
+                            router.refresh()
+                            loadMoreSolutions()
+                          }}
+                          isHighlighted={true}
+                        />
                            </div>
                         ) : isLoadingMore ? (
                           <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -243,9 +245,9 @@ export function QuestionTabs({
                   <Sparkles className="h-4 w-4 text-yellow-500" />
                   Strategic Hint
                 </CardTitle>
-                {!isEditingHint && (
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setIsEditingHint(true)}>
-                    <Edit2 className="h-4 w-4" />
+                {!isEditingHint && userId === question.owner_id && (
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/5 rounded-full" onClick={() => setIsEditingHint(true)}>
+                    <Edit2 className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
                   </Button>
                 )}
               </div>
