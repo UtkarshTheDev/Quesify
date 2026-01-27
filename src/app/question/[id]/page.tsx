@@ -5,6 +5,9 @@ import { QuestionDetail } from '@/components/questions/question-detail'
 import { Question, Solution, UserQuestionStats } from '@/lib/types'
 import { PublicNav } from '@/components/layout/public-nav'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface PageProps {
     params: Promise<{ id: string }>
 }
@@ -17,14 +20,10 @@ export default async function PublicQuestionPage({ params }: PageProps) {
     // Getting session user if available for personalized UI (like "Add to Bank")
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Fetch question with solutions and author profile
     const { data: question, error } = await supabase
         .from('questions')
         .select(`
       *,
-      solutions (
-        *
-      ),
       user_question_stats (
         *
       ),
@@ -37,12 +36,36 @@ export default async function PublicQuestionPage({ params }: PageProps) {
       )
     `)
         .eq('id', id)
-        .order('likes', { referencedTable: 'solutions', ascending: false })
         .single()
 
     if (error || !question) {
         console.error('Error fetching question:', error)
         notFound()
+    }
+
+    const { data: topSolutions } = await supabase
+        .from('solutions')
+        .select(`
+        *,
+        author:user_profiles!contributor_id (
+            display_name,
+            avatar_url
+        )
+        `)
+        .eq('question_id', id)
+        .order('likes', { ascending: false })
+        .order('is_ai_best', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+    const { count: totalSolutionsCount } = await supabase
+        .from('solutions')
+        .select('*', { count: 'exact', head: true })
+        .eq('question_id', id)
+
+    const questionWithDetails = {
+        ...question,
+        solutions: topSolutions || [],
     }
 
     type QuestionWithDetails = Question & {
@@ -58,7 +81,7 @@ export default async function PublicQuestionPage({ params }: PageProps) {
     return (
         <div className="min-h-screen flex flex-col">
             <PublicNav userId={user?.id} />
-            <main className="flex-1 container mx-auto px-4 py-12">
+            <main className="flex-1 mx-auto px-4 py-12">
                 <Suspense fallback={
                     <div className="max-w-4xl mx-auto space-y-6">
                         <div className="h-10 w-24 bg-muted animate-pulse rounded-md" />
@@ -66,9 +89,10 @@ export default async function PublicQuestionPage({ params }: PageProps) {
                     </div>
                 }>
                     <QuestionDetail
-                        question={question as unknown as QuestionWithDetails}
+                        question={questionWithDetails as unknown as QuestionWithDetails}
                         userId={user?.id || null}
                         isPublic={true}
+                        totalSolutionsCount={totalSolutionsCount || 0}
                     />
                 </Suspense>
             </main>
