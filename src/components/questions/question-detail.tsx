@@ -46,6 +46,8 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
     handleGenerateSolution,
     handleMarkSolved,
     handleSolutionDelete,
+    fetchSharingStats,
+    sharingStats,
     stats,
     isRevealed,
     setIsRevealed,
@@ -54,6 +56,9 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
     moreSolutions,
     isLoadingMore,
     loadMoreSolutions,
+    isEditingHint,
+    setIsEditingHint,
+    isShared,
   } = useQuestionDetail({ question, userId })
 
   const bestSolution = question.solutions[0] || null
@@ -80,17 +85,21 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
         onOpenChange={setShowDeleteDialog}
         onDelete={handleDelete}
         isDeleting={isDeleting}
+        isShared={isShared}
+        usageCount={sharingStats?.count ?? null}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7 space-y-6">
-          <QuestionContent
-            question={question}
-            userId={userId}
-            setShowDeleteDialog={setShowDeleteDialog}
-            revealed={isRevealed}
-            correctOption={currentSolution?.correct_option}
-          />
+      <QuestionContent
+        question={question}
+        userId={userId}
+        setShowDeleteDialog={setShowDeleteDialog}
+        revealed={isRevealed}
+        correctOption={currentSolution?.correct_option}
+        fetchSharingStats={fetchSharingStats}
+        sharingStats={sharingStats}
+      />
           <QuestionTabs
             question={question}
             userId={userId}
@@ -109,6 +118,8 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
             moreSolutions={moreSolutions}
             isLoadingMore={isLoadingMore}
             loadMoreSolutions={loadMoreSolutions}
+            isEditingHint={isEditingHint}
+            setIsEditingHint={setIsEditingHint}
           />
         </div>
         <div className="md:col-span-3 space-y-6">
