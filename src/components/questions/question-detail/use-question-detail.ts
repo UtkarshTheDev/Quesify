@@ -37,6 +37,19 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null)
   const [moreSolutions, setMoreSolutions] = useState<Solution[]>([])
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isShared, setIsShared] = useState(false)
+  const [sharingStats, setSharingStats] = useState<{ count: number } | null>(null)
+
+  useEffect(() => {
+    const checkSharing = async () => {
+      if (!userId || question.owner_id !== userId) return
+      
+      const { count } = await fetch(`/api/questions/${question.id}/sharing-stats`).then(res => res.json()).catch(() => ({ count: 0 }))
+      setIsShared(count > 0)
+    }
+    
+    checkSharing()
+  }, [question.id, question.owner_id, userId])
 
   const loadMoreSolutions = useCallback(async () => {
     setIsLoadingMore(true)
@@ -93,15 +106,22 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
         method: 'DELETE',
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to delete question')
+        throw new Error(data.error || 'Failed to delete question')
       }
 
-      toast.success('Question deleted successfully')
+      if (data.softDelete) {
+        toast.info(data.message)
+      } else {
+        toast.success('Question permanently deleted')
+      }
+
       router.push('/dashboard/questions')
       router.refresh()
-    } catch {
-      toast.error('Failed to delete question')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete question')
       setIsDeleting(false)
     }
   }
@@ -202,6 +222,22 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     }
   }
 
+  const fetchSharingStats = useCallback(async () => {
+    if (!userId || question.owner_id !== userId) return { count: 0 }
+
+    try {
+      const response = await fetch(`/api/questions/${question.id}/sharing-stats-detailed`)
+      if (!response.ok) return { count: 0 }
+      
+      const data = await response.json()
+      setSharingStats(data)
+      return data
+    } catch (error) {
+      console.error('Failed to fetch sharing stats:', error)
+      return { count: 0 }
+    }
+  }, [question.id, question.owner_id, userId])
+
   return {
     router,
     isGenerating,
@@ -225,6 +261,8 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     handleGenerateSolution,
     handleMarkSolved,
     handleSolutionDelete,
+    fetchSharingStats,
+    sharingStats,
     isRevealed,
     setIsRevealed,
     selectedSolutionId,
@@ -232,6 +270,7 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     moreSolutions,
     isLoadingMore,
     loadMoreSolutions,
+    isShared,
     stats: (question.user_question_stats?.[0] || null) as UserQuestionStats | null,
   }
 }
