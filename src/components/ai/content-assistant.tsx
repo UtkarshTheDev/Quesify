@@ -213,7 +213,7 @@ export function AIContentAssistant({
       {/* Command Input */}
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex flex-col bg-background/50 hover:bg-background/80 focus-within:bg-background rounded-xl border border-border/40 focus-within:border-orange-500/30 transition-all duration-300 shadow-sm">
+        <div className="relative flex flex-col bg-background/50 hover:bg-background/80 focus-within:bg-background rounded-xl border border-orange-500/10 hover:border-orange-500/20 focus-within:border-orange-500/30 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.05)] transition-all duration-300 shadow-sm">
           <Textarea
             ref={textareaRef}
             value={customPrompt}
@@ -228,22 +228,13 @@ export function AIContentAssistant({
             }}
           />
           
-          <div className="flex items-center justify-between px-2 pb-2 mt-1">
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg">
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg">
-                <Mic className="h-4 w-4" />
-              </Button>
-            </div>
-
+          <div className="flex items-center justify-end px-2 pb-2 mt-1">
             <Button
               className={cn(
                 "h-8 px-4 font-bold text-xs rounded-lg transition-all duration-200 gap-2", 
                 customPrompt 
                   ? "bg-white text-black hover:bg-white/90 shadow-md" 
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  : "bg-transparent text-muted-foreground/40 hover:bg-muted/30"
               )}
               onClick={() => handleTweak(customPrompt)}
               disabled={!customPrompt}
