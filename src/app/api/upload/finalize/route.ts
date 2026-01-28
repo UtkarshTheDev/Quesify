@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
             // We join with solutions to get the existing solution for comparison
             const { data: similarQuestions } = await supabase.rpc('match_questions_with_solutions', {
                 query_embedding: embedding,
-                match_threshold: 0.85,
+                match_threshold: 0.80, // Lowered to 0.80 for broader candidate selection
                 match_count: 1
             })
 

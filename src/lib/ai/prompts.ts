@@ -46,7 +46,7 @@ JSON Schema:
 {{
   "same_concept": boolean,
   "same_approach": boolean,
-  "differences": "string (Short summary of what makes them different)",
+  "differences": "string (Describe any tricky differences in constraints, edge cases, or approach)",
   "verdict": "SAME | DIFFERENT_APPROACH | DIFFERENT_QUESTION",
   "confidence": number (0-1)
 }}
