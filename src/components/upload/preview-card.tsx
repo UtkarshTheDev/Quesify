@@ -295,26 +295,10 @@ export function PreviewCard({
                       onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
                       placeholder="Fine-tune the solution steps..."
                     />
-                    
-                    <AIContentAssistant
-                      content={displayData.solution}
-                      contentType="solution"
-                      onContentChange={(val) => {
-                        setLocalEdits(prev => ({ ...prev, solution: val }))
-                      }}
-                      onComplexUpdate={(update) => {
-                        setLocalEdits(prev => ({
-                          ...prev,
-                          solution: update.tweakedContent,
-                          ...(update.syncedApproach ? { hint: update.syncedApproach } : {})
-                        }))
-                      }}
-                      className="border-t pt-6"
-                    />
                   </TabsContent>
 
                   <TabsContent value="preview" className="mt-0 focus-visible:outline-none">
-                    <div className="space-y-10">
+                    <div className="space-y-10 pb-6">
                       <div className="solution-content">
                         <SolutionSteps content={(displayData.solution || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1')} />
                       </div>
@@ -332,6 +316,22 @@ export function PreviewCard({
                     </div>
                   </TabsContent>
                 </Tabs>
+
+                <AIContentAssistant
+                  content={displayData.solution}
+                  contentType="solution"
+                  onContentChange={(val) => {
+                    setLocalEdits(prev => ({ ...prev, solution: val }))
+                  }}
+                  onComplexUpdate={(update) => {
+                    setLocalEdits(prev => ({
+                      ...prev,
+                      solution: update.tweakedContent,
+                      ...(update.syncedApproach ? { hint: update.syncedApproach } : {})
+                    }))
+                  }}
+                  className="border-t pt-6"
+                />
               </SectionFade>
             )}
           </CardContent>
