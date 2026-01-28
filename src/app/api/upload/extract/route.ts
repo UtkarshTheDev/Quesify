@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
             topics: [],
             difficulty: 'medium',
             importance: 3,
-            correct_option: rawExtraction.correct_option ?? null,
+            correct_option: null, // Will be filled in Solution phase
         }
 
         // Step 2: Upload image to storage

@@ -20,7 +20,6 @@ JSON Schema:
   "reason": "string (only if invalid)",
   "question_text": "string (with LaTeX)",
   "options": ["string"],
-  "correct_option": number | null (0-indexed index of true option if MCQ),
   "type": "MCQ | VSA | SA | LA | CASE_STUDY",
   "subject": "string (Must be from the list above or 'General')"
 }}
