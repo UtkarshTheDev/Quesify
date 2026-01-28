@@ -72,20 +72,18 @@ export const ai = {
 
   /**
    * Extract question data from an image
+   * Now performs Validation + Extraction + Subject ID in one shot
    */
   async extractQuestion(
     imageBase64: string,
     mimeType: string,
-    syllabusChapters?: string
-  ): Promise<GeminiExtractionResult> {
+    subjectsList: string[]
+  ): Promise<GeminiExtractionResult & { isValid: boolean; reason?: string }> {
     const client = getAIClient()
 
-    // Format the extraction prompt with syllabus chapters if provided
-    const prompt = syllabusChapters
-      ? formatPrompt(PROMPTS.extraction, { syllabusChapters })
-      : formatPrompt(PROMPTS.extraction, {
-        syllabusChapters: 'No syllabus available - use your best judgment for chapter names'
-      })
+    const prompt = formatPrompt(PROMPTS.extraction, {
+      subjectsList: subjectsList.join(', ')
+    })
 
     const response = await client.generateFromImage(
       imageBase64,
@@ -94,7 +92,14 @@ export const ai = {
       'vision'
     )
 
-    return client.parseAiJson<GeminiExtractionResult>(response)
+    const result = client.parseAiJson<GeminiExtractionResult & { isValid: boolean; reason?: string }>(response)
+
+    // Default to true if not present (legacy support)
+    if (result.isValid === undefined) {
+      result.isValid = true
+    }
+
+    return result
   },
 
   /**
@@ -129,14 +134,20 @@ export const ai = {
   async generateSolution(
     questionText: string,
     questionType: string,
-    subject: string
+    subject: string,
+    options: string[] = []
   ): Promise<SolutionGenerationResponse> {
     const client = getAIClient()
+
+    const optionsText = options.length > 0
+      ? options.map((opt, i) => `${i}. ${opt}`).join('\n')
+      : 'No specific options provided.'
 
     const prompt = formatPrompt(PROMPTS.solutionGeneration, {
       questionText,
       questionType,
       subject,
+      options: optionsText
     })
 
     const response = await client.generateText(prompt, 'reasoning')

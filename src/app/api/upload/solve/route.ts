@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
+    const routeStart = performance.now()
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -22,11 +23,13 @@ export async function POST(request: NextRequest) {
         const cleanType = type || 'SA'
 
         // Generate Solution
+        const solStart = performance.now()
         const solutionResult = await ai.generateSolution(
             question_text,
             cleanType,
             cleanSubject
         )
+        console.log(`[Route/Solve] AI Solution generation took ${(performance.now() - solStart).toFixed(2)}ms`)
 
         // Normalize output
         const normalizedSolution = {
@@ -35,6 +38,8 @@ export async function POST(request: NextRequest) {
             hint: solutionResult.approach_description || '',
             correct_option: solutionResult.correct_option ?? null,
         }
+
+        console.log(`[Route/Solve] Total route execution: ${(performance.now() - routeStart).toFixed(2)}ms`)
 
         return NextResponse.json({
             success: true,

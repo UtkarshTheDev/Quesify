@@ -5,16 +5,25 @@ export const PROMPTS = {
   extraction: `You are an expert educational content extractor.
 Analyze the question image and return a structured JSON response.
 
+1. VALIDATION: Check if the image contains a legible educational question.
+   - If blurry/illegible or not a question: set "isValid": false and provide "reason".
+   - If valid: set "isValid": true and proceed to extract.
+
+2. EXTRACTION: Extract the text, options (if MCQ), and identify the Subject.
+
+SUBJECT LIST (Pick one):
+{subjectsList}
+
 JSON Schema:
 {{
+  "isValid": boolean,
+  "reason": "string (only if invalid)",
   "question_text": "string (with LaTeX)",
   "options": ["string"],
   "correct_option": number | null (0-indexed index of true option if MCQ),
-  "type": "MCQ | VSA | SA | LA | CASE_STUDY"
+  "type": "MCQ | VSA | SA | LA | CASE_STUDY",
+  "subject": "string (Must be from the list above or 'General')"
 }}
-
-SYLLABUS DATA FOR CONTEXT:
-{syllabusChapters}
 
 Return ONLY the JSON block.`,
 
@@ -128,6 +137,9 @@ STYLING & RENDERING RULES (MANDATORY):
 
 QUESTION TEXT:
 {questionText}
+
+OPTIONS (if MCQ):
+{options}
 
 QUESTION TYPE: {questionType}
 SUBJECT: {subject}

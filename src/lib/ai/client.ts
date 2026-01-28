@@ -35,8 +35,13 @@ class AIClient {
 
   // Generate text content
   async generateText(prompt: string, modelType: ModelType = 'fast'): Promise<string> {
+    const start = performance.now()
     const model = this.getModel(modelType)
     const result = await model.generateContent(prompt)
+    const duration = performance.now() - start
+    if (AI_CONFIG.debug) {
+      console.log(`[AI/Text] ${modelType} took ${duration.toFixed(2)}ms`)
+    }
     return result.response.text()
   }
 
@@ -47,6 +52,7 @@ class AIClient {
     prompt: string,
     modelType: ModelType = 'vision'
   ): Promise<string> {
+    const start = performance.now()
     const model = this.getModel(modelType)
     const result = await model.generateContent([
       {
@@ -57,13 +63,22 @@ class AIClient {
       },
       { text: prompt },
     ])
+    const duration = performance.now() - start
+    if (AI_CONFIG.debug) {
+      console.log(`[AI/Vision] ${modelType} took ${duration.toFixed(2)}ms`)
+    }
     return result.response.text()
   }
 
   // Generate embeddings
   async generateEmbedding(text: string): Promise<number[]> {
+    const start = performance.now()
     const model = this.getModel('embedding')
     const result = await model.embedContent(text)
+    const duration = performance.now() - start
+    if (AI_CONFIG.debug) {
+      console.log(`[AI/Embedding] took ${duration.toFixed(2)}ms`)
+    }
     return result.embedding.values
   }
 

@@ -7,6 +7,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { class12Syllabus, getChaptersBySubject, getSyllabusBySubject } from '@/lib/syllabus-data'
+import { redis } from '@/lib/db/redis'
 
 export interface SyllabusChapter {
   chapter: string
@@ -206,28 +207,37 @@ export async function getAllSyllabusFromDB(): Promise<Record<string, SyllabusDat
   }
 }
 
-// Simple in-memory cache
-const syllabusCache: Record<string, SyllabusData> = {}
-const allSyllabusCache: { data: Record<string, SyllabusData> | null, timestamp: number } = { data: null, timestamp: 0 }
-const CACHE_TTL = 1000 * 60 * 60 // 1 hour
+// Redis Cache Keys
+const CACHE_KEYS = {
+  ALL_SYLLABUS: 'syllabus:all',
+  SUBJECT_SYLLABUS: (subject: string) => `syllabus:${subject.toLowerCase()}`,
+}
+const CACHE_TTL = 60 * 60 * 24 // 24 hours
 
 /**
  * Get syllabus data for a subject with fallback to static data
  */
 export async function getSyllabus(subject: string): Promise<SyllabusData> {
-  // Check cache
-  if (syllabusCache[subject]) {
-    return syllabusCache[subject]
+  // 1. Try Redis
+  if (redis) {
+    try {
+      const cached = await redis.get<SyllabusData>(CACHE_KEYS.SUBJECT_SYLLABUS(subject))
+      if (cached) return cached
+    } catch (e) {
+      console.warn('Redis error:', e)
+    }
   }
 
-  // Try database first
+  // 2. Try database
   const dbData = await getSyllabusFromDB(subject)
   if (dbData) {
-    syllabusCache[subject] = dbData
+    if (redis) {
+      await redis.set(CACHE_KEYS.SUBJECT_SYLLABUS(subject), dbData, { ex: CACHE_TTL })
+    }
     return dbData
   }
 
-  // Fallback to static data
+  // 3. Fallback to static data
   console.log(`Using static syllabus data for ${subject}`)
   const staticEntries = getSyllabusBySubject(subject)
 
@@ -240,7 +250,9 @@ export async function getSyllabus(subject: string): Promise<SyllabusData> {
     }))
   }
 
-  syllabusCache[subject] = result
+  if (redis) {
+    await redis.set(CACHE_KEYS.SUBJECT_SYLLABUS(subject), result, { ex: CACHE_TTL })
+  }
   return result
 }
 
@@ -248,20 +260,26 @@ export async function getSyllabus(subject: string): Promise<SyllabusData> {
  * Get syllabus data for all subjects with fallback to static data
  */
 export async function getAllSyllabus(): Promise<Record<string, SyllabusData>> {
-  // Check cache
-  if (allSyllabusCache.data && (Date.now() - allSyllabusCache.timestamp < CACHE_TTL)) {
-    return allSyllabusCache.data
+  // 1. Try Redis
+  if (redis) {
+    try {
+      const cached = await redis.get<Record<string, SyllabusData>>(CACHE_KEYS.ALL_SYLLABUS)
+      if (cached) return cached
+    } catch (e) {
+      console.warn('Redis error:', e)
+    }
   }
 
-  // Try database first
+  // 2. Try database
   const dbData = await getAllSyllabusFromDB()
   if (Object.keys(dbData).length > 0) {
-    allSyllabusCache.data = dbData
-    allSyllabusCache.timestamp = Date.now()
+    if (redis) {
+      await redis.set(CACHE_KEYS.ALL_SYLLABUS, dbData, { ex: CACHE_TTL })
+    }
     return dbData
   }
 
-  // Fallback to static data
+  // 3. Fallback to static data
   console.log('Using static syllabus data for all subjects')
   const grouped = class12Syllabus.reduce((acc, entry) => {
     if (!acc[entry.subject]) {
@@ -280,8 +298,9 @@ export async function getAllSyllabus(): Promise<Record<string, SyllabusData>> {
     return acc
   }, {} as Record<string, SyllabusData>)
 
-  allSyllabusCache.data = grouped
-  allSyllabusCache.timestamp = Date.now()
+  if (redis) {
+    await redis.set(CACHE_KEYS.ALL_SYLLABUS, grouped, { ex: CACHE_TTL })
+  }
   return grouped
 }
 

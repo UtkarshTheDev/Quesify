@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 import { uploadQuestionImage } from '@/lib/storage/upload'
+import { getAllSyllabus } from '@/lib/services/syllabus'
 
 export async function POST(request: NextRequest) {
+    const routeStart = performance.now()
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -14,7 +16,6 @@ export async function POST(request: NextRequest) {
 
         const formData = await request.formData()
         const file = formData.get('file') as File
-        const subject = formData.get('subject') as string | null
 
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -24,20 +25,24 @@ export async function POST(request: NextRequest) {
         const bytes = await file.arrayBuffer()
         const base64 = Buffer.from(bytes).toString('base64')
 
-        // Step 1: Validate image (is it a question?)
-        const validation = await ai.validateImage(base64, file.type)
-        if (!validation.isValid) {
-            return NextResponse.json({
-                error: validation.reason || 'Invalid image. Please upload a clear question image.'
-            }, { status: 400 })
-        }
+        // Fetch subjects for AI context
+        const allSyllabus = await getAllSyllabus()
+        const subjectsList = Object.keys(allSyllabus)
 
-        // Step 2: Extract base question content
+        // Step 1: Validate & Extract (Consolidated Phase)
+        const extStart = performance.now()
         const rawExtraction = await ai.extractQuestion(
             base64,
             file.type,
-            "General Syllabus Context"
+            subjectsList
         )
+        console.log(`[Route/Extract] Consolidated AI Extraction took ${(performance.now() - extStart).toFixed(2)}ms`)
+
+        if (!rawExtraction.isValid) {
+            return NextResponse.json({
+                error: rawExtraction.reason || 'Invalid image. Please upload a clear question image.'
+            }, { status: 400 })
+        }
 
         // Data Normalization (Fix "object object" and missing fields)
         const normalizedData = {
@@ -47,16 +52,20 @@ export async function POST(request: NextRequest) {
                 typeof opt === 'object' ? Object.values(opt)[0] : String(opt)
             ),
             // Ensure specific fields have defaults
-            subject: rawExtraction.subject || 'Extracting...',
-            chapter: rawExtraction.chapter || 'Extracting...',
-            topics: Array.isArray(rawExtraction.topics) ? rawExtraction.topics : [],
-            difficulty: rawExtraction.difficulty || 'medium',
-            importance: rawExtraction.importance || 3,
+            subject: rawExtraction.subject || 'Uncategorized',
+            chapter: 'Pending...', // Will be filled in Classify phase
+            topics: [],
+            difficulty: 'medium',
+            importance: 3,
             correct_option: rawExtraction.correct_option ?? null,
         }
 
-        // Step 3: Upload image to storage
+        // Step 2: Upload image to storage
+        const storageStart = performance.now()
         const imageUrl = await uploadQuestionImage(file, user.id)
+        console.log(`[Route/Extract] Storage Upload took ${(performance.now() - storageStart).toFixed(2)}ms`)
+
+        console.log(`[Route/Extract] Total route execution: ${(performance.now() - routeStart).toFixed(2)}ms`)
 
         // Return Stage 1 results
         return NextResponse.json({
