@@ -74,11 +74,7 @@ class AIClient {
   async generateEmbedding(text: string): Promise<number[]> {
     const start = performance.now()
     const model = this.getModel('embedding')
-    // Explicitly set output dimensionality to 768 to match database constraints
-    const result = await model.embedContent({
-      content: { parts: [{ text }] },
-      outputDimensionality: 768,
-    })
+    const result = await model.embedContent(text)
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
       console.log(`[AI/Embedding] took ${duration.toFixed(2)}ms`)
