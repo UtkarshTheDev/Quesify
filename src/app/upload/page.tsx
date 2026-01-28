@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dropzone } from '@/components/upload/dropzone'
 import { PreviewCard } from '@/components/upload/preview-card'
@@ -229,6 +229,11 @@ export default function UploadPage() {
     }
   }
 
+  const handleReFinalize = useCallback((text: string, sol?: string) => {
+    finalizationLock.current = false;
+    runFinalize(text, sol);
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-20 px-4 lg:px-0 pt-16">
       <div className="flex flex-col items-center text-center">
@@ -251,10 +256,7 @@ export default function UploadPage() {
           status={analysisStatus}
           onSave={handleSave}
           isSaving={isSaving}
-          onReFinalize={(text, sol) => {
-            finalizationLock.current = false;
-            runFinalize(text, sol);
-          }}
+          onReFinalize={handleReFinalize}
           onRetryExtract={() => selectedFile && runExtract(selectedFile)}
           onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
           onRetryClassify={() => runClassify(extractedData.question_text, extractedData.subject)}

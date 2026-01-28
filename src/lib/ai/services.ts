@@ -184,12 +184,13 @@ export const ai = {
 
   /**
    * Tweak content based on user instruction
+   * Now returns structured object with approach change detection
    */
   async tweakContent(
     originalContent: string,
     contentType: 'solution' | 'hint' | 'question' | 'tags',
     userInstruction: string
-  ): Promise<string> {
+  ): Promise<{ tweakedContent: string; approachChanged: boolean; newApproach: string }> {
     const client = getAIClient()
 
     const prompt = formatPrompt(PROMPTS.contentTweaking, {
@@ -199,7 +200,20 @@ export const ai = {
     })
 
     const response = await client.generateText(prompt, 'fast')
-    return response.trim()
+    return client.parseAiJson<{ tweakedContent: string; approachChanged: boolean; newApproach: string }>(response)
+  },
+
+  /**
+   * Analyze manual solution edits for strategy changes
+   */
+  async analyzeSolutionChange(
+    oldSolution: string,
+    newSolution: string
+  ): Promise<{ approachChanged: boolean; newApproach: string }> {
+    const client = getAIClient()
+    const prompt = formatPrompt(PROMPTS.solutionChangeAnalysis, { oldSolution, newSolution })
+    const response = await client.generateText(prompt, 'fast')
+    return client.parseAiJson<{ approachChanged: boolean; newApproach: string }>(response)
   },
 
   /**

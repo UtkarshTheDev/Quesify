@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge'
 import { SolutionSteps } from '@/components/questions/solution-steps'
 import { Latex } from '@/components/ui/latex'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock, ExternalLink } from 'lucide-react'
+import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AIContentAssistant } from '@/components/ai/content-assistant'
+import { toast } from 'sonner'
 import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
 interface PreviewCardProps {
@@ -56,27 +57,13 @@ export function PreviewCard({
   const [editMode, setEditMode] = useState(false)
   const [localEdits, setLocalEdits] = useState<Partial<GeminiExtractionResult> | null>(null)
   const [activeSolutionTab, setActiveSolutionTab] = useState<'preview' | 'edit'>('preview')
+  const [isVerifying, setIsVerifying] = useState(false)
   const debounceTimer = useRef<any>(null)
 
   const displayData = {
     ...data,
     ...(localEdits || {})
   }
-
-  // Effect to trigger re-finalization (duplicate check) when solution changes significantly
-  useEffect(() => {
-    if (!onReFinalize || !localEdits?.solution) return
-
-    if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    
-    debounceTimer.current = setTimeout(() => {
-      onReFinalize(displayData.question_text, displayData.solution)
-    }, 1500) // 1.5s debounce
-
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    }
-  }, [localEdits?.solution, onReFinalize])
 
   const handleSave = async () => {
     if (data.duplicate_check?.is_duplicate && data.duplicate_check.matched_question_id) {
@@ -89,12 +76,53 @@ export function PreviewCard({
     }
   }
 
-  const handleAITweak = (tweakedContent: string, syncedApproach?: string) => {
+  const handleAITweak = (tweakedContent: string, syncedApproach?: string, approachChanged?: boolean) => {
     setLocalEdits(prev => ({
       ...prev,
       solution: tweakedContent,
       ...(syncedApproach ? { hint: syncedApproach } : {})
     }))
+
+    // If AI says the approach fundamentally changed, re-run duplication check automatically
+    if (approachChanged && onReFinalize) {
+      onReFinalize(displayData.question_text, tweakedContent)
+    }
+  }
+
+  const handleVerifyManualChanges = async () => {
+    if (!localEdits?.solution || !onReFinalize) return
+
+    setIsVerifying(true)
+    try {
+      const res = await fetch('/api/ai/analyze-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          oldSolution: data.solution, 
+          newSolution: localEdits.solution 
+        })
+      })
+
+      if (!res.ok) throw new Error('Analysis failed')
+      
+      const { approachChanged, newApproach } = await res.json()
+      
+      setLocalEdits(prev => ({
+        ...prev,
+        hint: newApproach
+      }))
+
+      // Only re-run duplication check if AI confirms approach changed
+      if (approachChanged) {
+        onReFinalize(displayData.question_text, localEdits.solution)
+      } else {
+        toast.success('Changes verified (Same approach)')
+      }
+    } catch (e) {
+      toast.error('Failed to verify strategy changes')
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
   const difficultyColors: Record<string, string> = {
@@ -289,12 +317,27 @@ export function PreviewCard({
                   </div>
 
                   <TabsContent value="edit" className="mt-0 space-y-6 focus-visible:outline-none animate-in fade-in zoom-in-95 duration-200">
-                    <textarea
-                      className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
-                      value={displayData.solution}
-                      onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
-                      placeholder="Fine-tune the solution steps..."
-                    />
+                    <div className="space-y-4">
+                      <textarea
+                        className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
+                        value={displayData.solution}
+                        onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
+                        placeholder="Fine-tune the solution steps..."
+                      />
+                      
+                      <div className="flex justify-end">
+                        <Button 
+                          size="sm" 
+                          variant="secondary" 
+                          className="rounded-xl h-9 px-6 text-xs font-bold gap-2"
+                          onClick={handleVerifyManualChanges}
+                          disabled={isVerifying || !localEdits?.solution || localEdits.solution === data.solution}
+                        >
+                          {isVerifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                          Verify strategy & Sync
+                        </Button>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="preview" className="mt-0 focus-visible:outline-none">
