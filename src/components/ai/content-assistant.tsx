@@ -135,13 +135,13 @@ export function AIContentAssistant({
   }
 
   return (
-    <div className={cn("space-y-4 pt-4 border-t border-border/40", className)}>
+    <div className={cn("space-y-4 pt-5 sm:pt-4 border-t border-border/40", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20">
             <Sparkles className="h-3.5 w-3.5" />
           </div>
-          <span className="text-xs font-bold text-foreground/80 tracking-tight">AI Copilot</span>
+          <span className="text-[10px] sm:text-xs font-black text-foreground/80 tracking-widest uppercase">AI Copilot</span>
         </div>
       </div>
 
@@ -151,9 +151,9 @@ export function AIContentAssistant({
           <button
             key={preset.label}
             onClick={() => handleTweak(preset.prompt)}
-            className="group flex items-center gap-2.5 px-4 py-2 h-10 sm:h-9 sm:px-3 sm:py-1.5 text-[13px] sm:text-[11px] font-semibold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-xl sm:rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
+            className="group flex items-center gap-2 px-3.5 py-2 h-9 sm:h-9 sm:px-3 sm:py-1.5 text-xs sm:text-[11px] font-bold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-xl sm:rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
           >
-            <preset.icon className="h-4 w-4 sm:h-3.5 sm:h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+            <preset.icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             {preset.label}
           </button>
         ))}
@@ -161,14 +161,14 @@ export function AIContentAssistant({
 
       {/* Command Input */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-orange-500/30 transition-all duration-200 p-1.5 sm:p-1">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-20 group-focus-within:opacity-100 transition duration-500" />
+        <div className="relative flex flex-col items-stretch bg-orange-500/[0.03] hover:bg-orange-500/[0.05] focus-within:bg-background rounded-xl border border-orange-500/10 focus-within:border-orange-500/30 transition-all duration-200 p-1.5">
           <Textarea
             ref={textareaRef}
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Ask AI to rewrite, explain, or format..."
-            className="min-h-[56px] sm:min-h-[44px] max-h-[120px] py-3 sm:py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-3 placeholder:text-muted-foreground/50 resize-none overflow-y-auto"
+            className="min-h-[60px] sm:min-h-[44px] max-h-[120px] py-3 sm:py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-[13px] sm:text-sm px-3 placeholder:text-muted-foreground/60 resize-none overflow-y-auto"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
@@ -176,19 +176,19 @@ export function AIContentAssistant({
               }
             }}
           />
-          <div className="flex items-end self-end w-full sm:w-auto mt-2 sm:mt-0 sm:pb-1 sm:pr-1">
+          <div className="flex mt-1.5">
             <Button
               className={cn(
-                "h-11 sm:h-8 w-full sm:w-8 font-bold text-sm sm:text-xs rounded-xl sm:rounded-lg transition-all duration-200 gap-2", 
+                "h-11 w-full font-black text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 gap-2.5", 
                 customPrompt 
-                  ? "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-500/20" 
-                  : "text-muted-foreground/30 hover:bg-transparent bg-muted/20 sm:bg-transparent"
+                  ? "bg-orange-600 text-white hover:bg-orange-500 shadow-lg shadow-orange-500/30" 
+                  : "bg-orange-500/5 text-orange-500/40 border border-orange-500/10"
               )}
               onClick={() => handleTweak(customPrompt)}
               disabled={!customPrompt}
             >
-              <span className="sm:hidden">Send Request</span>
-              <SendHorizontal className="h-4 w-4" />
+              <span>Send Request</span>
+              <SendHorizontal className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
