@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { question_text } = await request.json()
+        const { question_text, solution_text } = await request.json()
 
         if (!question_text) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
         let duplicateResult = null
         try {
             const dupStart = performance.now()
-            const { data: similarQuestions } = await supabase.rpc('match_questions', {
+            // We join with solutions to get the existing solution for comparison
+            const { data: similarQuestions } = await supabase.rpc('match_questions_with_solutions', {
                 query_embedding: embedding,
                 match_threshold: 0.85,
                 match_count: 1
@@ -35,7 +36,12 @@ export async function POST(request: NextRequest) {
 
             if (similarQuestions && similarQuestions.length > 0) {
                 const topMatch = similarQuestions[0]
-                const analysis = await ai.checkDuplicate(question_text, topMatch.question_text)
+                const analysis = await ai.checkDuplicate(
+                    question_text,
+                    solution_text || '',
+                    topMatch.question_text,
+                    topMatch.solution_text || ''
+                )
 
                 if (analysis.is_duplicate) {
                     duplicateResult = {

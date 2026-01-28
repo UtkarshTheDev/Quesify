@@ -108,20 +108,24 @@ export const ai = {
    */
   async checkDuplicate(
     questionA: string,
-    questionB: string
+    solutionA: string,
+    questionB: string,
+    solutionB: string
   ): Promise<DuplicateCheckResult> {
     const client = getAIClient()
 
     const prompt = formatPrompt(PROMPTS.duplicateAnalysis, {
       questionA,
+      solutionA,
       questionB,
+      solutionB,
     })
 
     const response = await client.generateText(prompt, 'fast')
     const parsed = client.parseAiJson<DuplicateAnalysisResponse>(response)
 
     return {
-      is_duplicate: parsed.verdict === 'SAME',
+      is_duplicate: parsed.verdict === 'SAME' || parsed.verdict === 'DIFFERENT_APPROACH',
       match_type: parsed.verdict,
       matched_question_id: null, // Set by caller
       confidence: parsed.confidence,
