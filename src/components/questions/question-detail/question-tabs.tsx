@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit2, HelpCircle, Loader2, Sparkles, BookOpen, MessageSquare } from 'lucide-react'
+import { Edit2, HelpCircle, Loader2, Sparkles, BookOpen, MessageSquare, CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +34,8 @@ interface QuestionTabsProps {
   moreSolutions: Solution[]
   isLoadingMore: boolean
   loadMoreSolutions: () => void
+  isEditingHint: boolean
+  setIsEditingHint: (editing: boolean) => void
 }
 
 export function QuestionTabs({
@@ -54,9 +56,10 @@ export function QuestionTabs({
   moreSolutions,
   isLoadingMore,
   loadMoreSolutions,
+  isEditingHint,
+  setIsEditingHint,
 }: QuestionTabsProps) {
   const router = useRouter()
-  const [isEditingHint, setIsEditingHint] = useState(false)
   const [activeSolutionTab, setActiveSolutionTab] = useState<'best' | 'more'>('best')
 
   const bestSolution = question.solutions[0] || null
@@ -254,47 +257,58 @@ export function QuestionTabs({
             </CardHeader>
             <CardContent className="pt-6">
               {isEditingHint ? (
-                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                  <Textarea
-                    value={editForm.hint}
-                    onChange={(e) => setEditForm({ ...editForm, hint: e.target.value })}
-                    className="min-h-[120px] font-mono resize-y bg-background"
-                    placeholder="Add a strategic hint..."
-                  />
-
-                  <div className="rounded-md border bg-muted/30 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Preview</p>
-                    <div className="prose dark:prose-invert max-w-none text-sm">
-                      <Latex>{editForm.hint || 'No content to preview'}</Latex>
+                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+                  <Tabs defaultValue="preview" className="w-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <TabsList className="bg-muted/50 p-1 h-9">
+                        <TabsTrigger value="preview" className="px-4 text-[10px] font-bold uppercase tracking-widest">Preview</TabsTrigger>
+                        <TabsTrigger value="edit" className="px-4 text-[10px] font-bold uppercase tracking-widest">Write</TabsTrigger>
+                      </TabsList>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="h-8 text-xs rounded-full" onClick={() => setIsEditingHint(false)}>Cancel</Button>
+                        <Button size="sm" onClick={() => handleSave('hint')} disabled={isSaving} className="h-8 text-xs rounded-full px-4">
+                          {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <CheckCircle2 className="h-3 w-3 mr-2" />}
+                          Save
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  <AIContentAssistant
-                    content={editForm.hint}
-                    contentType="hint"
-                    onContentChange={(val) => setEditForm({ ...editForm, hint: val })}
-                  />
+                    <TabsContent value="edit" className="mt-0 focus-visible:outline-none">
+                      <Textarea
+                        value={editForm.hint}
+                        onChange={(e) => setEditForm({ ...editForm, hint: e.target.value })}
+                        className="min-h-[150px] font-mono resize-y bg-background border-border/50 focus:border-primary/50 rounded-xl"
+                        placeholder="Add a strategic hint..."
+                      />
+                    </TabsContent>
 
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t mt-4">
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditingHint(false)}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={() => handleSave('hint')} disabled={isSaving}>
-                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Hint
-                    </Button>
-                  </div>
+                    <TabsContent value="preview" className="mt-0 focus-visible:outline-none space-y-6">
+                      <div className="rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 p-6 min-h-[120px]">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4">Rendered Hint Preview</p>
+                        <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
+                          <Latex>{editForm.hint || 'Start writing to see preview...'}</Latex>
+                        </div>
+                      </div>
+
+                      <AIContentAssistant
+                        content={editForm.hint}
+                        contentType="hint"
+                        onContentChange={(val) => setEditForm({ ...editForm, hint: val })}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </div>
               ) : (
                 <div className="flex gap-4">
                   <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center border border-yellow-500/20">
                     <HelpCircle className="h-5 w-5 text-yellow-500" />
                   </div>
-                  <div className="prose dark:prose-invert flex-1 pt-1">
+                  <div className="prose dark:prose-invert flex-1 pt-1 font-medium leading-relaxed">
                     {question.hint ? (
                       <Latex>{question.hint}</Latex>
                     ) : (
-                      <p className="text-muted-foreground italic text-sm">No hint provided for this question.</p>
+                      <p className="text-muted-foreground italic text-sm">No strategic hint provided for this question.</p>
                     )}
                   </div>
                 </div>
