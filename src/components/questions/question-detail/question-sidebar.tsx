@@ -109,7 +109,7 @@ export function QuestionSidebar({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Metadata</CardTitle>
-          {!isEditingTags && (
+          {!isEditingTags && userId === question.owner_id && (
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditingTags(true)}>
               <Edit2 className="h-3 w-3" />
             </Button>
