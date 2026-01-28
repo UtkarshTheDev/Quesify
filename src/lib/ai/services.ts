@@ -2,6 +2,7 @@
 
 import { getAIClient } from './client'
 import { PROMPTS, formatPrompt } from './prompts'
+import { AI_CONFIG } from './config'
 import type { GeminiExtractionResult, DuplicateCheckResult, Chart } from '@/lib/types'
 
 // Response types for internal use
@@ -123,6 +124,10 @@ export const ai = {
 
     const response = await client.generateText(prompt, 'fast')
     const parsed = client.parseAiJson<DuplicateAnalysisResponse>(response)
+
+    if (AI_CONFIG.debug) {
+      console.log('[AI/CheckDuplicate] Response:', JSON.stringify(parsed, null, 2))
+    }
 
     return {
       is_duplicate: parsed.verdict === 'SAME' || parsed.verdict === 'DIFFERENT_APPROACH',
