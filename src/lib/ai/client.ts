@@ -38,6 +38,7 @@ class AIClient {
     const start = performance.now()
     const model = this.getModel(modelType)
     const result = await model.generateContent(prompt)
+    const result = await model.generateContent(prompt)
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
       console.log(`[AI/Text] ${modelType} took ${duration.toFixed(2)}ms`)
