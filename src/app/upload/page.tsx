@@ -97,7 +97,8 @@ export default function UploadPage() {
         solution: result.data.solution,
         hint: result.data.hint,
         numerical_answer: result.data.numerical_answer,
-        avg_solve_time: result.data.avg_solve_time
+        avg_solve_time: result.data.avg_solve_time,
+        correct_option: result.data.correct_option
       }) : null)
       setAnalysisStatus(prev => ({ ...prev, solving: false }))
       checkAllDone(text)
