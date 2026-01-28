@@ -74,7 +74,20 @@ class AIClient {
   async generateEmbedding(text: string): Promise<number[]> {
     const start = performance.now()
     const model = this.getModel('embedding')
-    const result = await model.embedContent(text)
+    
+    // We try to use outputDimensionality for models that support it (like text-embedding-004)
+    // to match the 768 dimensions in the Supabase schema.
+    let result;
+    try {
+      result = await model.embedContent({
+        content: { role: 'user', parts: [{ text }] },
+        outputDimensionality: 768,
+      })
+    } catch (e) {
+      // Fallback for models that don't support the extended request object
+      result = await model.embedContent(text)
+    }
+
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
       console.log(`[AI/Embedding] took ${duration.toFixed(2)}ms`)

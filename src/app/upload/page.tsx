@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dropzone } from '@/components/upload/dropzone'
 import { PreviewCard } from '@/components/upload/preview-card'
@@ -20,6 +20,7 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const finalizationLock = useRef(false)
 
   // Analysis states for progressive feedback
   const [analysisStatus, setAnalysisStatus] = useState({
@@ -31,7 +32,6 @@ export default function UploadPage() {
     classifyError: null as string | null,
     finalizing: false,
     finalizeError: null as string | null,
-    finalized: false, // Track if finalization has started/completed
   })
 
   // Phase 1: Extraction
@@ -148,12 +148,13 @@ export default function UploadPage() {
 
   // Check if we should run finalization
   const checkAllDone = (text: string, solution?: string) => {
+    if (finalizationLock.current) return
+
     setAnalysisStatus(prev => {
-      // Run only if both phases are done, no errors, AND not already finalized/finalizing
-      if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError && !prev.finalizing && !prev.finalized) {
-        // We return a state update that marks it as starting to prevent race conditions
-        setTimeout(() => runFinalize(text, solution), 0)
-        return { ...prev, finalized: true }
+      // Run only if both phases are done, no errors
+      if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError && !prev.finalizing) {
+        finalizationLock.current = true
+        runFinalize(text, solution)
       }
       return prev
     })
@@ -195,12 +196,12 @@ export default function UploadPage() {
   const handleClear = () => {
     setSelectedFile(null)
     setExtractedData(null)
+    finalizationLock.current = false
     setAnalysisStatus({
       extracting: false, extractError: null,
       solving: false, solveError: null,
       classifying: false, classifyError: null,
-      finalizing: false, finalizeError: null,
-      finalized: false
+      finalizing: false, finalizeError: null
     })
   }
 
