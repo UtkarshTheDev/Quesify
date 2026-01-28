@@ -74,8 +74,8 @@ export function PreviewCard({
     ...(localEdits || {})
   }
 
-  const isSolutionModified = localEdits?.solution !== undefined && 
-                             localEdits.solution !== null && 
+  const isSolutionModified = localEdits?.solution !== undefined &&
+                             localEdits.solution !== null &&
                              localEdits.solution.trim() !== data.solution?.trim()
 
   const handleSave = async () => {
@@ -110,16 +110,16 @@ export function PreviewCard({
       const res = await fetch('/api/ai/analyze-change', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          oldSolution: data.solution, 
-          newSolution: localEdits.solution 
+        body: JSON.stringify({
+          oldSolution: data.solution,
+          newSolution: localEdits.solution
         })
       })
 
       if (!res.ok) throw new Error('Analysis failed')
-      
+
       const { approachChanged, newApproach } = await res.json()
-      
+
       setLocalEdits(prev => ({
         ...prev,
         hint: newApproach
@@ -328,11 +328,11 @@ export function PreviewCard({
                         onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
                         placeholder="Fine-tune the solution steps..."
                       />
-                      
+
                       <div className="flex justify-end pt-2 sm:pt-4">
-                        <Button 
-                          size="lg" 
-                          variant="default" 
+                        <Button
+                          size="lg"
+                          variant="default"
                           className={`w-full rounded-xl h-11 sm:h-12 font-bold gap-2.5 sm:gap-3 transition-all active:scale-95 shadow-lg ${
                             !isSolutionModified
                               ? 'bg-orange-600/10 text-orange-400/50 cursor-not-allowed shadow-none border border-orange-500/10'
@@ -558,7 +558,7 @@ export function PreviewCard({
           <CardHeader className="pb-2 border-b border-yellow-500/10">
             <Label className="uppercase tracking-widest text-[10px] font-bold text-yellow-600/70">Expert Hint / Strategy</Label>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-6 py-0">
             {status.solving ? (
               <Skeleton className="h-20 w-full" />
             ) : (
