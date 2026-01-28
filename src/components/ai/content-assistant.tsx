@@ -58,7 +58,8 @@ export function AIContentAssistant({
         let currentText = "";
         let index = 0;
 
-        // Smooth, high-quality streaming: 15ms delay, 2 chars per frame
+        // Smooth, readable streaming: 15ms delay, 2 chars per frame
+        // This creates a high-quality "typing" feel rather than a "dump"
         const speed = 15;
         const charsPerFrame = 2;
 
@@ -200,8 +201,8 @@ export function AIContentAssistant({
 
             {/* Command Input */}
             <div className="relative group pt-2">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-2xl blur opacity-30 group-focus-within:opacity-100 transition duration-500" />
-                <div className="relative flex flex-col bg-neutral-950 hover:bg-neutral-900 focus-within:bg-neutral-900 rounded-xl border border-neutral-800 hover:border-orange-500/30 focus-within:border-orange-500/50 transition-all duration-300 shadow-2xl">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
+                <div className="relative flex flex-col bg-neutral-950 hover:bg-neutral-900 focus-within:bg-neutral-900 rounded-xl border border-white/10 hover:border-orange-500/30 focus-within:border-orange-500/50 transition-all duration-300 shadow-xl">
                     <Textarea
                         ref={textareaRef}
                         value={customPrompt}
@@ -216,13 +217,13 @@ export function AIContentAssistant({
                         }}
                     />
 
-                    <div className="flex items-center justify-end px-3 pb-3 mt-1">
+                    <div className="flex items-center justify-end px-3 pb-3 mt-2">
                         <Button
                             className={cn(
-                                "h-9 px-5 font-bold text-xs rounded-lg transition-all duration-300 gap-2 shadow-lg",
+                                "h-9 px-5 font-bold text-xs rounded-lg transition-all duration-200 gap-2 shadow-lg",
                                 customPrompt
-                                    ? "bg-orange-600 text-white hover:bg-orange-500 shadow-orange-500/40"
-                                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                                    ? "bg-orange-600 text-white hover:bg-orange-500"
+                                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed hover:bg-neutral-800"
                             )}
                             onClick={() => handleTweak(customPrompt)}
                             disabled={!customPrompt}
