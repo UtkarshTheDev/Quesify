@@ -23,6 +23,7 @@ export function AIContentAssistant({
   className 
 }: AIContentAssistantProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const [customPrompt, setCustomPrompt] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -34,6 +35,42 @@ export function AIContentAssistant({
       textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
     }
   }, [customPrompt])
+
+  const streamText = async (fullText: string, syncedApproach?: string | null) => {
+    setIsStreaming(true)
+    let currentText = ""
+    let index = 0
+    
+    // Dynamic speed based on length (faster for longer texts)
+    // Base speed: ~30ms per char. Min 10ms, Max 50ms.
+    const speed = Math.max(10, Math.min(30, 1500 / fullText.length))
+
+    return new Promise<void>((resolve) => {
+      const interval = setInterval(() => {
+        currentText += fullText[index] || ""
+        
+        // We update the parent on every frame.
+        // Since we are in the "Edit" tab (textarea), this is cheap.
+        // The expensive Latex component is in the (hidden) Preview tab.
+        onContentChange(currentText)
+        
+        index++
+
+        if (index >= fullText.length) {
+          clearInterval(interval)
+          setIsStreaming(false)
+          
+          // Final sync with complex update if needed
+          if (onComplexUpdate && syncedApproach) {
+            onComplexUpdate({ tweakedContent: fullText, syncedApproach })
+          } else {
+            onContentChange(fullText)
+          }
+          resolve()
+        }
+      }, speed)
+    })
+  }
 
   const handleTweak = async (instruction: string) => {
     if (!instruction) return
@@ -54,17 +91,14 @@ export function AIContentAssistant({
 
       const data = await response.json()
       
-      if (onComplexUpdate) {
-        onComplexUpdate(data)
-      } else {
-        onContentChange(data.tweakedContent)
-      }
+      // Start fake streaming
+      setIsLoading(false) // Stop "Thinking" state
+      await streamText(data.tweakedContent, data.syncedApproach)
       
       toast.success('Refined with AI')
       setCustomPrompt('')
     } catch {
       toast.error('Failed to update content')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -86,14 +120,16 @@ export function AIContentAssistant({
 
   const presets = getPresets()
 
-  if (isLoading) {
+  if (isLoading || isStreaming) {
     return (
       <div className={cn("w-full py-3 flex items-center justify-center gap-3 bg-muted/30 rounded-xl border border-border/50", className)}>
         <div className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
         </div>
-        <span className="text-xs font-semibold text-muted-foreground tracking-wide animate-pulse">AI is working on it...</span>
+        <span className="text-xs font-semibold text-muted-foreground tracking-wide animate-pulse">
+          {isStreaming ? "AI is writing..." : "AI is working on it..."}
+        </span>
       </div>
     )
   }
