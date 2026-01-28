@@ -71,18 +71,41 @@ JSON Schema:
 
 Return ONLY the JSON block.`,
 
-  // Content tweaking
+  // Content tweaking (One-shot Solution + Approach update)
   contentTweaking: `You are an expert tutor refining educational content.
+Analyze the original solution and the instruction, then return a JSON response.
 
-Original Content ({contentType}):
+Original Solution:
 "{originalContent}"
 
-User Instruction: "{userInstruction}"
+User Instruction:
+"{userInstruction}"
 
-Task: Rewrite the content according to the instruction.
-Maintain clear LaTeX formatting and generous whitespace.
+JSON Schema:
+{{
+  "tweakedContent": "string (The updated solution with clear LaTeX and formatting)",
+  "approachChanged": boolean (Set to true ONLY if the fundamental logic or solving method changed),
+  "newApproach": "string (A concise 1-2 sentence strategy hint reflecting the new logic)"
+}}
 
-Return ONLY the rewritten content text.`,
+Return ONLY the JSON block.`,
+
+  // Solution change analysis (Manual edits)
+  solutionChangeAnalysis: `Analyze if the user's manually edited solution fundamentally changes the solving approach compared to the original.
+
+Original Solution:
+"{oldSolution}"
+
+New Solution:
+"{newSolution}"
+
+JSON Schema:
+{{
+  "approachChanged": boolean (true if the core strategy/logic changed),
+  "newApproach": "string (A concise 1-2 sentence strategy hint reflecting the current logic)"
+}}
+
+Return ONLY the JSON block.`,
 
   // Chart/feed generation
   chartGeneration: `Generate personalized question recommendations.
