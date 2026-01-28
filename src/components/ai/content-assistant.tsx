@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, Loader2, SendHorizontal, Zap } from 'lucide-react'
+import { Sparkles, Loader2, SendHorizontal, Zap, Wand2, Type, GraduationCap, Calculator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -66,10 +66,10 @@ export function AIContentAssistant({
       case 'hint':
       default:
         return [
-          { label: 'Simplify', prompt: 'Simplify the explanation' },
-          { label: 'Fix Grammar', prompt: 'Fix grammar and formatting' },
-          { label: 'Professional', prompt: 'Make the tone professional and academic' },
-          { label: 'Format LaTeX', prompt: 'Ensure all math is properly formatted with LaTeX' },
+          { label: 'Simplify Logic', prompt: 'Simplify the explanation', icon: Wand2 },
+          { label: 'Fix Grammar', prompt: 'Fix grammar and formatting', icon: Type },
+          { label: 'Make Professional', prompt: 'Make the tone professional and academic', icon: GraduationCap },
+          { label: 'Fix LaTeX', prompt: 'Ensure all math is properly formatted with LaTeX', icon: Calculator },
         ]
     }
   }
@@ -78,52 +78,50 @@ export function AIContentAssistant({
 
   if (isLoading) {
     return (
-      <div className={cn("rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4 animate-pulse flex items-center justify-center gap-3", className)}>
-        <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-20 animate-pulse" />
-          <Loader2 className="h-5 w-5 animate-spin text-indigo-500 relative z-10" />
+      <div className={cn("w-full py-3 flex items-center justify-center gap-3 bg-muted/30 rounded-xl border border-border/50", className)}>
+        <div className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
         </div>
-        <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest">AI is Thinking...</span>
+        <span className="text-xs font-semibold text-muted-foreground tracking-wide animate-pulse">AI is working on it...</span>
       </div>
     )
   }
 
   return (
-    <div className={cn("rounded-xl border border-indigo-500/10 bg-gradient-to-br from-indigo-500/[0.02] via-purple-500/[0.02] to-pink-500/[0.02] p-4 space-y-4 relative overflow-hidden group transition-all hover:border-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/5", className)}>
-      {/* Decorative gradient blur */}
-      <div className="absolute -top-10 -right-10 w-20 h-20 bg-indigo-500/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      
+    <div className={cn("space-y-4 pt-4 border-t border-border/40", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20">
-            <Sparkles className="h-3 w-3 text-white" />
+          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20">
+            <Sparkles className="h-3.5 w-3.5" />
           </div>
-          <span className="text-xs font-black text-foreground/80 uppercase tracking-widest">AI Copilot</span>
+          <span className="text-xs font-bold text-foreground/80 tracking-tight">AI Copilot</span>
         </div>
-        <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
       </div>
 
+      {/* Preset Action Chips */}
       <div className="flex flex-wrap gap-2">
         {presets.map((preset) => (
           <button
             key={preset.label}
             onClick={() => handleTweak(preset.prompt)}
-            className="h-7 px-3 text-[10px] font-bold uppercase tracking-wide rounded-full border border-indigo-500/10 bg-white/50 dark:bg-black/20 hover:bg-indigo-500/10 hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all active:scale-95 flex items-center gap-1.5 backdrop-blur-sm"
+            className="group flex items-center gap-2 px-3 py-1.5 h-8 text-[11px] font-semibold bg-background border border-border/60 hover:border-indigo-500/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-indigo-500/5 text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400"
           >
-            <Zap className="h-3 w-3 opacity-60" />
+            <preset.icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             {preset.label}
           </button>
         ))}
       </div>
 
-      <div className="relative group/input">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur opacity-0 group-focus-within/input:opacity-100 transition duration-500" />
-        <div className="relative flex items-center bg-background rounded-lg border border-border/50 shadow-sm focus-within:ring-1 focus-within:ring-indigo-500/50">
+      {/* Command Input */}
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-indigo-500/30 transition-all duration-200">
           <Input
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder="Ask AI to refine, explain, or format..."
-            className="h-10 border-none bg-transparent shadow-none focus-visible:ring-0 text-xs px-3 placeholder:text-muted-foreground/60"
+            placeholder="Ask AI to rewrite, explain, or format..."
+            className="h-11 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-4 placeholder:text-muted-foreground/50"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleTweak(customPrompt)
             }}
@@ -131,7 +129,12 @@ export function AIContentAssistant({
           <Button
             size="icon"
             variant="ghost"
-            className={`h-8 w-8 mr-1 rounded-md transition-all ${customPrompt ? 'text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20' : 'text-muted-foreground/40'}`}
+            className={cn(
+              "h-8 w-8 mr-1.5 rounded-lg transition-all duration-200", 
+              customPrompt 
+                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-500/20" 
+                : "text-muted-foreground/30 hover:bg-transparent"
+            )}
             onClick={() => handleTweak(customPrompt)}
             disabled={!customPrompt}
           >
@@ -141,4 +144,5 @@ export function AIContentAssistant({
       </div>
     </div>
   )
+}
 }
