@@ -213,7 +213,7 @@ export function PreviewCard({
             </Button>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-8">
+          <CardContent className="p-4 lg:p-6 space-y-8">
             {/* Question */}
             <div className="space-y-3">
               <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">The Question</Label>
@@ -225,12 +225,12 @@ export function PreviewCard({
               ) : (
                 editMode ? (
                   <textarea
-                    className="w-full min-h-32 p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
+                    className="w-full min-h-32 p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm lg:text-base leading-relaxed"
                     value={displayData.question_text}
                     onChange={(e) => setLocalEdits({ ...localEdits, question_text: e.target.value })}
                   />
                 ) : (
-                  <div className="p-5 rounded-2xl bg-primary/[0.03] ring-1 ring-white/5 shadow-inner text-xl leading-relaxed">
+                  <div className="p-5 rounded-2xl bg-primary/[0.03] ring-1 ring-white/5 shadow-inner text-base lg:text-lg leading-relaxed">
                     <Latex>{displayData.question_text}</Latex>
                   </div>
                 )
