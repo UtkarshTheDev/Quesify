@@ -10,6 +10,9 @@ import {
     Type,
     GraduationCap,
     Calculator,
+    Paperclip,
+    Mic,
+    AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -207,40 +210,57 @@ export function AIContentAssistant({
                 ))}
             </div>
 
-            {/* Command Input */}
-            <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-                <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-background border border-border/40 focus-within:border-orange-500/50 hover:border-orange-500/30 rounded-xl transition-all duration-300 shadow-sm p-1.5 sm:p-1">
-                    <Textarea
-                        ref={textareaRef}
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                        placeholder="Ask AI to rewrite, explain, or format..."
-                        className="min-h-[56px] sm:min-h-[44px] max-h-[120px] py-3 sm:py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-[13px] sm:text-sm px-3 placeholder:text-muted-foreground/40 resize-none overflow-y-auto"
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleTweak(customPrompt);
-                            }
-                        }}
-                    />
-                    <div className="flex items-end self-end w-full sm:w-auto mt-2 sm:mt-0 sm:pb-1 sm:pr-1">
-                        <Button
-                            className={cn(
-                                "h-11 sm:h-8 w-full sm:w-8 font-bold text-sm sm:text-xs rounded-xl sm:rounded-lg transition-all duration-200 gap-2",
-                                customPrompt
-                                    ? "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-500/20"
-                                    : "bg-muted text-muted-foreground hover:bg-muted/80",
-                            )}
-                            onClick={() => handleTweak(customPrompt)}
-                            disabled={!customPrompt}
-                        >
-                            <span className="sm:hidden">Send Request</span>
-                            <SendHorizontal className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+      {/* Command Input */}
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+        <div className="relative flex flex-col bg-background/50 hover:bg-background/80 focus-within:bg-background rounded-xl border border-border/40 focus-within:border-orange-500/30 transition-all duration-300 shadow-sm">
+          <Textarea
+            ref={textareaRef}
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder="Ask AI to rewrite, explain, or format... ✨"
+            className="min-h-[56px] max-h-[120px] py-3.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-[13px] sm:text-sm px-4 placeholder:text-muted-foreground/40 resize-none overflow-y-auto"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleTweak(customPrompt)
+              }
+            }}
+          />
+          
+          <div className="flex items-center justify-between px-2 pb-2 mt-1">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg">
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground/50 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg">
+                <Mic className="h-4 w-4" />
+              </Button>
             </div>
+
+            <Button
+              className={cn(
+                "h-8 px-4 font-bold text-xs rounded-lg transition-all duration-200 gap-2", 
+                customPrompt 
+                  ? "bg-white text-black hover:bg-white/90 shadow-md" 
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+              onClick={() => handleTweak(customPrompt)}
+              disabled={!customPrompt}
+            >
+              <span>Send Message</span>
+              <SendHorizontal className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
-    );
+        
+        <div className="flex justify-center mt-2.5">
+          <p className="text-[10px] text-muted-foreground/40 font-medium flex items-center gap-1.5">
+            <AlertCircle className="h-3 w-3" />
+            AI can make mistakes. Please review the output.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
