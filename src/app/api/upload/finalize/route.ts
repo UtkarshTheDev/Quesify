@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
         // Step 1: Generate embedding
         const embedStart = performance.now()
         const embedding = await ai.generateEmbedding(question_text)
+        console.log(`[Route/Finalize] AI Embedding generated. Length: ${embedding.length}, Sample: [${embedding.slice(0, 3)}...]`)
         console.log(`[Route/Finalize] AI Embedding took ${(performance.now() - embedStart).toFixed(2)}ms`)
 
         // Step 2: Check for duplicates
@@ -28,20 +29,31 @@ export async function POST(request: NextRequest) {
         try {
             const dupStart = performance.now()
             // We join with solutions to get the existing solution for comparison
-            const { data: similarQuestions } = await supabase.rpc('match_questions_with_solutions', {
+            // DEBUG: Lowered threshold to 0.6 to debug matching issues
+            const { data: similarQuestions, error: matchError } = await supabase.rpc('match_questions_with_solutions', {
                 query_embedding: embedding,
-                match_threshold: 0.80, // Lowered to 0.80 for broader candidate selection
+                match_threshold: 0.60, 
                 match_count: 1
             })
 
+            if (matchError) {
+                console.error('[Route/Finalize] Match RPC Error:', matchError)
+            } else {
+                console.log(`[Route/Finalize] RPC found ${similarQuestions?.length || 0} matches. Top similarity: ${similarQuestions?.[0]?.similarity}`)
+            }
+
             if (similarQuestions && similarQuestions.length > 0) {
                 const topMatch = similarQuestions[0]
+                console.log(`[Route/Finalize] Checking duplicate against ID: ${topMatch.id}`)
+                
                 const analysis = await ai.checkDuplicate(
                     question_text,
                     solution_text || '',
                     topMatch.question_text,
                     topMatch.solution_text || ''
                 )
+
+                console.log(`[Route/Finalize] AI Verdict: ${analysis.match_type}, Confidence: ${analysis.confidence}`)
 
                 if (analysis.is_duplicate) {
                     duplicateResult = {
