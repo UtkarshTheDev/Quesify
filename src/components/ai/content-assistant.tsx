@@ -11,10 +11,17 @@ interface AIContentAssistantProps {
   content: string
   contentType: 'solution' | 'hint' | 'question'
   onContentChange: (newContent: string) => void
+  onComplexUpdate?: (data: { tweakedContent: string, syncedApproach?: string | null }) => void
   className?: string
 }
 
-export function AIContentAssistant({ content, contentType, onContentChange, className }: AIContentAssistantProps) {
+export function AIContentAssistant({ 
+  content, 
+  contentType, 
+  onContentChange, 
+  onComplexUpdate,
+  className 
+}: AIContentAssistantProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [customPrompt, setCustomPrompt] = useState('')
 
@@ -36,7 +43,13 @@ export function AIContentAssistant({ content, contentType, onContentChange, clas
       if (!response.ok) throw new Error('Failed to tweak content')
 
       const data = await response.json()
-      onContentChange(data.tweakedContent)
+      
+      if (onComplexUpdate) {
+        onComplexUpdate(data)
+      } else {
+        onContentChange(data.tweakedContent)
+      }
+      
       toast.success('Refined with AI')
       setCustomPrompt('')
     } catch {

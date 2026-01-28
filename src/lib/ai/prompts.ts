@@ -165,6 +165,15 @@ JSON Schema:
 }}
 
 Return ONLY the JSON block.`,
+
+  // Sync approach from solution
+  approachSync: `Based on this detailed solution, write a concise "Strategy Hint" (1-2 sentences) that explains the core concept or the "trick" used to solve it. 
+Do not give away the final answer.
+
+SOLUTION:
+"{solutionText}"
+
+Return ONLY the concise hint text.`,
 } as const
 
 // Helper to replace placeholders in prompts
