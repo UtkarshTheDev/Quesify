@@ -33,6 +33,7 @@ interface SolutionGenerationResponse {
   solution_text: string
   numerical_answer: string | null
   correct_option: number | null
+  avg_solve_time: number
   approach_description: string
 }
 

@@ -22,6 +22,7 @@ export interface GeminiExtractionResult {
   importance: number
   hint: string
   correct_option?: number | null
+  avg_solve_time?: number
 }
 
 // Duplicate check result
