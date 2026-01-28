@@ -9,7 +9,7 @@ export const AI_CONFIG = {
         // Vision model for image analysis
         vision: process.env.AI_MODEL_VISION || "gemini-2.5-flash-lite",
         // Embedding model for vector search
-        embedding: process.env.AI_MODEL_EMBEDDING || "text-embedding-004",
+        embedding: process.env.AI_MODEL_EMBEDDING || "gemini-embedding-001",
     },
 
     // Generation settings
