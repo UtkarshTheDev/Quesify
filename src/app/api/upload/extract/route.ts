@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 import { uploadQuestionImage } from '@/lib/storage/upload'
-import { getAllSyllabus } from '@/lib/services/syllabus'
+import { getSubjectsList } from '@/lib/services/syllabus'
 
 export async function POST(request: NextRequest) {
     const routeStart = performance.now()
@@ -25,9 +25,8 @@ export async function POST(request: NextRequest) {
         const bytes = await file.arrayBuffer()
         const base64 = Buffer.from(bytes).toString('base64')
 
-        // Fetch subjects for AI context
-        const allSyllabus = await getAllSyllabus()
-        const subjectsList = Object.keys(allSyllabus)
+        // Fetch subjects for AI context (Optimized)
+        const subjectsList = await getSubjectsList()
 
         // Step 1: Validate & Extract (Consolidated Phase)
         const extStart = performance.now()

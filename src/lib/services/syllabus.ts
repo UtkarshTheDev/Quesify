@@ -210,9 +210,52 @@ export async function getAllSyllabusFromDB(): Promise<Record<string, SyllabusDat
 // Redis Cache Keys
 const CACHE_KEYS = {
   ALL_SYLLABUS: 'syllabus:all',
+  SUBJECTS_LIST: 'syllabus:subjects',
   SUBJECT_SYLLABUS: (subject: string) => `syllabus:${subject.toLowerCase()}`,
 }
 const CACHE_TTL = 60 * 60 * 24 // 24 hours
+
+/**
+ * Get just the list of available subjects
+ */
+export async function getSubjectsList(): Promise<string[]> {
+  // 1. Try Redis
+  if (redis) {
+    try {
+      const cached = await redis.get<string[]>(CACHE_KEYS.SUBJECTS_LIST)
+      if (cached) return cached
+    } catch (e) {
+      console.warn('Redis error:', e)
+    }
+  }
+
+  // 2. Try database (minimal query)
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('syllabus')
+      .select('subject')
+      .eq('class', '12')
+
+    let subjects: string[] = []
+
+    if (error || !data || data.length === 0) {
+      // Fallback to static data
+      subjects = Array.from(new Set(class12Syllabus.map(s => s.subject)))
+    } else {
+      subjects = Array.from(new Set(data.map(d => d.subject)))
+    }
+
+    // 3. Cache results
+    if (redis && subjects.length > 0) {
+      await redis.set(CACHE_KEYS.SUBJECTS_LIST, subjects, { ex: CACHE_TTL })
+    }
+
+    return subjects
+  } catch (e) {
+    return Array.from(new Set(class12Syllabus.map(s => s.subject)))
+  }
+}
 
 /**
  * Get syllabus data for a subject with fallback to static data
