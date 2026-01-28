@@ -145,4 +145,3 @@ export function AIContentAssistant({
     </div>
   )
 }
-}
