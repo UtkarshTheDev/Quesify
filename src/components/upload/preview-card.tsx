@@ -189,48 +189,48 @@ export function PreviewCard({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-6 sm:gap-8 items-start">
       {/* LEFT COLUMN: Question & Solution Stream */}
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {/* Question Card */}
-        <Card className="overflow-hidden border-none shadow-xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 pb-6 gap-0 py-0">
-          <CardHeader className="flex flex-row items-center justify-between bg-muted/20 py-4">
-            <div className="space-y-1">
-              <CardTitle className="text-xl font-bold">Extraction Result</CardTitle>
-              <p className="text-xs text-muted-foreground">Verification & Preview</p>
+        <Card className="overflow-hidden border-none shadow-xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 pb-4 sm:pb-6 gap-0 py-0">
+          <CardHeader className="flex flex-row items-center justify-between bg-muted/20 py-3 sm:py-4 px-4 sm:px-6">
+            <div className="space-y-0.5">
+              <CardTitle className="text-lg sm:text-xl font-bold">Extraction Result</CardTitle>
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium opacity-70 tracking-tight">Verification & Preview</p>
             </div>
             <Button
               variant="secondary"
               size="sm"
-              className="h-8"
+              className="h-7 sm:h-8 px-2.5 sm:px-3 text-[10px] sm:text-xs"
               onClick={() => {
                 if (!editMode) setLocalEdits(data)
                 setEditMode(!editMode)
               }}
             >
-              <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+              <Edit2 className="h-3 w-3 sm:h-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
               {editMode ? 'Preview' : 'Edit'}
             </Button>
           </CardHeader>
 
-          <CardContent className="p-4 lg:p-6 space-y-8">
+          <CardContent className="p-3 sm:p-4 lg:p-6 space-y-6 sm:space-y-8">
             {/* Question */}
-            <div className="space-y-3">
-              <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">The Question</Label>
+            <div className="space-y-2.5 sm:space-y-3">
+              <Label className="uppercase tracking-widest text-[9px] sm:text-[10px] font-black text-primary/60 opacity-80">The Question</Label>
               {status.extractError ? (
-                <div className="p-8 rounded-2xl bg-destructive/5 border border-destructive/20 text-center space-y-3">
-                  <p className="text-sm text-destructive font-medium">{status.extractError}</p>
+                <div className="p-6 sm:p-8 rounded-2xl bg-destructive/5 border border-destructive/20 text-center space-y-3">
+                  <p className="text-xs sm:text-sm text-destructive font-medium">{status.extractError}</p>
                   <Button variant="outline" size="sm" onClick={onRetryExtract}>Try Again</Button>
                 </div>
               ) : (
                 editMode ? (
                   <textarea
-                    className="w-full min-h-32 p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm lg:text-base leading-relaxed"
+                    className="w-full min-h-32 p-3 sm:p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-[13px] sm:text-sm lg:text-base leading-relaxed"
                     value={displayData.question_text}
                     onChange={(e) => setLocalEdits({ ...localEdits, question_text: e.target.value })}
                   />
                 ) : (
-                  <div className="p-5 rounded-2xl bg-primary/[0.03] ring-1 ring-white/5 shadow-inner text-base lg:text-lg leading-relaxed">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-primary/[0.02] ring-1 ring-white/5 shadow-inner text-sm sm:text-base lg:text-lg leading-relaxed">
                     <Latex>{displayData.question_text}</Latex>
                   </div>
                 )
@@ -273,93 +273,95 @@ export function PreviewCard({
 
         {/* Detailed Solution Card (Directly below Question, matching width) */}
         <Card className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0">
-          <CardHeader className="bg-muted/20 border-b border-border/40 p-6">
+          <CardHeader className="bg-muted/20 border-b border-border/40 p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-bold flex items-center gap-3">
-                {status.solving ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : <div className="w-2 h-2 rounded-full bg-primary" />}
+              <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                {status.solving ? <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-primary" /> : <div className="w-2 h-2 rounded-full bg-primary" />}
                 Step-by-Step Solution
               </CardTitle>
               {status.solveError && (
-                <Button variant="ghost" size="sm" className="h-8 text-destructive hover:bg-destructive/10" onClick={onRetrySolve}>
-                  <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
+                <Button variant="ghost" size="sm" className="h-7 sm:h-8 text-[10px] sm:text-xs text-destructive hover:bg-destructive/10" onClick={onRetrySolve}>
+                  <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
                   Retry Solve
                 </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-3 sm:p-5 lg:p-8">
             {status.solveError ? (
-              <div className="py-12 text-center space-y-4">
-                <div className="p-3 rounded-full bg-destructive/10 w-12 h-12 mx-auto flex items-center justify-center text-destructive">
-                  <AlertTriangle className="h-6 w-6" />
+              <div className="py-8 sm:py-12 text-center space-y-4 px-4">
+                <div className="p-2.5 rounded-full bg-destructive/10 w-10 h-10 sm:w-12 sm:h-12 mx-auto flex items-center justify-center text-destructive">
+                  <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-destructive">Analysis Failed</p>
-                  <p className="text-xs text-muted-foreground px-12 leading-relaxed">The AI was unable to generate a solution for this mathematical problem. This can happen with very low-quality images or ambiguous text.</p>
+                  <p className="text-xs sm:text-sm font-bold text-destructive">Analysis Failed</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground px-4 sm:px-12 leading-relaxed font-medium">The AI was unable to generate a solution. This can happen with very low-quality images or ambiguous text.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={onRetrySolve} className="rounded-xl">Regenerate Solution</Button>
+                <Button variant="outline" size="sm" onClick={onRetrySolve} className="rounded-xl h-8 text-[10px] font-bold">Regenerate Solution</Button>
               </div>
             ) : status.solving ? (
-              <div className="space-y-6">
-                <Skeleton className="h-10 w-3/4" />
-                <Skeleton className="h-40 w-full" />
+              <div className="space-y-5 sm:space-y-6">
+                <Skeleton className="h-8 sm:h-10 w-3/4" />
+                <Skeleton className="h-32 sm:h-40 w-full" />
               </div>
             ) : (
               <SectionFade isLoaded={true}>
                 <Tabs value={activeSolutionTab} onValueChange={(v) => setActiveSolutionTab(v as any)} className="w-full">
-                  <div className="flex items-center justify-between mb-6">
-                    <TabsList className="bg-muted/50 p-1 h-9">
-                      <TabsTrigger value="preview" className="px-6 text-[10px] font-black uppercase tracking-widest">Preview</TabsTrigger>
-                      <TabsTrigger value="edit" className="px-6 text-[10px] font-black uppercase tracking-widest">Write</TabsTrigger>
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <TabsList className="bg-muted/50 p-1 h-8 sm:h-9">
+                      <TabsTrigger value="preview" className="px-4 sm:px-6 text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Preview</TabsTrigger>
+                      <TabsTrigger value="edit" className="px-4 sm:px-6 text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Write</TabsTrigger>
                     </TabsList>
 
                     {activeSolutionTab === 'edit' && (
-                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-tight bg-primary/5 text-primary/70 border-primary/20">
+                      <Badge variant="outline" className="text-[8px] sm:text-[9px] font-bold uppercase tracking-tight bg-primary/5 text-primary/70 border-primary/20">
                         Editing Active
                       </Badge>
                     )}
                   </div>
 
-                  <TabsContent value="edit" className="mt-0 space-y-6 focus-visible:outline-none animate-in fade-in zoom-in-95 duration-200">
-                    <div className="space-y-6 pb-4">
+                  <TabsContent value="edit" className="mt-0 space-y-4 sm:space-y-6 focus-visible:outline-none animate-in fade-in zoom-in-95 duration-200">
+                    <div className="space-y-4 pb-2 sm:pb-4">
                       <textarea
-                        className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
+                        className="w-full min-h-64 p-4 sm:p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-[13px] sm:text-sm leading-relaxed"
                         value={displayData.solution}
                         onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
                         placeholder="Fine-tune the solution steps..."
                       />
                       
-                      <Button 
-                        size="lg" 
-                        variant="default" 
-                        className={`w-full rounded-xl h-12 font-bold gap-3 transition-all active:scale-95 shadow-lg ${
-                          !isSolutionModified
-                            ? 'bg-indigo-600/10 text-indigo-400/50 cursor-not-allowed shadow-none border border-indigo-500/10'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/30'
-                        }`}
-                        onClick={handleVerifyManualChanges}
-                        disabled={isVerifying || !isSolutionModified}
-                      >
-                        {isVerifying ? (
-                          <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing Strategy...</>
-                        ) : (
-                          <><CheckCircle2 className="h-4 w-4" /> Verify Changes & Sync Strategy</>
-                        )}
-                      </Button>
+                      <div className="flex justify-end pt-2 sm:pt-4">
+                        <Button 
+                          size="lg" 
+                          variant="default" 
+                          className={`w-full rounded-xl h-11 sm:h-12 font-bold gap-2.5 sm:gap-3 transition-all active:scale-95 shadow-lg ${
+                            !isSolutionModified
+                              ? 'bg-orange-600/10 text-orange-400/50 cursor-not-allowed shadow-none border border-orange-500/10'
+                              : 'bg-orange-600 hover:bg-orange-500 text-white shadow-orange-500/30'
+                          }`}
+                          onClick={handleVerifyManualChanges}
+                          disabled={isVerifying || !isSolutionModified}
+                        >
+                          {isVerifying ? (
+                            <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing Strategy...</>
+                          ) : (
+                            <><CheckCircle2 className="h-4 w-4" /> Verify Changes & Sync Strategy</>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </TabsContent>
 
                   <TabsContent value="preview" className="mt-0 focus-visible:outline-none">
-                    <div className="space-y-10 pb-6">
+                    <div className="space-y-8 sm:space-y-10 pb-4 sm:pb-6 text-sm sm:text-base">
                       <div className="solution-content">
                         <SolutionSteps content={(displayData.solution || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1')} />
                       </div>
 
                       {displayData.numerical_answer && (
-                        <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                          <span className="text-sm font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
-                          <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-6 py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
-                            <div className="text-lg font-bold text-foreground">
+                        <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                          <span className="text-[11px] sm:text-xs font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
+                          <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
+                            <div className="text-base sm:text-lg font-bold text-foreground">
                               <Latex>{`$${stripBoxed(displayData.numerical_answer)}$`}</Latex>
                             </div>
                           </div>

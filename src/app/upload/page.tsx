@@ -235,8 +235,8 @@ export default function UploadPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20 px-4 lg:px-0 pt-16">
-      <div className="flex flex-col items-center text-center">
+    <div className="max-w-7xl mx-auto space-y-12 pb-20 px-2 sm:px-4 lg:px-0 pt-16">
+      <div className="flex flex-col items-center text-center px-4">
         <h1 className="text-3xl font-bold tracking-tight">Upload Question</h1>
         <p className="text-muted-foreground mt-2 max-w-md">
           Upload a screenshot and let AI extract and save it
