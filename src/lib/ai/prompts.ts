@@ -46,15 +46,15 @@ JSON Schema:
 {{
   "same_concept": boolean,
   "same_approach": boolean,
-  "differences": "string (Describe any tricky differences in constraints, edge cases, or approach)",
+  "differences": "string (Explain EXACTLY what is different. If identical, say 'Both question and solution are identical.')",
   "verdict": "SAME | DIFFERENT_APPROACH | DIFFERENT_QUESTION",
   "confidence": number (0-1)
 }}
 
 VERDICT RULES:
 - SAME: Questions are identical or effectively identical (even with minor phrasing changes), and the solution approach is the same.
-- DIFFERENT_APPROACH: The question is the same, but the solution approach is fundamentally different.
-- DIFFERENT_QUESTION: The questions themselves are different.
+- DIFFERENT_APPROACH: The question is the same (identical concept and parameters), but the solution approach (the logic, steps, or method) is fundamentally different.
+- DIFFERENT_QUESTION: The questions themselves are different (different numbers, different constraints, or different concepts).
 
 Return ONLY the JSON block.`,
 

@@ -368,11 +368,15 @@ export function PreviewCard({
               disabled={isSaving || status.solving || status.classifying || status.extracting || !!status.extractError}
             >
               {isSaving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {data.duplicate_check?.is_duplicate ? 'Linking...' : 'Adding to Bank...'}</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {data.duplicate_check?.is_duplicate ? (data.duplicate_check.match_type === 'DIFFERENT_APPROACH' ? 'Contributing...' : 'Linking...') : 'Adding to Bank...'}</>
               ) : (
                 <>
                   {data.duplicate_check?.is_duplicate ? (
-                    <><Copy className="h-4 w-4 mr-2" /> Link to Your Bank</>
+                    data.duplicate_check.match_type === 'DIFFERENT_APPROACH' ? (
+                      <><Copy className="h-4 w-4 mr-2" /> Add Your Approach & Link</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" /> Link to Your Bank</>
+                    )
                   ) : (
                     <><Check className="h-4 w-4 mr-2" /> Add to Question Bank</>
                   )}
