@@ -35,6 +35,7 @@ export default function UploadPage() {
 
   // Phase 1: Extraction
   const runExtract = async (file: File) => {
+    const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, extracting: true, extractError: null }))
     try {
       const formData = new FormData()
@@ -47,6 +48,8 @@ export default function UploadPage() {
       const result = await res.json()
 
       if (!res.ok) throw new Error(result.error || 'Extraction failed')
+
+      console.log(`[Frontend] Extraction phase took ${(performance.now() - start).toFixed(2)}ms`)
 
       const initialData: ExtractedData = {
         ...result.data,
@@ -62,8 +65,8 @@ export default function UploadPage() {
       setAnalysisStatus(prev => ({ ...prev, extracting: false }))
 
       // Kick off background tasks automatically after extraction
-      runSolve(result.data.question_text, result.data.type, result.data.subject)
-      runClassify(result.data.question_text)
+      runSolve(result.data.question_text, result.data.type, result.data.subject, result.data.options)
+      runClassify(result.data.question_text, result.data.subject)
     } catch (error) {
       setAnalysisStatus(prev => ({
         ...prev,
@@ -75,16 +78,19 @@ export default function UploadPage() {
   }
 
   // Phase 2: Solving
-  const runSolve = async (text: string, type: string, subject: string) => {
+  const runSolve = async (text: string, type: string, subject: string, options: string[] = []) => {
+    const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, solving: true, solveError: null }))
     try {
       const res = await fetch('/api/upload/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text, type, subject })
+        body: JSON.stringify({ question_text: text, type, subject, options })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Solving failed')
+
+      console.log(`[Frontend] Solving phase took ${(performance.now() - start).toFixed(2)}ms`)
 
       setExtractedData(prev => prev ? ({
         ...prev,
@@ -104,16 +110,19 @@ export default function UploadPage() {
   }
 
   // Phase 3: Classification
-  const runClassify = async (text: string) => {
+  const runClassify = async (text: string, subject: string) => {
+    const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, classifying: true, classifyError: null }))
     try {
       const res = await fetch('/api/upload/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text })
+        body: JSON.stringify({ question_text: text, subject })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Classification failed')
+
+      console.log(`[Frontend] Classification phase took ${(performance.now() - start).toFixed(2)}ms`)
 
       setExtractedData(prev => prev ? ({
         ...prev,
@@ -146,6 +155,7 @@ export default function UploadPage() {
 
   // Phase 4: Finalize (Embeddings/Duplicates)
   const runFinalize = async (text: string) => {
+    const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, finalizing: true, finalizeError: null }))
     try {
       const res = await fetch('/api/upload/finalize', {
@@ -155,6 +165,7 @@ export default function UploadPage() {
       })
       const result = await res.json()
       if (result.success) {
+        console.log(`[Frontend] Finalization phase took ${(performance.now() - start).toFixed(2)}ms`)
         setExtractedData(prev => prev ? ({
           ...prev,
           embedding: result.data.embedding,
@@ -233,8 +244,8 @@ export default function UploadPage() {
           onSave={handleSave}
           isSaving={isSaving}
           onRetryExtract={() => selectedFile && runExtract(selectedFile)}
-          onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject)}
-          onRetryClassify={() => runClassify(extractedData.question_text)}
+          onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
+          onRetryClassify={() => runClassify(extractedData.question_text, extractedData.subject)}
         />
       )}
     </div>

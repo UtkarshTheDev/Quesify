@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 
 export async function POST(request: NextRequest) {
+    const routeStart = performance.now()
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -18,11 +19,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 1: Generate embedding
+        const embedStart = performance.now()
         const embedding = await ai.generateEmbedding(question_text)
+        console.log(`[Route/Finalize] AI Embedding took ${(performance.now() - embedStart).toFixed(2)}ms`)
 
         // Step 2: Check for duplicates
         let duplicateResult = null
         try {
+            const dupStart = performance.now()
             const { data: similarQuestions } = await supabase.rpc('match_questions', {
                 query_embedding: embedding,
                 match_threshold: 0.85,
@@ -40,9 +44,12 @@ export async function POST(request: NextRequest) {
                     }
                 }
             }
+            console.log(`[Route/Finalize] Duplicate check took ${(performance.now() - dupStart).toFixed(2)}ms`)
         } catch (err) {
             console.error('[Upload/Finalize] Duplicate check failed:', err)
         }
+
+        console.log(`[Route/Finalize] Total route execution: ${(performance.now() - routeStart).toFixed(2)}ms`)
 
         return NextResponse.json({
             success: true,
