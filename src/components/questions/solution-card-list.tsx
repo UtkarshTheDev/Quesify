@@ -104,13 +104,13 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
         "group cursor-pointer transition-all duration-300 border-2 overflow-hidden",
         isActive 
           ? "border-primary bg-primary/[0.04] shadow-lg shadow-primary/10 ring-1 ring-primary/20" 
-          : "border-border/40 bg-card hover:border-primary/30 hover:bg-accent/20 hover:shadow-md"
+          : "border-border/60 bg-muted/20 hover:bg-muted/40 hover:border-primary/40 hover:shadow-md"
       )}
       onClick={onSelect}
     >
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <Avatar className="h-10 w-10 border-2 border-background shadow-sm shrink-0">
+          <Avatar className="h-10 w-10 border-2 border-background shadow-sm shrink-0 ring-1 ring-border/20">
             <AvatarImage src={solution.author?.avatar_url || ''} />
             <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
               {solution.author?.display_name?.charAt(0) || 'U'}
@@ -132,8 +132,8 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-7 px-2 gap-1.5 text-[10px] font-bold rounded-full transition-colors",
-                    liked ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-muted-foreground hover:bg-muted"
+                    "h-7 px-2 gap-1.5 text-[10px] font-bold rounded-full transition-colors bg-background/50 border border-border/30",
+                    liked ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : "text-muted-foreground hover:bg-background"
                   )}
                   onClick={handleLike}
                 >
@@ -149,13 +149,13 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
             
             {solution.approach_description && (
               <div className="relative group/approach">
-                <div className="absolute -left-3 top-0 bottom-0 w-1 bg-primary/40 rounded-full group-hover/approach:bg-primary transition-colors" />
-                <div className="bg-primary/[0.03] border border-primary/10 p-3 rounded-r-xl space-y-1">
-                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-primary/70">
+                <div className="absolute -left-3 top-0 bottom-0 w-1.5 bg-primary rounded-full" />
+                <div className="bg-card/80 border border-border/60 p-3.5 rounded-r-xl space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-primary">
                     <Sparkles className="h-3 w-3" />
                     Strategic Approach
                   </div>
-                  <div className="text-[13px] text-foreground/80 leading-relaxed line-clamp-2 font-medium italic">
+                  <div className="text-[13px] text-foreground leading-relaxed line-clamp-2 font-medium">
                     <Latex>{solution.approach_description}</Latex>
                   </div>
                 </div>
@@ -163,16 +163,16 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
             )}
             
             <div className="flex items-end justify-between gap-4">
-              <div className="text-[13px] text-muted-foreground/70 line-clamp-2 flex-1 relative h-10 overflow-hidden leading-relaxed">
+              <div className="text-[13px] text-muted-foreground line-clamp-2 flex-1 relative h-10 overflow-hidden leading-relaxed font-medium">
                 <Latex>{solution.solution_text}</Latex>
-                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card to-transparent" />}
+                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-muted/20 to-transparent" />}
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className={cn(
-                  "h-8 px-3 text-[11px] font-bold uppercase tracking-widest gap-2 rounded-lg shrink-0 transition-all",
-                  isActive ? "bg-primary text-primary-foreground border-primary" : "group-hover:border-primary group-hover:text-primary"
+                  "h-8 px-4 text-[11px] font-bold uppercase tracking-widest gap-2 rounded-lg shrink-0 transition-all shadow-sm",
+                  isActive ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" : "bg-background hover:border-primary hover:text-primary hover:shadow-md"
                 )}
               >
                 {isActive ? 'Current' : 'View'}
