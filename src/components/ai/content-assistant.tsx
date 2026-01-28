@@ -45,26 +45,22 @@ export function AIContentAssistant({
     let currentText = ""
     let index = 0
     
-    // Dynamic speed based on length (faster for longer texts)
-    // Base speed: ~30ms per char. Min 10ms, Max 50ms.
-    const speed = Math.max(10, Math.min(30, 1500 / fullText.length))
+    // 10x faster: 5ms delay and 8 chars per frame
+    const speed = 5
+    const charsPerFrame = 8
 
     return new Promise<void>((resolve) => {
       const interval = setInterval(() => {
-        currentText += fullText[index] || ""
-        
-        // We update the parent on every frame.
-        // Since we are in the "Edit" tab (textarea), this is cheap.
-        // The expensive Latex component is in the (hidden) Preview tab.
+        // Append multiple characters at once for high-speed feel
+        currentText += fullText.slice(index, index + charsPerFrame)
         onContentChange(currentText)
         
-        index++
+        index += charsPerFrame
 
         if (index >= fullText.length) {
           clearInterval(interval)
           setIsStreaming(false)
           
-          // Final sync with complex update if needed
           if (onComplexUpdate && syncedApproach) {
             onComplexUpdate({ tweakedContent: fullText, syncedApproach })
           } else {
@@ -150,14 +146,14 @@ export function AIContentAssistant({
       </div>
 
       {/* Preset Action Chips */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 sm:gap-3">
         {presets.map((preset) => (
           <button
             key={preset.label}
             onClick={() => handleTweak(preset.prompt)}
-            className="group flex items-center gap-2 px-3 py-1.5 h-8 text-[11px] font-semibold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
+            className="group flex items-center gap-2.5 px-4 py-2 h-10 sm:h-9 sm:px-3 sm:py-1.5 text-[13px] sm:text-[11px] font-semibold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-xl sm:rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
           >
-            <preset.icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+            <preset.icon className="h-4 w-4 sm:h-3.5 sm:h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             {preset.label}
           </button>
         ))}
@@ -166,13 +162,13 @@ export function AIContentAssistant({
       {/* Command Input */}
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-orange-500/30 transition-all duration-200 p-1">
+        <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-orange-500/30 transition-all duration-200 p-1.5 sm:p-1">
           <Textarea
             ref={textareaRef}
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Ask AI to rewrite, explain, or format..."
-            className="min-h-[44px] max-h-[120px] py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-3 placeholder:text-muted-foreground/50 resize-none overflow-y-auto"
+            className="min-h-[56px] sm:min-h-[44px] max-h-[120px] py-3 sm:py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-3 placeholder:text-muted-foreground/50 resize-none overflow-y-auto"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
@@ -180,19 +176,18 @@ export function AIContentAssistant({
               }
             }}
           />
-          <div className="flex items-end self-end pb-1 pr-1">
+          <div className="flex items-end self-end w-full sm:w-auto mt-2 sm:mt-0 sm:pb-1 sm:pr-1">
             <Button
-              size="icon"
-              variant="ghost"
               className={cn(
-                "h-8 w-8 rounded-lg transition-all duration-200", 
+                "h-11 sm:h-8 w-full sm:w-8 font-bold text-sm sm:text-xs rounded-xl sm:rounded-lg transition-all duration-200 gap-2", 
                 customPrompt 
                   ? "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-500/20" 
-                  : "text-muted-foreground/30 hover:bg-transparent"
+                  : "text-muted-foreground/30 hover:bg-transparent bg-muted/20 sm:bg-transparent"
               )}
               onClick={() => handleTweak(customPrompt)}
               disabled={!customPrompt}
             >
+              <span className="sm:hidden">Send Request</span>
               <SendHorizontal className="h-4 w-4" />
             </Button>
           </div>
