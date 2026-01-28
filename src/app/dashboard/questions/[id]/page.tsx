@@ -42,7 +42,11 @@ export default async function DashboardQuestionPage({ params }: PageProps) {
     .select(`
       *,
       solutions:solutions (
-        *
+        *,
+        author:user_profiles!contributor_id (
+          display_name,
+          avatar_url
+        )
       ),
       user_question_stats (
         *
