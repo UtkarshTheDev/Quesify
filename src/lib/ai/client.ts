@@ -38,7 +38,6 @@ class AIClient {
     const start = performance.now()
     const model = this.getModel(modelType)
     const result = await model.generateContent(prompt)
-    const result = await model.generateContent(prompt)
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
       console.log(`[AI/Text] ${modelType} took ${duration.toFixed(2)}ms`)
@@ -89,12 +88,6 @@ class AIClient {
    * Includes a 3-tier repair layer for "lazy" JSON with unescaped backslashes and literal newlines.
    */
   parseAiJson<T>(response: string): T {
-    if (AI_CONFIG.debug) {
-      console.log('--- AI RAW OUTPUT ---')
-      console.log(response)
-      console.log('----------------------')
-    }
-
     try {
       // 1. Extract content from code blocks
       const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/)

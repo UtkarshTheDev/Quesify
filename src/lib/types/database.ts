@@ -32,6 +32,7 @@ export interface Solution {
   likes: number
   is_ai_best: boolean
   correct_option: number | null
+  avg_solve_time: number
   created_at: string
   updated_at: string
   author?: {

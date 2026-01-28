@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { SolutionSteps } from '@/components/questions/solution-steps'
 import { Latex } from '@/components/ui/latex'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Check, Edit2, Loader2, AlertTriangle, Copy } from 'lucide-react'
+import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock } from 'lucide-react'
 import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
 interface PreviewCardProps {
@@ -95,6 +95,14 @@ export function PreviewCard({
   };
 
   const stripBoxed = (text: string) => text.replace(/\\boxed\{([\s\S]*?)\}/g, '$1').trim()
+
+  const formatTime = (seconds?: number) => {
+    if (!seconds) return 'N/A'
+    if (seconds < 60) return `${seconds}s`
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`
+  }
 
   interface ProgressLinkProps {
     label: string;
@@ -351,6 +359,12 @@ export function PreviewCard({
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className="text-[10px] px-3 py-1 border-primary/20 bg-primary/5 uppercase">{displayData.type}</Badge>
                     <Badge className={`text-[10px] px-3 py-1 border uppercase ${difficultyColors[displayData.difficulty || 'medium']}`}>{displayData.difficulty || 'medium'}</Badge>
+                    {displayData.avg_solve_time ? (
+                      <Badge variant="outline" className="text-[10px] px-3 py-1 border-blue-500/20 bg-blue-500/5 text-blue-500 flex items-center gap-1.5">
+                        <Clock className="h-3 w-3" />
+                        {formatTime(displayData.avg_solve_time)}
+                      </Badge>
+                    ) : null}
                   </div>
 
                   <div className="space-y-3">

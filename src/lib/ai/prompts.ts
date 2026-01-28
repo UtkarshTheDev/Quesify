@@ -148,6 +148,7 @@ JSON Schema:
   "solution_text": "string (Detailed step-by-step with LaTeX)",
   "numerical_answer": "string | null",
   "correct_option": number | null (0-indexed integer of correct option IF MCQ, else null),
+  "avg_solve_time": number (Estimated time in SECONDS for an average student to solve this question),
   "approach_description": "string (Short summary of strategy used)"
 }}
 
