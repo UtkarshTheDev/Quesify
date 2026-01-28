@@ -31,6 +31,7 @@ export default function UploadPage() {
     classifyError: null as string | null,
     finalizing: false,
     finalizeError: null as string | null,
+    finalized: false, // Track if finalization has started/completed
   })
 
   // Phase 1: Extraction
@@ -148,8 +149,11 @@ export default function UploadPage() {
   // Check if we should run finalization
   const checkAllDone = (text: string, solution?: string) => {
     setAnalysisStatus(prev => {
-      if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError) {
-        runFinalize(text, solution)
+      // Run only if both phases are done, no errors, AND not already finalized/finalizing
+      if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError && !prev.finalizing && !prev.finalized) {
+        // We return a state update that marks it as starting to prevent race conditions
+        setTimeout(() => runFinalize(text, solution), 0)
+        return { ...prev, finalized: true }
       }
       return prev
     })
@@ -195,7 +199,8 @@ export default function UploadPage() {
       extracting: false, extractError: null,
       solving: false, solveError: null,
       classifying: false, classifyError: null,
-      finalizing: false, finalizeError: null
+      finalizing: false, finalizeError: null,
+      finalized: false
     })
   }
 
