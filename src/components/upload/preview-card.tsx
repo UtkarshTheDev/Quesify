@@ -74,6 +74,10 @@ export function PreviewCard({
     ...(localEdits || {})
   }
 
+  const isSolutionModified = localEdits?.solution !== undefined && 
+                             localEdits.solution !== null && 
+                             localEdits.solution.trim() !== data.solution?.trim()
+
   const handleSave = async () => {
     if (data.duplicate_check?.is_duplicate && data.duplicate_check.matched_question_id) {
       await onSave({
@@ -329,12 +333,12 @@ export function PreviewCard({
                         size="lg" 
                         variant="default" 
                         className={`w-full rounded-xl h-12 font-bold gap-3 transition-all active:scale-95 shadow-lg ${
-                          !localEdits?.solution || localEdits.solution === data.solution
-                            ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-70 shadow-none'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20'
+                          !isSolutionModified
+                            ? 'bg-indigo-600/10 text-indigo-400/50 cursor-not-allowed shadow-none border border-indigo-500/10'
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/30'
                         }`}
                         onClick={handleVerifyManualChanges}
-                        disabled={isVerifying || !localEdits?.solution || localEdits.solution === data.solution}
+                        disabled={isVerifying || !isSolutionModified}
                       >
                         {isVerifying ? (
                           <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing Strategy...</>
