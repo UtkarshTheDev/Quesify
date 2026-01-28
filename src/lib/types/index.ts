@@ -32,6 +32,10 @@ export interface DuplicateCheckResult {
   matched_question_id: string | null
   confidence: number
   differences: string | null
+  author?: {
+    display_name: string | null
+    avatar_url: string | null
+  }
 }
 
 // Chart/Feed types

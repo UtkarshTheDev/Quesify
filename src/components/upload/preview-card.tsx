@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { SolutionSteps } from '@/components/questions/solution-steps'
 import { Latex } from '@/components/ui/latex'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock } from 'lucide-react'
+import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock, ExternalLink } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
 interface PreviewCardProps {
@@ -57,15 +58,14 @@ export function PreviewCard({
   }
 
   const handleSave = async () => {
-    await onSave(displayData as any)
-  }
-
-  const handleLinkToExisting = async () => {
-    if (!data.duplicate_check?.matched_question_id) return
-    await onSave({
-      ...displayData,
-      existing_question_id: data.duplicate_check.matched_question_id
-    } as any)
+    if (data.duplicate_check?.is_duplicate && data.duplicate_check.matched_question_id) {
+      await onSave({
+        ...displayData,
+        existing_question_id: data.duplicate_check.matched_question_id
+      } as any)
+    } else {
+      await onSave(displayData as any)
+    }
   }
 
   const difficultyColors: Record<string, string> = {
@@ -278,6 +278,52 @@ export function PreviewCard({
 
       {/* RIGHT COLUMN: Professional Sidebar */}
       <div className="space-y-6 lg:sticky lg:top-8">
+        {/* Duplicate Notification Card (Top Priority) */}
+        {data.duplicate_check?.is_duplicate && !status.finalizing && (
+          <Card className="border-none shadow-2xl bg-yellow-500/[0.03] ring-1 ring-yellow-500/20 overflow-hidden group">
+            <div className="bg-yellow-500/10 px-6 py-3 border-b border-yellow-500/10 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-yellow-600">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Duplicate Found</span>
+              </div>
+              <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-[9px]">
+                {Math.round((data.duplicate_check.confidence || 0) * 100)}% Match
+              </Badge>
+            </div>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 ring-2 ring-yellow-500/20">
+                    <AvatarImage src={data.duplicate_check.author?.avatar_url || ''} />
+                    <AvatarFallback className="bg-yellow-500/10 text-yellow-600 text-xs">
+                      {(data.duplicate_check.author?.display_name || 'U').charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight opacity-60">Already Added By</p>
+                    <p className="text-sm font-bold text-foreground">{data.duplicate_check.author?.display_name || 'Community Member'}</p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-yellow-500/[0.05] border border-yellow-500/10">
+                  <p className="text-xs text-yellow-700/80 leading-relaxed font-medium italic">
+                    "{data.duplicate_check.differences || "This question is already available in our global question bank."}"
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full h-11 rounded-xl text-xs font-bold border-yellow-500/20 hover:bg-yellow-500/10 hover:text-yellow-600 transition-all gap-2"
+                onClick={() => window.open(`/question/${data.duplicate_check?.matched_question_id}`, '_blank')}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                View Original Question
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress & Action Card */}
         <Card className="border-none bg-primary/5 ring-1 ring-primary/20 shadow-lg">
           <CardContent className="p-6 space-y-4">
@@ -317,14 +363,20 @@ export function PreviewCard({
             </div>
 
             <Button
-              className="w-full h-12 rounded-xl text-sm font-bold shadow-lg mt-2 ring-1 ring-white/10 hover:scale-[1.02] active:scale-95 transition-all"
+              className={`w-full h-12 rounded-xl text-sm font-bold shadow-lg mt-2 ring-1 ring-white/10 hover:scale-[1.02] active:scale-95 transition-all ${data.duplicate_check?.is_duplicate ? 'bg-green-600 hover:bg-green-500 text-white' : ''}`}
               onClick={handleSave}
               disabled={isSaving || status.solving || status.classifying || status.extracting || !!status.extractError}
             >
               {isSaving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Adding to Bank...</>
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {data.duplicate_check?.is_duplicate ? 'Linking...' : 'Adding to Bank...'}</>
               ) : (
-                <><Check className="h-4 w-4 mr-2" /> Add to Question Bank</>
+                <>
+                  {data.duplicate_check?.is_duplicate ? (
+                    <><Copy className="h-4 w-4 mr-2" /> Link to Your Bank</>
+                  ) : (
+                    <><Check className="h-4 w-4 mr-2" /> Add to Question Bank</>
+                  )}
+                </>
               )}
             </Button>
           </CardContent>
@@ -398,21 +450,6 @@ export function PreviewCard({
             )}
           </CardContent>
         </Card>
-
-        {/* Duplicate Warning Overlay */}
-        {data.duplicate_check?.is_duplicate && !status.finalizing && (
-          <Alert variant="destructive" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/50 rounded-xl shadow-inner animate-in slide-in-from-right-2">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="text-xs font-bold uppercase tracking-wide">Duplicate Match</AlertTitle>
-            <AlertDescription className="text-xs mt-1.5 space-y-3">
-              <p>This looks very similar to an existing entry. Use existing instead?</p>
-              <div className="flex gap-4">
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs font-bold text-yellow-600 underline" onClick={handleLinkToExisting}>Merge Variant</Button>
-                <Button variant="link" size="sm" className="h-auto p-0 text-xs text-muted-foreground underline" onClick={() => window.open(`/dashboard/questions/${data.duplicate_check?.matched_question_id}`, '_blank')}>Compare</Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
       </div>
     </div>
   )

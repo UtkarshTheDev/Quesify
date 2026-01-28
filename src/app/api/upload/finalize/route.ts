@@ -56,9 +56,24 @@ export async function POST(request: NextRequest) {
                 console.log(`[Route/Finalize] AI Verdict: ${analysis.match_type}, Confidence: ${analysis.confidence}`)
 
                 if (analysis.is_duplicate) {
+                    // Fetch original author profile
+                    let author = null
+                    if (topMatch.owner_id) {
+                        const { data: profile } = await supabase
+                            .from('user_profiles')
+                            .select('display_name, avatar_url')
+                            .eq('user_id', topMatch.owner_id)
+                            .single()
+                        
+                        if (profile) {
+                            author = profile
+                        }
+                    }
+
                     duplicateResult = {
                         ...analysis,
-                        matched_question_id: topMatch.id
+                        matched_question_id: topMatch.id,
+                        author
                     }
                 }
             }
