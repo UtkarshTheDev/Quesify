@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Sparkles, Loader2, SendHorizontal, Zap, Wand2, Type, GraduationCap, Calculator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +24,16 @@ export function AIContentAssistant({
 }: AIContentAssistantProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [customPrompt, setCustomPrompt] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
+    }
+  }, [customPrompt])
 
   const handleTweak = async (instruction: string) => {
     if (!instruction) return
@@ -116,30 +126,36 @@ export function AIContentAssistant({
       {/* Command Input */}
       <div className="relative group">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-indigo-500/30 transition-all duration-200">
-          <Input
+        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-indigo-500/30 transition-all duration-200 p-1">
+          <Textarea
+            ref={textareaRef}
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Ask AI to rewrite, explain, or format..."
-            className="h-11 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-4 placeholder:text-muted-foreground/50"
+            className="min-h-[44px] max-h-[120px] py-2.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-3 placeholder:text-muted-foreground/50 resize-none overflow-y-auto"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleTweak(customPrompt)
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleTweak(customPrompt)
+              }
             }}
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            className={cn(
-              "h-8 w-8 mr-1.5 rounded-lg transition-all duration-200", 
-              customPrompt 
-                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-500/20" 
-                : "text-muted-foreground/30 hover:bg-transparent"
-            )}
-            onClick={() => handleTweak(customPrompt)}
-            disabled={!customPrompt}
-          >
-            <SendHorizontal className="h-4 w-4" />
-          </Button>
+          <div className="flex items-end self-end pb-1 pr-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "h-8 w-8 rounded-lg transition-all duration-200", 
+                customPrompt 
+                  ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-500/20" 
+                  : "text-muted-foreground/30 hover:bg-transparent"
+              )}
+              onClick={() => handleTweak(customPrompt)}
+              disabled={!customPrompt}
+            >
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
