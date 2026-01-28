@@ -27,23 +27,34 @@ JSON Schema:
 Return ONLY the JSON block.`,
 
   // Duplicate detection between two questions
-  duplicateAnalysis: `Compare these two questions and determine if they are duplicates.
+  duplicateAnalysis: `Compare these two questions and their solution approaches to determine if they are duplicates.
 Return a JSON response.
 
-Question A:
+QUESTION A:
 {questionA}
 
-Question B:
+SOLUTION A:
+{solutionA}
+
+QUESTION B:
 {questionB}
+
+SOLUTION B:
+{solutionB}
 
 JSON Schema:
 {{
   "same_concept": boolean,
   "same_approach": boolean,
-  "differences": "string",
+  "differences": "string (Short summary of what makes them different)",
   "verdict": "SAME | DIFFERENT_APPROACH | DIFFERENT_QUESTION",
   "confidence": number (0-1)
 }}
+
+VERDICT RULES:
+- SAME: Questions are identical or effectively identical (even with minor phrasing changes), and the solution approach is the same.
+- DIFFERENT_APPROACH: The question is the same, but the solution approach is fundamentally different.
+- DIFFERENT_QUESTION: The questions themselves are different.
 
 Return ONLY the JSON block.`,
 
@@ -129,6 +140,7 @@ JSON ESCAPING RULES (CRITICAL):
 2. Use "\\n" for newline within the solution text.
 
 STYLING & RENDERING RULES (MANDATORY):
+- OPTION NUMBERING: In the "solution_text", always refer to options starting from 1 (e.g., **Option 1**, **Option 2**). Never use "Option 0".
 - RESULTS: Provide ONLY the raw mathematical result (or the most simplified form) within the "numerical_answer" field. NEVER use \\\\boxed{{}} anywhere. 
 - BOLD: Put major headings, step titles (e.g., **Step 1:**), and key properties in **bold**.
 - MATH: ALWAYS wrap ALL mathematical expressions, variables, formulas, and results in valid LaTeX delimiters ($ or $$).
@@ -147,7 +159,7 @@ JSON Schema:
 {{
   "solution_text": "string (Detailed step-by-step with LaTeX)",
   "numerical_answer": "string | null",
-  "correct_option": number | null (0-indexed integer of correct option IF MCQ, else null),
+  "correct_option": number | null (CRITICAL: 0-indexed integer of correct option for code processing),
   "avg_solve_time": number (Estimated time in SECONDS for an average student to solve this question),
   "approach_description": "string (Short summary of strategy used)"
 }}

@@ -101,7 +101,7 @@ export default function UploadPage() {
         correct_option: result.data.correct_option
       }) : null)
       setAnalysisStatus(prev => ({ ...prev, solving: false }))
-      checkAllDone(text)
+      checkAllDone(text, result.data.solution)
     } catch (error) {
       setAnalysisStatus(prev => ({
         ...prev,
@@ -135,7 +135,7 @@ export default function UploadPage() {
         importance: result.data.importance
       }) : null)
       setAnalysisStatus(prev => ({ ...prev, classifying: false }))
-      checkAllDone(text)
+      checkAllDone(text, extractedData?.solution)
     } catch (error) {
       setAnalysisStatus(prev => ({
         ...prev,
@@ -146,24 +146,24 @@ export default function UploadPage() {
   }
 
   // Check if we should run finalization
-  const checkAllDone = (text: string) => {
+  const checkAllDone = (text: string, solution?: string) => {
     setAnalysisStatus(prev => {
       if (!prev.solving && !prev.classifying && !prev.solveError && !prev.classifyError) {
-        runFinalize(text)
+        runFinalize(text, solution)
       }
       return prev
     })
   }
 
   // Phase 4: Finalize (Embeddings/Duplicates)
-  const runFinalize = async (text: string) => {
+  const runFinalize = async (text: string, solution?: string) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, finalizing: true, finalizeError: null }))
     try {
       const res = await fetch('/api/upload/finalize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text })
+        body: JSON.stringify({ question_text: text, solution_text: solution })
       })
       const result = await res.json()
       if (result.success) {
