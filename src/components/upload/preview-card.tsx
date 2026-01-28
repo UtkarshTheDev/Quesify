@@ -136,7 +136,7 @@ export function PreviewCard({
     <div className={`animate-pulse bg-muted/50 rounded-md ${className}`} />
   )
   const SectionFade = ({ children, isLoaded }: { children: React.ReactNode, isLoaded: boolean }) => (
-    <div className={`transition-all duration-700 ${isLoaded ? 'animate-in fade-in slide-in-from-bottom-2' : ''}`}>
+    <div className="transition-all duration-700">
       {children}
     </div>
   )
@@ -185,7 +185,7 @@ export function PreviewCard({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8 items-start animate-in fade-in duration-1000">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-8 items-start">
       {/* LEFT COLUMN: Question & Solution Stream */}
       <div className="space-y-8">
         {/* Question Card */}
@@ -317,7 +317,7 @@ export function PreviewCard({
                   </div>
 
                   <TabsContent value="edit" className="mt-0 space-y-6 focus-visible:outline-none animate-in fade-in zoom-in-95 duration-200">
-                    <div className="space-y-4">
+                    <div className="space-y-6 pb-4">
                       <textarea
                         className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
                         value={displayData.solution}
@@ -325,18 +325,19 @@ export function PreviewCard({
                         placeholder="Fine-tune the solution steps..."
                       />
                       
-                      <div className="flex justify-end">
-                        <Button 
-                          size="sm" 
-                          variant="secondary" 
-                          className="rounded-xl h-9 px-6 text-xs font-bold gap-2"
-                          onClick={handleVerifyManualChanges}
-                          disabled={isVerifying || !localEdits?.solution || localEdits.solution === data.solution}
-                        >
-                          {isVerifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-                          Verify strategy & Sync
-                        </Button>
-                      </div>
+                      <Button 
+                        size="lg" 
+                        variant="default" 
+                        className="w-full rounded-xl h-12 font-bold gap-3 bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 text-white transition-all active:scale-95"
+                        onClick={handleVerifyManualChanges}
+                        disabled={isVerifying || !localEdits?.solution || localEdits.solution === data.solution}
+                      >
+                        {isVerifying ? (
+                          <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing Approach...</>
+                        ) : (
+                          <><CheckCircle2 className="h-4 w-4" /> Verify & Sync Solution Strategy</>
+                        )}
+                      </Button>
                     </div>
                   </TabsContent>
 
