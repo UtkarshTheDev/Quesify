@@ -157,26 +157,19 @@ export function AIContentAssistant({
 
     const presets = getPresets();
 
-    if (isLoading || isStreaming) {
-        return (
-            <div
-                className={cn(
-                    "w-full py-3 flex items-center justify-center gap-3 bg-muted/30 rounded-xl border border-border/50",
-                    className,
-                )}
-            >
-                <div className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-                </div>
-                <span className="text-xs font-semibold text-muted-foreground tracking-wide animate-pulse">
-                    {isStreaming
-                        ? "AI is writing..."
-                        : "AI is working on it..."}
-                </span>
-            </div>
-        );
-    }
+  if (isLoading || isStreaming) {
+    return (
+      <div className={cn("w-full py-4 flex items-center justify-center gap-3 bg-zinc-900/80 rounded-full border border-white/5 shadow-2xl backdrop-blur-md max-w-sm mx-auto my-4", className)}>
+        <div className="relative flex h-2.5 w-2.5 items-center justify-center">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+        </div>
+        <span className="text-xs font-medium text-zinc-300 tracking-wide animate-pulse pt-0.5">
+          {isStreaming ? "AI is writing..." : "AI is working on it..."}
+        </span>
+      </div>
+    )
+  }
 
     return (
         <div
@@ -211,15 +204,15 @@ export function AIContentAssistant({
             </div>
 
       {/* Command Input */}
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex flex-col bg-background/50 hover:bg-background/80 focus-within:bg-background rounded-xl border border-orange-500/10 hover:border-orange-500/20 focus-within:border-orange-500/30 focus-within:shadow-[0_0_15px_rgba(249,115,22,0.05)] transition-all duration-300 shadow-sm">
+      <div className="relative group pt-2">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
+        <div className="relative flex flex-col bg-zinc-950 hover:bg-zinc-900 focus-within:bg-zinc-900 rounded-xl border border-white/10 hover:border-orange-500/30 focus-within:border-orange-500/50 transition-all duration-300 shadow-xl">
           <Textarea
             ref={textareaRef}
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Ask AI to rewrite, explain, or format... ✨"
-            className="min-h-[56px] max-h-[120px] py-3.5 border-none bg-transparent shadow-none focus-visible:ring-0 text-[13px] sm:text-sm px-4 placeholder:text-muted-foreground/40 resize-none overflow-y-auto"
+            className="min-h-[60px] max-h-[120px] py-4 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-5 placeholder:text-zinc-500 text-zinc-100 resize-none overflow-y-auto"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
@@ -228,13 +221,13 @@ export function AIContentAssistant({
             }}
           />
           
-          <div className="flex items-center justify-end px-2 pb-2 mt-1">
+          <div className="flex items-center justify-end px-3 pb-3 mt-2">
             <Button
               className={cn(
-                "h-8 px-4 font-bold text-xs rounded-lg transition-all duration-200 gap-2", 
+                "h-9 px-5 font-bold text-xs rounded-lg transition-all duration-200 gap-2 shadow-lg", 
                 customPrompt 
-                  ? "bg-white text-black hover:bg-white/90 shadow-md" 
-                  : "bg-transparent text-muted-foreground/40 hover:bg-muted/30"
+                  ? "bg-white text-black hover:bg-zinc-200" 
+                  : "bg-zinc-800 text-zinc-500 cursor-not-allowed hover:bg-zinc-800"
               )}
               onClick={() => handleTweak(customPrompt)}
               disabled={!customPrompt}
@@ -243,6 +236,15 @@ export function AIContentAssistant({
               <SendHorizontal className="h-3.5 w-3.5" />
             </Button>
           </div>
+        </div>
+        
+        <div className="flex justify-center mt-3">
+          <p className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1.5">
+            <AlertCircle className="h-3 w-3 opacity-70" />
+            AI can make mistakes. Please review the output.
+          </p>
+        </div>
+      </div>
         </div>
         
         <div className="flex justify-center mt-2.5">
