@@ -128,8 +128,8 @@ export function AIContentAssistant({
     return (
       <div className={cn("w-full py-3 flex items-center justify-center gap-3 bg-muted/30 rounded-xl border border-border/50", className)}>
         <div className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
         </div>
         <span className="text-xs font-semibold text-muted-foreground tracking-wide animate-pulse">
           {isStreaming ? "AI is writing..." : "AI is working on it..."}
@@ -142,7 +142,7 @@ export function AIContentAssistant({
     <div className={cn("space-y-4 pt-4 border-t border-border/40", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20">
+          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20">
             <Sparkles className="h-3.5 w-3.5" />
           </div>
           <span className="text-xs font-bold text-foreground/80 tracking-tight">AI Copilot</span>
@@ -155,7 +155,7 @@ export function AIContentAssistant({
           <button
             key={preset.label}
             onClick={() => handleTweak(preset.prompt)}
-            className="group flex items-center gap-2 px-3 py-1.5 h-8 text-[11px] font-semibold bg-background border border-border/60 hover:border-indigo-500/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-indigo-500/5 text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400"
+            className="group flex items-center gap-2 px-3 py-1.5 h-8 text-[11px] font-semibold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
           >
             <preset.icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
             {preset.label}
@@ -165,8 +165,8 @@ export function AIContentAssistant({
 
       {/* Command Input */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
-        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-indigo-500/30 transition-all duration-200 p-1">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+        <div className="relative flex items-center bg-muted/30 hover:bg-muted/50 focus-within:bg-background rounded-xl border border-transparent focus-within:border-orange-500/30 transition-all duration-200 p-1">
           <Textarea
             ref={textareaRef}
             value={customPrompt}
@@ -187,7 +187,7 @@ export function AIContentAssistant({
               className={cn(
                 "h-8 w-8 rounded-lg transition-all duration-200", 
                 customPrompt 
-                  ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-md shadow-indigo-500/20" 
+                  ? "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-500/20" 
                   : "text-muted-foreground/30 hover:bg-transparent"
               )}
               onClick={() => handleTweak(customPrompt)}
