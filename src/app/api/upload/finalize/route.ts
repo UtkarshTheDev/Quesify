@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
                     question_text,
                     solution_text || '',
                     topMatch.question_text,
-                    topMatch.solution_text || ''
+                    topMatch.matched_solution_text || ''
                 )
 
                 console.log(`[Route/Finalize] AI Verdict: ${analysis.match_type}, Confidence: ${analysis.confidence}`)
