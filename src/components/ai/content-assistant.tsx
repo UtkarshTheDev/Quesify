@@ -26,6 +26,10 @@ export function AIContentAssistant({
   const [isStreaming, setIsStreaming] = useState(false)
   const [customPrompt, setCustomPrompt] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
+  // Callbacks for parent components to handle streaming states if needed
+  const onStreamStart = () => {} 
+  const onStreamEnd = () => {}
 
   // Auto-resize textarea
   useEffect(() => {
