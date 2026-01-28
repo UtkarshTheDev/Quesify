@@ -251,6 +251,10 @@ export default function UploadPage() {
           status={analysisStatus}
           onSave={handleSave}
           isSaving={isSaving}
+          onReFinalize={(text, sol) => {
+            finalizationLock.current = false;
+            runFinalize(text, sol);
+          }}
           onRetryExtract={() => selectedFile && runExtract(selectedFile)}
           onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
           onRetryClassify={() => runClassify(extractedData.question_text, extractedData.subject)}

@@ -241,6 +241,16 @@ export const ai = {
   },
 
   /**
+   * Sync/Regenerate approach description from solution text
+   */
+  async syncApproachFromSolution(solutionText: string): Promise<string> {
+    const client = getAIClient()
+    const prompt = formatPrompt(PROMPTS.approachSync, { solutionText })
+    const response = await client.generateText(prompt, 'fast')
+    return response.trim()
+  },
+
+  /**
    * Generic text generation
    */
   async generateText(prompt: string): Promise<string> {

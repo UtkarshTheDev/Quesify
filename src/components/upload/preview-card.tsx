@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +12,7 @@ import { Latex } from '@/components/ui/latex'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Check, Edit2, Loader2, AlertTriangle, Copy, Clock, ExternalLink } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { AIContentAssistant } from '@/components/ai/content-assistant'
 import type { GeminiExtractionResult, DuplicateCheckResult } from '@/lib/types'
 
 interface PreviewCardProps {
@@ -35,6 +37,7 @@ interface PreviewCardProps {
     existing_question_id?: string;
   }) => Promise<void>
   isSaving: boolean
+  onReFinalize?: (text: string, solution?: string) => void
   onRetryExtract?: () => void
   onRetrySolve?: () => void
   onRetryClassify?: () => void
@@ -45,17 +48,35 @@ export function PreviewCard({
   status,
   onSave,
   isSaving,
+  onReFinalize,
   onRetryExtract,
   onRetrySolve,
   onRetryClassify
 }: PreviewCardProps) {
   const [editMode, setEditMode] = useState(false)
   const [localEdits, setLocalEdits] = useState<Partial<GeminiExtractionResult> | null>(null)
+  const [activeSolutionTab, setActiveSolutionTab] = useState<'preview' | 'edit'>('preview')
+  const debounceTimer = useRef<any>(null)
 
   const displayData = {
     ...data,
     ...(localEdits || {})
   }
+
+  // Effect to trigger re-finalization (duplicate check) when solution changes significantly
+  useEffect(() => {
+    if (!onReFinalize || !localEdits?.solution) return
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    
+    debounceTimer.current = setTimeout(() => {
+      onReFinalize(displayData.question_text, displayData.solution)
+    }, 1500) // 1.5s debounce
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    }
+  }, [localEdits?.solution, onReFinalize])
 
   const handleSave = async () => {
     if (data.duplicate_check?.is_duplicate && data.duplicate_check.matched_question_id) {
@@ -66,6 +87,14 @@ export function PreviewCard({
     } else {
       await onSave(displayData as any)
     }
+  }
+
+  const handleAITweak = (tweakedContent: string, syncedApproach?: string) => {
+    setLocalEdits(prev => ({
+      ...prev,
+      solution: tweakedContent,
+      ...(syncedApproach ? { hint: syncedApproach } : {})
+    }))
   }
 
   const difficultyColors: Record<string, string> = {
@@ -245,31 +274,64 @@ export function PreviewCard({
               </div>
             ) : (
               <SectionFade isLoaded={true}>
-                {editMode ? (
-                  <textarea
-                    className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
-                    value={displayData.solution}
-                    onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
-                  />
-                ) : (
-                  <div className="space-y-10">
-                    <div className="solution-content">
-                      {/* We keep a simple stripBoxed for the steps as a safety, but prepareMath handles the final result highlight */}
-                      <SolutionSteps content={(displayData.solution || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1')} />
-                    </div>
+                <Tabs value={activeSolutionTab} onValueChange={(v) => setActiveSolutionTab(v as any)} className="w-full">
+                  <div className="flex items-center justify-between mb-6">
+                    <TabsList className="bg-muted/50 p-1 h-9">
+                      <TabsTrigger value="preview" className="px-6 text-[10px] font-black uppercase tracking-widest">Preview</TabsTrigger>
+                      <TabsTrigger value="edit" className="px-6 text-[10px] font-black uppercase tracking-widest">Write</TabsTrigger>
+                    </TabsList>
 
-                    {displayData.numerical_answer && (
-                      <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <span className="text-sm font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
-                        <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-6 py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
-                          <div className="text-lg font-bold text-foreground">
-                            <Latex>{`$${stripBoxed(displayData.numerical_answer)}$`}</Latex>
-                          </div>
-                        </div>
-                      </div>
+                    {activeSolutionTab === 'edit' && (
+                      <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-tight bg-primary/5 text-primary/70 border-primary/20">
+                        Editing Active
+                      </Badge>
                     )}
                   </div>
-                )}
+
+                  <TabsContent value="edit" className="mt-0 space-y-6 focus-visible:outline-none animate-in fade-in zoom-in-95 duration-200">
+                    <textarea
+                      className="w-full min-h-64 p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-sm leading-relaxed"
+                      value={displayData.solution}
+                      onChange={(e) => setLocalEdits({ ...localEdits, solution: e.target.value })}
+                      placeholder="Fine-tune the solution steps..."
+                    />
+                    
+                    <AIContentAssistant
+                      content={displayData.solution}
+                      contentType="solution"
+                      onContentChange={(val) => {
+                        setLocalEdits(prev => ({ ...prev, solution: val }))
+                      }}
+                      onComplexUpdate={(update) => {
+                        setLocalEdits(prev => ({
+                          ...prev,
+                          solution: update.tweakedContent,
+                          ...(update.syncedApproach ? { hint: update.syncedApproach } : {})
+                        }))
+                      }}
+                      className="border-t pt-6"
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="preview" className="mt-0 focus-visible:outline-none">
+                    <div className="space-y-10">
+                      <div className="solution-content">
+                        <SolutionSteps content={(displayData.solution || "").replace(/\\boxed\{([\s\S]*?)\}/g, '$1')} />
+                      </div>
+
+                      {displayData.numerical_answer && (
+                        <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                          <span className="text-sm font-black text-primary uppercase tracking-widest opacity-80">Final Answer</span>
+                          <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.05)] px-6 py-2.5 rounded-xl transition-all hover:bg-primary/10 hover:ring-primary/40 group">
+                            <div className="text-lg font-bold text-foreground">
+                              <Latex>{`$${stripBoxed(displayData.numerical_answer)}$`}</Latex>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </SectionFade>
             )}
           </CardContent>

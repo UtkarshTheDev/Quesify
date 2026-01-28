@@ -24,7 +24,20 @@ export async function POST(request: NextRequest) {
       instruction
     )
 
-    return NextResponse.json({ tweakedContent })
+    let syncedApproach = null
+    if ((contentType === 'solution' || !contentType) && tweakedContent) {
+      // Auto-sync approach when solution is updated
+      try {
+        syncedApproach = await ai.syncApproachFromSolution(tweakedContent)
+      } catch (e) {
+        console.error('Failed to sync approach:', e)
+      }
+    }
+
+    return NextResponse.json({ 
+      tweakedContent,
+      syncedApproach 
+    })
   } catch (error) {
     console.error('AI Tweak Error:', error)
     return NextResponse.json(
