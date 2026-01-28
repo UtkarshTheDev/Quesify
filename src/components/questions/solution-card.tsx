@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Edit, Trash2, MoreVertical, Loader2, Clock, ThumbsUp } from 'lucide-react'
+import { Edit, Trash2, MoreVertical, Loader2, Clock, ThumbsUp, Sparkles, CheckCircle2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Solution } from '@/lib/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -118,8 +119,11 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate, isHi
 
   return (
     <Card className={cn(
-      "transition-all duration-300 border-none shadow-none bg-transparent", 
-      isEditing ? "ring-1 ring-ring" : ""
+      "transition-all duration-300 border shadow-sm", 
+      isHighlighted 
+        ? "bg-card/50 border-primary/20 shadow-md ring-1 ring-primary/5" 
+        : "bg-muted/10 border-border/60",
+      isEditing ? "ring-2 ring-primary/30 border-primary/40" : ""
     )}>
       <CardHeader className="pb-3 pt-4 px-4 md:px-6">
         <div className="flex items-center justify-between">
@@ -127,7 +131,9 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate, isHi
             {!isEditing && (
               <Avatar className="h-8 w-8 border shadow-sm">
                 <AvatarImage src={solution.author?.avatar_url || ''} />
-                <AvatarFallback>{solution.author?.display_name?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
+                  {solution.author?.display_name?.charAt(0) || 'U'}
+                </AvatarFallback>
               </Avatar>
             )}
             <div className="flex flex-col gap-0.5">
@@ -145,7 +151,12 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate, isHi
                   <span>{dateLabel} {format(new Date(displayDate), 'MMM d, yyyy')}</span>
                 </div>
               )}
-              {isEditing && <span className="font-semibold text-sm">Edit Solution</span>}
+              {isEditing && (
+                <div className="flex items-center gap-2 text-primary">
+                  <Edit className="h-4 w-4" />
+                  <span className="font-bold text-xs uppercase tracking-widest">Editor Mode</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -155,10 +166,10 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate, isHi
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.9 }}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border",
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border shadow-sm",
                   liked 
                     ? "bg-primary/10 border-primary/20 text-primary" 
-                    : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted"
+                    : "bg-background border-border/50 text-muted-foreground hover:bg-muted"
                 )}
                 onClick={handleLike}
                 disabled={isLiking}
@@ -205,48 +216,63 @@ export function SolutionCard({ solution, currentUserId, onDelete, onUpdate, isHi
       </CardHeader>
       <CardContent className="space-y-6 overflow-x-auto pb-8 px-4 md:px-6">
         {isEditing ? (
-          <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <Textarea
-              value={editedText}
-              onChange={(e) => setEditedText(e.target.value)}
-              className="min-h-[300px] font-mono resize-y rounded-xl"
-              placeholder="Write your step-by-step solution here..."
-            />
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <Tabs defaultValue="preview" className="w-full">
+               <div className="flex items-center justify-between mb-4">
+                 <TabsList className="bg-muted/50 p-1 h-10">
+                   <TabsTrigger value="preview" className="px-4 text-xs font-bold uppercase tracking-widest">Preview</TabsTrigger>
+                   <TabsTrigger value="edit" className="px-4 text-xs font-bold uppercase tracking-widest">Write</TabsTrigger>
+                 </TabsList>
+                 
+                 <div className="flex items-center gap-2">
+                   <Button variant="ghost" size="sm" className="h-8 text-xs rounded-full" onClick={() => setIsEditing(false)}>Cancel</Button>
+                   <Button size="sm" onClick={handleSave} disabled={isSaving} className="h-8 text-xs rounded-full px-4">
+                     {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <CheckCircle2 className="h-3 w-3 mr-2" />}
+                     Save
+                   </Button>
+                 </div>
+               </div>
 
-            <div className="rounded-xl border bg-muted/50 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Live Preview</p>
-              <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
-                <Latex>{editedText || 'Nothing to preview'}</Latex>
-              </div>
-            </div>
+               <TabsContent value="edit" className="mt-0 focus-visible:outline-none">
+                 <Textarea
+                   value={editedText}
+                   onChange={(e) => setEditedText(e.target.value)}
+                   className="min-h-[400px] font-mono resize-y rounded-xl bg-muted/20 border-border/50 focus:border-primary/50 transition-colors"
+                   placeholder="Write your step-by-step solution here..."
+                 />
+               </TabsContent>
 
-            <AIContentAssistant
-              content={editedText}
-              contentType="solution"
-              onContentChange={setEditedText}
-            />
+               <TabsContent value="preview" className="mt-0 focus-visible:outline-none space-y-6">
+                 <div className="rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 p-6 min-h-[300px]">
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4">Live Rendered Output</p>
+                   <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
+                     <Latex>{editedText || 'Start writing to see preview...'}</Latex>
+                   </div>
+                 </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Cancel</Button>
-              <Button size="sm" onClick={handleSave} disabled={isSaving} className="rounded-full">
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
-            </div>
+                 <AIContentAssistant
+                   content={editedText}
+                   contentType="solution"
+                   onContentChange={setEditedText}
+                 />
+               </TabsContent>
+            </Tabs>
           </div>
         ) : (
           <div className="space-y-8">
             {solution.approach_description && (
               <div className={cn(
-                "p-5 rounded-2xl transition-all border shadow-sm",
+                "p-6 rounded-2xl transition-all border relative overflow-hidden group/approach",
                 isHighlighted 
-                  ? "bg-primary/[0.03] border-primary/10 ring-1 ring-primary/5" 
-                  : "bg-muted/30 border-transparent text-muted-foreground"
+                  ? "bg-primary/[0.04] border-primary/20 shadow-lg shadow-primary/5" 
+                  : "bg-accent/40 border-accent/20 text-foreground"
               )}>
-                <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-3 text-primary/70">
-                  Approach Strategy
+                <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-primary/80">
+                  <Sparkles className="h-3 w-3" />
+                  Core Strategy \u0026 Approach
                 </div>
-                <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed font-medium">
+                <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed font-semibold italic opacity-90">
                   <Latex>{solution.approach_description}</Latex>
                 </div>
               </div>
