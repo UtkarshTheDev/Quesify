@@ -19,6 +19,7 @@ import {
     Clock,
     ExternalLink,
     CheckCircle2,
+    RefreshCw,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AIContentAssistant } from "@/components/ai/content-assistant";
@@ -284,8 +285,25 @@ export function PreviewCard({
                                     }
                                 />
                             ) : (
-                                <div className="p-4 sm:p-5 rounded-2xl bg-primary/[0.02] ring-1 ring-white/5 shadow-inner text-sm sm:text-base lg:text-lg leading-relaxed">
-                                    <Latex>{displayData.question_text}</Latex>
+                                <div className="space-y-3">
+                                    <div className="p-4 sm:p-5 rounded-2xl bg-primary/[0.02] ring-1 ring-white/5 shadow-inner text-sm sm:text-base lg:text-lg leading-relaxed">
+                                        <Latex>{displayData.question_text}</Latex>
+                                    </div>
+                                    <div className="flex items-center justify-between px-2">
+                                      <p className="text-[10px] text-muted-foreground/60 font-medium flex items-center gap-1.5">
+                                        <AlertTriangle className="h-3 w-3 opacity-70" />
+                                        Check for OCR errors
+                                      </p>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={onRetryExtract}
+                                        className="h-6 text-[10px] text-muted-foreground hover:text-primary hover:bg-primary/5 px-2"
+                                      >
+                                        <RefreshCw className="h-3 w-3 mr-1.5" />
+                                        Regenerate
+                                      </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>
