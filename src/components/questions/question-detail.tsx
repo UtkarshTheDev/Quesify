@@ -58,6 +58,8 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
     loadMoreSolutions,
     isEditingHint,
     setIsEditingHint,
+    isEditingTags,
+    setIsEditingTags,
     isShared,
   } = useQuestionDetail({ question, userId })
 
@@ -133,6 +135,8 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
             isMarkingSolved={isMarkingSolved}
             handleSave={(section) => handleSave(section as 'tags')}
             handleMarkSolved={handleMarkSolved}
+            isEditingTags={isEditingTags}
+            setIsEditingTags={setIsEditingTags}
           />
         </div>
       </div>

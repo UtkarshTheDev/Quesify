@@ -21,6 +21,8 @@ interface QuestionSidebarProps {
   isMarkingSolved: boolean
   handleSave: (section: 'tags') => void
   handleMarkSolved: () => void
+  isEditingTags: boolean
+  setIsEditingTags: (editing: boolean) => void
 }
 
 export function QuestionSidebar({
@@ -33,9 +35,10 @@ export function QuestionSidebar({
   isMarkingSolved,
   handleSave,
   handleMarkSolved,
+  isEditingTags,
+  setIsEditingTags,
 }: QuestionSidebarProps) {
   const router = useRouter()
-  const [isEditingTags, setIsEditingTags] = useState(false)
 
   return (
     <div className="space-y-6">
