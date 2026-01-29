@@ -37,19 +37,25 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null)
   const [moreSolutions, setMoreSolutions] = useState<Solution[]>([])
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [isShared, setIsShared] = useState(false)
   const [sharingStats, setSharingStats] = useState<{ count: number } | null>(null)
 
   useEffect(() => {
     const checkSharing = async () => {
-      if (!userId || question.owner_id !== userId) return
+      if (!userId) return
       
-      const { count } = await fetch(`/api/questions/${question.id}/sharing-stats`).then(res => res.json()).catch(() => ({ count: 0 }))
-      setIsShared(count > 0)
+      try {
+        const response = await fetch(`/api/questions/${question.id}/sharing-stats-detailed`)
+        if (!response.ok) return
+        
+        const data = await response.json()
+        setSharingStats(data)
+      } catch (error) {
+        console.error('Failed to fetch sharing stats:', error)
+      }
     }
     
     checkSharing()
-  }, [question.id, question.owner_id, userId])
+  }, [question.id, userId])
 
   const loadMoreSolutions = useCallback(async () => {
     setIsLoadingMore(true)
@@ -223,7 +229,7 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
   }
 
   const fetchSharingStats = useCallback(async () => {
-    if (!userId || question.owner_id !== userId) return { count: 0 }
+    if (!userId) return { count: 0 }
 
     try {
       const response = await fetch(`/api/questions/${question.id}/sharing-stats-detailed`)
@@ -236,7 +242,7 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
       console.error('Failed to fetch sharing stats:', error)
       return { count: 0 }
     }
-  }, [question.id, question.owner_id, userId])
+  }, [question.id, userId])
 
   return {
     router,
@@ -270,7 +276,6 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     moreSolutions,
     isLoadingMore,
     loadMoreSolutions,
-    isShared,
     stats: (question.user_question_stats?.[0] || null) as UserQuestionStats | null,
   }
 }

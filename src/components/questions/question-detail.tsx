@@ -59,9 +59,9 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
     isEditingHint,
     setIsEditingHint,
     isEditingTags,
-    setIsEditingTags,
-    isShared,
-  } = useQuestionDetail({ question, userId })
+      setIsEditingTags,
+    } = useQuestionDetail({ question, userId })
+
 
   const bestSolution = question.solutions[0] || null
   const currentSolution = selectedSolutionId 
@@ -87,7 +87,6 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
         onOpenChange={setShowDeleteDialog}
         onDelete={handleDelete}
         isDeleting={isDeleting}
-        isShared={isShared}
         usageCount={sharingStats?.count ?? null}
       />
 
