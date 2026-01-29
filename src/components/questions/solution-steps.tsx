@@ -62,7 +62,7 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
 
                             {/* Content */}
                             <div className="pt-0 min-w-0">
-                                <div className="prose dark:prose-invert max-w-none text-base leading-loose whitespace-pre-wrap">
+                                <div className="prose dark:prose-invert max-w-none text-base leading-loose whitespace-pre-wrap font-charter">
                                     <Latex>{stepContent.trim()}</Latex>
                                 </div>
                             </div>
