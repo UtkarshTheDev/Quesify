@@ -111,11 +111,18 @@ export function PreviewCard({
         }
     };
 
+    const solutionRef = useRef<HTMLDivElement>(null);
+
     const handleAITweak = (
         tweakedContent: string,
         syncedApproach?: string,
         approachChanged?: boolean,
     ) => {
+        // Auto-scroll to solution area on mobile when generation starts
+        if (window.innerWidth < 768 && solutionRef.current) {
+            solutionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        
         setLocalEdits((prev) => ({
             ...prev,
             solution: tweakedContent,
@@ -369,7 +376,7 @@ export function PreviewCard({
                 </Card>
 
                 {/* Detailed Solution Card (Directly below Question, matching width) */}
-                <Card className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0">
+                <Card ref={solutionRef} className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0">
                     <CardHeader className="bg-muted/20 border-b border-border/40 p-4 sm:p-6">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2.5">

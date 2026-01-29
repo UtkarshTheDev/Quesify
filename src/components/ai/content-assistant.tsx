@@ -52,25 +52,23 @@ export function AIContentAssistant({
     const streamText = async (
         fullText: string,
         syncedApproach?: string | null,
-        approachChanged?: boolean
+        approachChanged?: boolean,
     ) => {
         setIsStreaming(true);
         let currentText = "";
-        let index = 0;
 
-        // Smooth, readable streaming: 15ms delay, 2 chars per frame
-        // This creates a high-quality "typing" feel rather than a "dump"
-        const speed = 15;
-        const charsPerFrame = 2;
+        // Split by sentences or paragraphs for a more "human-like" chunked rendering
+        // We look for patterns like ". " or "\n\n" but keep it simple with a regex split
+        const chunks = fullText.split(/((?<=\.)\s+|\n\n)/g).filter(Boolean);
+        let chunkIndex = 0;
 
         return new Promise<void>((resolve) => {
             const interval = setInterval(() => {
-                currentText += fullText.slice(index, index + charsPerFrame);
-                onContentChange(currentText);
-
-                index += charsPerFrame;
-
-                if (index >= fullText.length) {
+                if (chunkIndex < chunks.length) {
+                    currentText += chunks[chunkIndex];
+                    onContentChange(currentText);
+                    chunkIndex++;
+                } else {
                     clearInterval(interval);
                     setIsStreaming(false);
 
@@ -78,14 +76,14 @@ export function AIContentAssistant({
                         onComplexUpdate({
                             tweakedContent: fullText,
                             syncedApproach: syncedApproach || null,
-                            approachChanged: approachChanged || false
+                            approachChanged: approachChanged || false,
                         });
                     } else {
                         onContentChange(fullText);
                     }
                     resolve();
                 }
-            }, speed);
+            }, 360); // Increased delay for smoother, non-overlapping animations
         });
     };
 
@@ -109,7 +107,11 @@ export function AIContentAssistant({
             const data = await response.json();
 
             setIsLoading(false);
-            await streamText(data.tweakedContent, data.syncedApproach, data.approachChanged);
+            await streamText(
+                data.tweakedContent,
+                data.syncedApproach,
+                data.approachChanged,
+            );
 
             toast.success("Refined with AI");
             setCustomPrompt("");
@@ -148,67 +150,58 @@ export function AIContentAssistant({
 
     if (isLoading || isStreaming) {
         return (
-            <div
-                className={cn(
-                    "w-full py-4 flex items-center justify-center gap-3 bg-neutral-900/80 rounded-full border border-white/5 shadow-2xl backdrop-blur-md max-w-sm mx-auto my-4",
-                    className,
-                )}
-            >
-                <div className="relative flex h-2.5 w-2.5 items-center justify-center">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+            <div className="flex justify-center my-4">
+                <div
+                    className={cn(
+                        "inline-flex items-center gap-2.5 px-4 py-1.5 bg-neutral-900/90 rounded-full border border-white/10 shadow-lg backdrop-blur-md transition-all animate-in fade-in zoom-in-95 !pt-1.5",
+                        className,
+                    )}
+                >
+                    <div className="relative flex h-1.5 w-1.5 items-center justify-center">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                    </div>
+                    <span className="text-[11px] font-medium text-neutral-400 tracking-tight">
+                        {isStreaming ? "AI is writing..." : "AI is working..."}
+                    </span>
                 </div>
-                <span className="text-xs font-medium text-neutral-300 tracking-wide animate-pulse pt-0.5">
-                    {isStreaming
-                        ? "AI is writing..."
-                        : "AI is working on it..."}
-                </span>
             </div>
         );
     }
 
     return (
-        <div
-            className={cn(
-                "space-y-4 pt-5 sm:pt-4 border-t border-border/40",
-                className,
-            )}
-        >
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 ring-1 ring-orange-500/20">
-                        <Sparkles className="h-3.5 w-3.5" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs font-black text-foreground/80 tracking-widest uppercase">
+        <div className={cn("space-y-6 pt-6", className)}>
+            <div className="flex justify-center">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 shadow-[0_0_15px_-3px_rgba(249,115,22,0.1)]">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span className="text-[10px] font-black tracking-widest uppercase">
                         AI Copilot
                     </span>
                 </div>
             </div>
 
-            {/* Preset Action Chips */}
-            <div className="flex flex-wrap gap-2 sm:gap-3">
+            <div className="flex flex-wrap justify-center gap-2 px-4">
                 {presets.map((preset) => (
                     <button
                         key={preset.label}
                         onClick={() => handleTweak(preset.prompt)}
-                        className="group flex items-center gap-2 px-3.5 py-2 h-9 sm:h-9 sm:px-3 sm:py-1.5 text-xs sm:text-[11px] font-bold bg-background border border-border/60 hover:border-orange-500/30 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 rounded-xl sm:rounded-lg transition-all active:scale-95 shadow-sm hover:shadow-orange-500/5 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400"
+                        className="group flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold bg-neutral-900/50 hover:bg-neutral-800 border border-white/5 hover:border-orange-500/20 rounded-lg transition-all active:scale-95 text-neutral-400 hover:text-orange-400"
                     >
-                        <preset.icon className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                        <preset.icon className="h-3 w-3 opacity-60 group-hover:opacity-100 transition-opacity" />
                         {preset.label}
                     </button>
                 ))}
             </div>
 
-            {/* Command Input */}
-            <div className="relative group pt-2">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-                <div className="relative flex flex-col bg-neutral-950 hover:bg-neutral-900 focus-within:bg-neutral-900 rounded-xl border border-white/10 hover:border-orange-500/30 focus-within:border-orange-500/50 transition-all duration-300 shadow-xl">
+            <div className="relative group px-1">
+                <div className="absolute -inset-0.5 bg-orange-500/15 rounded-2xl blur-md transition-all duration-700 group-hover:bg-orange-500/25 group-focus-within:bg-orange-500/30" />
+                <div className="relative flex flex-col bg-[#0a0a0a] rounded-xl border border-orange-500/30 group-hover:border-orange-500/50 group-focus-within:border-orange-500/60 shadow-[0_0_15px_-5px_rgba(249,115,22,0.2)] group-hover:shadow-[0_0_25px_-3px_rgba(249,115,22,0.3)] group-focus-within:shadow-[0_0_30px_-3px_rgba(249,115,22,0.4)] transition-all duration-500 min-h-[160px]">
                     <Textarea
                         ref={textareaRef}
                         value={customPrompt}
                         onChange={(e) => setCustomPrompt(e.target.value)}
-                        placeholder="Ask AI to rewrite, explain, or format... ✨"
-                        className="min-h-[60px] max-h-[120px] py-4 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-5 placeholder:text-neutral-500 text-neutral-100 resize-none overflow-y-auto"
+                        placeholder="Ask AI to rewrite, explain, or format..."
+                        className="flex-1 py-5 border-none bg-transparent shadow-none focus-visible:ring-0 text-sm px-6 placeholder:text-neutral-600 text-neutral-200 resize-none overflow-y-auto min-h-[100px] pb-16"
                         onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
                                 e.preventDefault();
@@ -217,26 +210,30 @@ export function AIContentAssistant({
                         }}
                     />
 
-                    <div className="flex items-center justify-end px-3 pb-3 mt-2">
+                    <div className="absolute bottom-4 right-4">
                         <Button
+                            size="lg"
                             className={cn(
-                                "h-9 px-5 font-bold text-xs rounded-lg transition-all duration-200 gap-2 shadow-lg",
+                                "h-11 px-6 rounded-xl font-bold text-sm gap-2.5 transition-all duration-300 shadow-xl active:scale-95",
                                 customPrompt
-                                    ? "bg-orange-600 text-white hover:bg-orange-500"
-                                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed hover:bg-neutral-800"
+                                    ? "bg-orange-600 text-white hover:bg-orange-500 shadow-orange-900/40 border border-orange-400/20"
+                                    : "bg-neutral-800 text-neutral-400 border border-white/10 opacity-100 hover:bg-neutral-700 shadow-lg shadow-black/20",
                             )}
                             onClick={() => handleTweak(customPrompt)}
                             disabled={!customPrompt}
                         >
-                            <span>Send Message</span>
-                            <SendHorizontal className="h-3.5 w-3.5" />
+                            <span className="tracking-tight">Send</span>
+                            <SendHorizontal className={cn(
+                                "h-4 w-4 transition-transform duration-300",
+                                customPrompt ? "translate-x-0.5 -translate-y-0.5" : "opacity-50"
+                            )} />
                         </Button>
                     </div>
                 </div>
 
-                <div className="flex justify-center mt-3">
-                    <p className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1.5">
-                        <AlertCircle className="h-3 w-3 opacity-70" />
+                <div className="flex justify-center mt-3 opacity-60">
+                    <p className="text-[9px] text-neutral-600 font-medium flex items-center gap-1.5">
+                        <AlertCircle className="h-2.5 w-2.5 opacity-50" />
                         AI can make mistakes. Please review the output.
                     </p>
                 </div>
