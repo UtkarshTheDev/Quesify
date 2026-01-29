@@ -30,7 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Solution } from "@/lib/types";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, stripBoxed } from "@/lib/utils";
 
 interface SolutionCardProps {
     solution: Solution & {
@@ -394,7 +394,7 @@ export function SolutionCard({
                                 <div className="bg-primary/5 ring-1 ring-primary/20 shadow-[0_4px_20px_rgba(var(--primary),0.1)] px-8 py-4 rounded-2xl transition-all hover:bg-primary/10 hover:shadow-[0_4px_25px_rgba(var(--primary),0.15)] group relative overflow-hidden">
                                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <div className="text-4xl font-bold text-foreground relative z-10">
-                                        <Latex>{`$${(solution.numerical_answer || "").replace(/\\boxed\{([\s\S]*?)\}/g, "$1").trim()}$`}</Latex>
+                                        <Latex>{`$${stripBoxed(solution.numerical_answer || "")}$`}</Latex>
                                     </div>
                                 </div>
                             </div>

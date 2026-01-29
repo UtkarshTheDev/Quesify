@@ -61,7 +61,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-2 space-y-3">
-          <div className="text-sm font-medium line-clamp-2 prose dark:prose-invert">
+          <div className="text-sm font-medium line-clamp-2 prose dark:prose-invert font-charter">
             <Latex>{question.question_text}</Latex>
           </div>
 

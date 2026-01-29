@@ -410,21 +410,21 @@ export function QuestionTabs({
                                             />
                                         </TabsContent>
 
-                                        <TabsContent
-                                            value="preview"
-                                            className="mt-0 focus-visible:outline-none space-y-6"
-                                        >
-                                            <div className="rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 p-6 min-h-[120px]">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4">
-                                                    Rendered Hint Preview
-                                                </p>
-                                                <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
-                                                    <Latex>
-                                                        {editForm.hint ||
-                                                            "Start writing to see preview..."}
-                                                    </Latex>
-                                                </div>
-                                            </div>
+                                         <TabsContent
+                                             value="preview"
+                                             className="mt-0 focus-visible:outline-none space-y-6"
+                                         >
+                                             <div className="rounded-2xl border-2 border-dashed border-border/50 bg-muted/10 p-6 min-h-[120px]">
+                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4">
+                                                     Rendered Hint Preview
+                                                 </p>
+                                                 <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed font-charter">
+                                                     <Latex>
+                                                         {editForm.hint ||
+                                                             "Start writing to see preview..."}
+                                                     </Latex>
+                                                 </div>
+                                             </div>
 
                                             <AIContentAssistant
                                                 content={editForm.hint}
@@ -441,13 +441,13 @@ export function QuestionTabs({
                                 </div>
                             ) : (
                                 <div className="flex gap-4">
-                                    <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center border border-yellow-500/20">
-                                        <HelpCircle className="h-5 w-5 text-yellow-500" />
-                                    </div>
-                                    <div className="prose dark:prose-invert flex-1 pt-1 font-medium leading-relaxed">
-                                        {question.hint ? (
-                                            <Latex>{question.hint}</Latex>
-                                        ) : (
+                                     <div className="h-10 w-10 rounded-full bg-yellow-500/10 flex-shrink-0 flex items-center justify-center border border-yellow-500/20">
+                                         <HelpCircle className="h-5 w-5 text-yellow-500" />
+                                     </div>
+                                     <div className="prose dark:prose-invert flex-1 pt-1 font-medium leading-relaxed font-charter">
+                                         {question.hint ? (
+                                             <Latex>{question.hint}</Latex>
+                                         ) : (
                                             <p className="text-muted-foreground italic text-sm">
                                                 No strategic hint provided for
                                                 this question.

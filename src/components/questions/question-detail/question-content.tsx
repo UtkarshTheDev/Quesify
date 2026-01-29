@@ -61,7 +61,7 @@ export function QuestionContent({ question, userId, setShowDeleteDialog, reveale
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="prose dark:prose-invert max-w-none">
+        <div className="prose dark:prose-invert max-w-none font-charter">
           <Latex>{question.question_text}</Latex>
         </div>
 
@@ -82,13 +82,13 @@ export function QuestionContent({ question, userId, setShowDeleteDialog, reveale
                     )}
                   >
                     <span className={cn(
-                      "font-mono",
+                      "font-mono text-sm",
                       isCorrect ? "text-green-500 font-bold" : "text-muted-foreground"
                     )}>
                       {String.fromCharCode(65 + idx)}.
                     </span>
                     <div className={cn(
-                      "flex-1",
+                      "flex-1 font-charter",
                       isCorrect ? "text-green-600 dark:text-green-400 font-medium" : ""
                     )}>
                       <Latex>{option}</Latex>
