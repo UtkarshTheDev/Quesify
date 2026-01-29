@@ -199,7 +199,7 @@ export const ai = {
       userInstruction,
     })
 
-    const response = await client.generateText(prompt, 'fast')
+    const response = await client.generateText(prompt, 'updates')
     return client.parseAiJson<{ tweakedContent: string; approachChanged: boolean; newApproach: string }>(response)
   },
 
@@ -212,8 +212,23 @@ export const ai = {
   ): Promise<{ approachChanged: boolean; newApproach: string }> {
     const client = getAIClient()
     const prompt = formatPrompt(PROMPTS.solutionChangeAnalysis, { oldSolution, newSolution })
-    const response = await client.generateText(prompt, 'fast')
+    const response = await client.generateText(prompt, 'updates')
     return client.parseAiJson<{ approachChanged: boolean; newApproach: string }>(response)
+  },
+
+  /**
+   * General User Q&A / Chat
+   */
+  async chat(message: string, history: Array<{ role: 'user' | 'assistant', content: string }> = []): Promise<string> {
+    const client = getAIClient()
+    // For now, we simple-format history into the prompt if needed, 
+    // but the underlying client.generateText just takes a string.
+    // In a real chat app, we might want to pass messages directly to Groq/Gemini.
+    const prompt = history.length > 0 
+      ? `History:\n${history.map(h => `${h.role}: ${h.content}`).join('\n')}\n\nUser: ${message}`
+      : message
+    
+    return client.generateText(prompt, 'qa')
   },
 
   /**

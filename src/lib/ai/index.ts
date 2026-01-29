@@ -8,4 +8,4 @@ export { getAIClient } from './client'
 
 // Re-export types
 export type { AIService } from './services'
-export type { ModelType } from './config'
+export type { ModelType, AIProvider, ModelConfig } from './config'
