@@ -40,17 +40,24 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
   }, [messages])
 
   useEffect(() => {
-    const navbar = document.querySelector('header')
+    const mobileNavs = document.querySelectorAll('nav.fixed.bottom-0, .mobile-nav, [role="navigation"].fixed.bottom-0, header.fixed.top-0');
+    
     if (isFullScreen) {
       document.body.style.overflow = 'hidden'
-      if (navbar) navbar.style.display = 'none'
+      mobileNavs.forEach(nav => {
+        (nav as HTMLElement).style.display = 'none';
+      });
     } else {
       document.body.style.overflow = ''
-      if (navbar) navbar.style.display = ''
+      mobileNavs.forEach(nav => {
+        (nav as HTMLElement).style.display = '';
+      });
     }
     return () => {
       document.body.style.overflow = ''
-      if (navbar) navbar.style.display = ''
+      mobileNavs.forEach(nav => {
+        (nav as HTMLElement).style.display = '';
+      });
     }
   }, [isFullScreen])
 
@@ -116,7 +123,7 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
 
   return (
     <div className={cn(
-      "flex flex-col bg-background/95 backdrop-blur-sm border border-border/50 overflow-hidden transition-all duration-300",
+      "flex flex-col bg-background/95 backdrop-blur-sm border border-border/50 overflow-hidden transition-all duration-500 ease-in-out",
       isFullScreen 
         ? "fixed inset-0 z-50 rounded-none h-full w-full" 
         : "h-[600px] md:h-[600px] h-[calc(100vh-280px)] min-h-[400px] rounded-xl bg-muted/5"
