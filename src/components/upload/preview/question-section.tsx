@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,6 +20,7 @@ interface QuestionSectionProps {
         extractError: string | null;
     };
     onRetryExtract?: () => void;
+    delay?: number;
 }
 
 export function QuestionSection({
@@ -32,11 +31,12 @@ export function QuestionSection({
     setLocalEdits,
     status,
     onRetryExtract,
+    delay = 0,
 }: QuestionSectionProps) {
     const isLoaded = !!displayData.question_text && !status.extracting;
 
     return (
-        <SectionFade isLoaded={isLoaded}>
+        <SectionFade isLoaded={isLoaded} delay={delay}>
             <Card className="overflow-hidden border-none shadow-xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 pb-4 sm:pb-6 gap-0 py-0">
                 <CardHeader className="flex flex-row items-center justify-between bg-muted/20 py-3 sm:py-4 px-4 sm:px-6">
                     <div className="space-y-0.5">

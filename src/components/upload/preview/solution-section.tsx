@@ -28,6 +28,7 @@ interface SolutionSectionProps {
     handleVerifyManualChanges: () => Promise<void>;
     onRetrySolve?: () => void;
     solutionRef: React.RefObject<HTMLDivElement | null>;
+    delay?: number;
 }
 
 export function SolutionSection({
@@ -42,11 +43,12 @@ export function SolutionSection({
     handleVerifyManualChanges,
     onRetrySolve,
     solutionRef,
+    delay = 0,
 }: SolutionSectionProps) {
     const isLoaded = !!displayData.solution && !status.solving;
 
     return (
-        <SectionFade isLoaded={isLoaded} delay={0.15}>
+        <SectionFade isLoaded={isLoaded} delay={delay}>
             <Card
                 ref={solutionRef}
                 className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0"

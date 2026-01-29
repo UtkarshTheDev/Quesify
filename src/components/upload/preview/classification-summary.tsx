@@ -23,6 +23,7 @@ interface ClassificationSummaryProps {
     difficultyColors: Record<string, string>;
     onRetryClassify?: () => void;
     formatTime: (seconds?: number) => string;
+    delay?: number;
 }
 
 export function ClassificationSummary({
@@ -31,11 +32,12 @@ export function ClassificationSummary({
     difficultyColors,
     onRetryClassify,
     formatTime,
+    delay = 0,
 }: ClassificationSummaryProps) {
     const isLoaded = data.subject !== "Pending..." && !status.classifying;
 
     return (
-        <SectionFade isLoaded={isLoaded} delay={0.3}>
+        <SectionFade isLoaded={isLoaded} delay={delay}>
             <Card className="border-none shadow-lg bg-card/40 backdrop-blur-sm ring-1 ring-white/5">
                 <CardHeader className="pb-3 border-b border-border/40 flex flex-row items-center justify-between">
                     <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">

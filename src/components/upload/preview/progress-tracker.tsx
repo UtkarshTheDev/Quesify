@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Loader2, Check, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Check, AlertTriangle, Copy } from "lucide-react";
+import { SectionFade } from "./section-fade";
+import type { DuplicateCheckResult } from "@/lib/types";
 
 interface ProgressLinkProps {
     label: string;
@@ -56,6 +59,10 @@ interface ProgressTrackerProps {
     onRetryExtract?: () => void;
     onRetrySolve?: () => void;
     onRetryClassify?: () => void;
+    delay?: number;
+    handleSave: () => void;
+    isSaving: boolean;
+    duplicateCheck?: DuplicateCheckResult | null;
 }
 
 export function ProgressTracker({
@@ -64,76 +71,134 @@ export function ProgressTracker({
     onRetryExtract,
     onRetrySolve,
     onRetryClassify,
+    delay = 0,
+    handleSave,
+    isSaving,
+    duplicateCheck,
 }: ProgressTrackerProps) {
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <Label className="uppercase tracking-widest text-[10px] font-bold text-primary/70">
-                    AI Progress Tracker
-                </Label>
-                {status.finalizing ||
-                status.solving ||
-                status.classifying ? (
-                    <Badge
-                        variant="secondary"
-                        className="animate-pulse bg-primary/20 text-primary border-none text-[10px]"
-                    >
-                        Processing
-                    </Badge>
-                ) : status.solveError ||
-                  status.classifyError ||
-                  status.extractError ? (
-                    <Badge
-                        variant="destructive"
-                        className="bg-destructive/20 text-destructive border-none text-[10px]"
-                    >
-                        Attention Required
-                    </Badge>
-                ) : (
-                    <Badge
-                        variant="secondary"
-                        className="bg-green-500/20 text-green-500 border-none text-[10px]"
-                    >
-                        Ready
-                    </Badge>
-                )}
-            </div>
+        <SectionFade isLoaded={true} delay={delay}>
+            <Card className="border-none bg-primary/5 ring-1 ring-primary/20 shadow-lg">
+                <CardContent className="p-6 py-0 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Label className="uppercase tracking-widest text-[10px] font-bold text-primary/70">
+                            AI Progress Tracker
+                        </Label>
+                        {status.finalizing ||
+                        status.solving ||
+                        status.classifying ? (
+                            <Badge
+                                variant="secondary"
+                                className="animate-pulse bg-primary/20 text-primary border-none text-[10px]"
+                            >
+                                Processing
+                            </Badge>
+                        ) : status.solveError ||
+                        status.classifyError ||
+                        status.extractError ? (
+                            <Badge
+                                variant="destructive"
+                                className="bg-destructive/20 text-destructive border-none text-[10px]"
+                            >
+                                Attention Required
+                            </Badge>
+                        ) : (
+                            <Badge
+                                variant="secondary"
+                                className="bg-green-500/20 text-green-500 border-none text-[10px]"
+                            >
+                                Ready
+                            </Badge>
+                        )}
+                    </div>
 
-            <div className="grid grid-cols-1 gap-2.5">
-                <ProgressLink
-                    label="Reading Question Text"
-                    isLoading={status.extracting}
-                    error={status.extractError}
-                    done={
-                        !status.extracting &&
-                        !status.extractError &&
-                        !!data.question_text
-                    }
-                    onRetry={onRetryExtract}
-                />
-                <ProgressLink
-                    label="Thinking through Solution"
-                    isLoading={status.solving}
-                    error={status.solveError}
-                    done={
-                        !status.solving &&
-                        !status.solveError &&
-                        !!data.solution
-                    }
-                    onRetry={onRetrySolve}
-                />
-                <ProgressLink
-                    label="Organizing by Subject"
-                    isLoading={status.classifying}
-                    error={status.classifyError}
-                    done={
-                        !status.classifying &&
-                        !status.classifyError &&
-                        data.subject !== "Pending..."
-                    }
-                    onRetry={onRetryClassify}
-                />
-            </div>
-        </div>
+                    <div className="grid grid-cols-1 gap-2.5">
+                        <ProgressLink
+                            label="Reading Question Text"
+                            isLoading={status.extracting}
+                            error={status.extractError}
+                            done={
+                                !status.extracting &&
+                                !status.extractError &&
+                                !!data.question_text
+                            }
+                            onRetry={onRetryExtract}
+                        />
+                        <ProgressLink
+                            label="Thinking through Solution"
+                            isLoading={status.solving}
+                            error={status.solveError}
+                            done={
+                                !status.solving &&
+                                !status.solveError &&
+                                !!data.solution
+                            }
+                            onRetry={onRetrySolve}
+                        />
+                        <ProgressLink
+                            label="Organizing by Subject"
+                            isLoading={status.classifying}
+                            error={status.classifyError}
+                            done={
+                                !status.classifying &&
+                                !status.classifyError &&
+                                data.subject !== "Pending..."
+                            }
+                            onRetry={onRetryClassify}
+                        />
+                    </div>
+
+                    <Button
+                        className={`w-full h-12 rounded-xl text-sm font-bold shadow-lg mt-2 ring-1 ring-white/10 hover:scale-[1.02] active:scale-95 transition-all ${
+                            duplicateCheck?.is_duplicate
+                                ? "bg-green-600 hover:bg-green-500 text-white"
+                                : ""
+                        }`}
+                        onClick={handleSave}
+                        disabled={
+                            isSaving ||
+                            status.solving ||
+                            status.classifying ||
+                            status.extracting ||
+                            !!status.extractError
+                        }
+                    >
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />{" "}
+                                {duplicateCheck?.is_duplicate
+                                    ? duplicateCheck.match_type ===
+                                    "DIFFERENT_APPROACH"
+                                        ? "Contributing..."
+                                        : "Linking..."
+                                    : "Adding to Bank..."}
+                            </>
+                        ) : (
+                            <>
+                                {duplicateCheck?.is_duplicate ? (
+                                    duplicateCheck.match_type ===
+                                    "DIFFERENT_APPROACH" ? (
+                                        <>
+                                            <Copy className="h-4 w-4 mr-2" />{" "}
+                                            Add Your Approach & Link
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Copy className="h-4 w-4 mr-2" />{" "}
+                                            Link to Your Bank
+                                        </>
+                                    )
+                                ) : (
+                                    <>
+                                        <Check className="h-4 w-4 mr-2" />{" "}
+                                        Add to Question Bank
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </Button>
+                </CardContent>
+            </Card>
+        </SectionFade>
     );
 }
