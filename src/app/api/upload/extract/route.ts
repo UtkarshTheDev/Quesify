@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
                 typeof opt === 'object' ? Object.values(opt)[0] : String(opt)
             ),
             // Ensure specific fields have defaults
+            isMCQ: rawExtraction.isMCQ ?? (rawExtraction.options && rawExtraction.options.length > 0),
             subject: rawExtraction.subject || 'Uncategorized',
             chapter: 'Pending...', // Will be filled in Classify phase
             topics: [],
