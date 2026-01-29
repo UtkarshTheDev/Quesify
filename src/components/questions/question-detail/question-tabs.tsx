@@ -120,10 +120,10 @@ export function QuestionTabs({
                         </TabsTrigger>
                         <TabsTrigger
                             value="chat"
-                            className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                            className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/10 data-[state=active]:to-orange-600/10 data-[state=active]:text-orange-600 data-[state=active]:border-orange-200/50 data-[state=active]:shadow-sm border border-transparent"
                         >
-                            <MessageSquare className="h-4 w-4" />
-                            AI Chat
+                            <Sparkles className="h-4 w-4" />
+                            Ask with AI
                         </TabsTrigger>
                     </TabsList>
                 </div>
