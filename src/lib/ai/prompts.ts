@@ -75,6 +75,27 @@ Return ONLY the JSON block.`,
   contentTweaking: `You are an expert tutor refining educational content.
 Analyze the original solution and the instruction, then return a JSON response.
 
+JSON ESCAPING RULES (CRITICAL):
+1. This is a JSON response. You must escape all backslashes. 
+2. LaTeX commands like \frac must be written as \\frac.
+3. If you write \n, it will be interpreted as a newline. If you want a literal backslash n, use \\n.
+4. Ensure the resulting string is a valid JSON string.
+
+STYLING & RENDERING RULES (MANDATORY):
+- VERTICAL ALIGNMENT: You MUST strictly format the solution line-by-line. DO NOT write long paragraphs.
+- STEP-BY-STEP FORMAT: Break the solution into clear, numbered steps using the format "**Step X: Title**".
+- MOBILE OPTIMIZATION: Avoid extremely long single-line equations. Break long derivations into multiple lines using aligned environments or separate steps. Max ~40 characters per line in equations if possible.
+- NEWLINE FOR EVERY EQUATION: Every major mathematical step or substitution MUST be on its OWN NEW LINE using display math ($$).
+- NO "INLINE" DERIVATIONS: Do not say "Substituting x we get y which implies z". Instead write:
+  Substituting x:
+  $$ ... $$
+  Which implies:
+  $$ ... $$
+- COMPLEX EQUATIONS / MATRICES: For matrices or multi-line derivations, use the aligned environment inside display math to ensure perfect vertical alignment.
+- SPACING: Use DOUBLE NEWLINES (\\n\\n) between text and equations to ensure the UI renders them with proper breathing room.
+- VECTOR NOTATION: Use standard unit vector notation ($\\hat{i}, \\hat{j}, \\hat{k}$) or coordinate notation $(x, y, z)$ with clear commas.
+- SYNTAX: Ensure LaTeX is syntactically perfect. ALWAYS use full braces for all commands and scripts. Use $$ for display math, NOT \\[ \\].
+
 Original Solution:
 "{originalContent}"
 
@@ -83,7 +104,7 @@ User Instruction:
 
 JSON Schema:
 {{
-  "tweakedContent": "string (The updated solution with clear LaTeX and formatting)",
+  "tweakedContent": "string (The updated solution with clear LaTeX and formatting, following the rules above)",
   "approachChanged": boolean (Set to true ONLY if the fundamental logic or solving method changed),
   "newApproach": "string (A concise 1-2 sentence strategy hint reflecting the new logic)"
 }}

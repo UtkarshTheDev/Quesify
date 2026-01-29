@@ -65,9 +65,12 @@ export function AIContentAssistant({
         return new Promise<void>((resolve) => {
             const interval = setInterval(() => {
                 if (chunkIndex < chunks.length) {
-                    currentText += chunks[chunkIndex];
+                    const batchSize = 8;
+                    for (let i = 0; i < batchSize && chunkIndex < chunks.length; i++) {
+                        currentText += chunks[chunkIndex];
+                        chunkIndex++;
+                    }
                     onContentChange(currentText);
-                    chunkIndex++;
                 } else {
                     clearInterval(interval);
                     setIsStreaming(false);
@@ -83,7 +86,7 @@ export function AIContentAssistant({
                     }
                     resolve();
                 }
-            }, 360); // Increased delay for smoother, non-overlapping animations
+            }, 5);
         });
     };
 

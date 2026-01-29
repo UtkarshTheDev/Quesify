@@ -33,7 +33,7 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
 
                     return (
                         <motion.div
-                            key={`${index}-${stepContent.length}`}
+                            key={index}
                             initial={{ opacity: 0, y: 2, filter: "blur(2px)" }}
                             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                             transition={{
