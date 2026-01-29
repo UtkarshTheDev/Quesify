@@ -1,18 +1,25 @@
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai'
+import { GoogleGenerativeAI, GenerativeModel, EmbedContentRequest } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 import { AI_CONFIG, ModelType } from './config'
 
-// Singleton AI client
 class AIClient {
   private static instance: AIClient
   private genAI: GoogleGenerativeAI
-  private models: Map<string, GenerativeModel> = new Map()
+  private groq: Groq
+  private geminiModels: Map<string, GenerativeModel> = new Map()
 
   private constructor() {
-    const apiKey = process.env.GOOGLE_API_KEY
-    if (!apiKey) {
-      throw new Error('GOOGLE_API_KEY environment variable is not set')
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) {
+      throw new Error('GEMINI_API_KEY environment variable is not set')
     }
-    this.genAI = new GoogleGenerativeAI(apiKey)
+    this.genAI = new GoogleGenerativeAI(geminiKey)
+
+    const groqKey = process.env.GROQ_API_KEY
+    if (!groqKey) {
+      throw new Error('GROQ_API_KEY environment variable is not set')
+    }
+    this.groq = new Groq({ apiKey: groqKey })
   }
 
   static getInstance(): AIClient {
@@ -22,71 +29,104 @@ class AIClient {
     return AIClient.instance
   }
 
-  // Get a model instance (cached)
-  getModel(type: ModelType = 'fast'): GenerativeModel {
-    const modelName = AI_CONFIG.models[type]
-
-    if (!this.models.has(modelName)) {
-      this.models.set(modelName, this.genAI.getGenerativeModel({ model: modelName }))
+  private getGeminiModel(modelName: string): GenerativeModel {
+    if (!this.geminiModels.has(modelName)) {
+      this.geminiModels.set(modelName, this.genAI.getGenerativeModel({ model: modelName }))
     }
-
-    return this.models.get(modelName)!
+    return this.geminiModels.get(modelName)!
   }
 
-  // Generate text content
   async generateText(prompt: string, modelType: ModelType = 'fast'): Promise<string> {
+    const config = AI_CONFIG.models[modelType]
     const start = performance.now()
-    const model = this.getModel(modelType)
-    const result = await model.generateContent(prompt)
+    let text = ""
+
+    if (config.provider === 'gemini') {
+      const model = this.getGeminiModel(config.model)
+      const result = await model.generateContent(prompt)
+      text = result.response.text()
+    } else if (config.provider === 'groq') {
+      const completion = await this.groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: config.model,
+        temperature: AI_CONFIG.generation.temperature,
+      })
+      text = completion.choices[0]?.message?.content || ""
+    }
+
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
-      console.log(`[AI/Text] ${modelType} took ${duration.toFixed(2)}ms`)
+      console.log(`[AI/Text] ${modelType} (${config.provider}/${config.model}) took ${duration.toFixed(2)}ms`)
     }
-    return result.response.text()
+    return text
   }
 
-  // Generate content from image
   async generateFromImage(
     imageBase64: string,
     mimeType: string,
     prompt: string,
     modelType: ModelType = 'vision'
   ): Promise<string> {
+    const config = AI_CONFIG.models[modelType]
     const start = performance.now()
-    const model = this.getModel(modelType)
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType,
-          data: imageBase64,
+    let text = ""
+
+    if (config.provider === 'gemini') {
+      const model = this.getGeminiModel(config.model)
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType,
+            data: imageBase64,
+          },
         },
-      },
-      { text: prompt },
-    ])
+        { text: prompt },
+      ])
+      text = result.response.text()
+    } else if (config.provider === 'groq') {
+      const completion = await this.groq.chat.completions.create({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+        model: config.model,
+      })
+      text = completion.choices[0]?.message?.content || ""
+    }
+
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
-      console.log(`[AI/Vision] ${modelType} took ${duration.toFixed(2)}ms`)
+      console.log(`[AI/Vision] ${modelType} (${config.provider}/${config.model}) took ${duration.toFixed(2)}ms`)
     }
-    return result.response.text()
+    return text
   }
 
-  // Generate embeddings
   async generateEmbedding(text: string): Promise<number[]> {
+    const config = AI_CONFIG.models.embedding
     const start = performance.now()
-    const model = this.getModel('embedding')
     
-    // We try to use outputDimensionality for models that support it (like text-embedding-004)
-    // to match the 768 dimensions in the Supabase schema.
-    let result;
-    try {
-      result = await model.embedContent({
-        content: { role: 'user', parts: [{ text }] },
-        outputDimensionality: 768,
-      })
-    } catch (e) {
-      // Fallback for models that don't support the extended request object
-      result = await model.embedContent(text)
+    if (config.provider !== 'gemini') {
+      throw new Error('Only Gemini provider is supported for embeddings currently')
     }
+
+    const model = this.getGeminiModel(config.model)
+    
+    const request = {
+      content: { role: 'user', parts: [{ text }] },
+      outputDimensionality: 768,
+    } as unknown as EmbedContentRequest
+    
+    const result = await model.embedContent(request)
 
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
@@ -95,48 +135,23 @@ class AIClient {
     return result.embedding.values
   }
 
-  /**
-   * Universal JSON handler for AI responses.
-   * Extracts JSON from markdown blocks (```json ... ```) or raw strings.
-   * Includes a 3-tier repair layer for "lazy" JSON with unescaped backslashes and literal newlines.
-   */
   parseAiJson<T>(response: string): T {
     try {
-      // 1. Extract content from code blocks
       const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
       const rawText = jsonMatch ? jsonMatch[1] : response
       let cleaned = rawText.trim().replace(/^JSON:\s*/i, '')
 
-      // TIER 1: Standard Parse
       try {
         return JSON.parse(cleaned) as T
-      } catch (e) {
-        // Continue to Tier 2
-      }
+      } catch (e) {}
 
-      // TIER 2: SMART BACKSLASH REPAIR
-      // LLMs often forget to escape backslashes in JSON strings (e.g., writing \int instead of \\int)
-      // We escape every backslash, then REVERT the ones that were already correctly escaped 
-      // or are part of valid JSON escape sequences.
-      let repaired = cleaned
-        .replace(/\\/g, '\\\\') // Step 1: Double every backslash
-        // Step 2: Revert valid JSON escapes (", \, /, b, f, n, r, t, uXXXX)
-        // We look for \\ followed by the escape char or u + 4 digits
-        .replace(/\\\\(["\\\/bfnrt])/g, '\\$1')
-        .replace(/\\\\u([0-9a-fA-F]{4})/g, '\\u$1')
+      let repaired = cleaned.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\')
 
       try {
         return JSON.parse(repaired) as T
-      } catch (e) {
-        // Continue to Tier 3
-      }
+      } catch (e) {}
 
-      // TIER 3: AGGRESSIVE LITERAL CLEANUP
-      // Some models return literal newlines or tabs INSIDE strings, which is invalid JSON.
-      // We try to escape them IF they look like they are inside a JSON string.
-      // This is a last resort as it's regex-heavy.
-      let aggressiveRepaired = repaired
-        // Replace literal newlines/tabs ONLY inside "..." blocks
+      let aggressiveRepaired = (repaired || cleaned)
         .replace(/"([\s\S]*?)"/g, (match, p1) => {
           return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t')}"`
         })
@@ -144,7 +159,7 @@ class AIClient {
       try {
         return JSON.parse(aggressiveRepaired) as T
       } catch (error) {
-        console.error('Final Parse Failure. Repaired text:', aggressiveRepaired)
+        console.error('Final Parse Failure. Raw text:', cleaned)
         throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     } catch (error) {
@@ -154,8 +169,5 @@ class AIClient {
   }
 }
 
-// Export singleton instance getter
 export const getAIClient = () => AIClient.getInstance()
-
-// Export client class for type usage
 export { AIClient }
