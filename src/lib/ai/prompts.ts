@@ -20,7 +20,7 @@ JSON Schema:
   "reason": "string (only if invalid)",
   "question_text": "string (with LaTeX)",
   "options": ["string"],
-  "type": "MCQ | VSA | SA | LA | CASE_STUDY",
+  "isMCQ": boolean,
   "subject": "string (Must be from the list above or 'General')"
 }}
 
@@ -159,15 +159,51 @@ Return ONLY the JSON block.`,
 Analyze the question and return a structured JSON response.
 
 JSON ESCAPING RULES (CRITICAL):
-1. All backslashes for LaTeX MUST be double-escaped (e.g., use "\\\\int" instead of "\\int" and "\\\\pi" instead of "\\pi").
-2. Use "\\n" for newline within the solution text.
+1. This is a JSON response. You must escape all backslashes. 
+2. LaTeX commands like \frac must be written as \\frac.
+3. If you write \n, it will be interpreted as a newline. If you want a literal backslash n, use \\n.
+4. Ensure the resulting string is a valid JSON string.
 
 STYLING & RENDERING RULES (MANDATORY):
-- OPTION NUMBERING: In the "solution_text", always refer to options starting from 1 (e.g., **Option 1**, **Option 2**). Never use "Option 0".
-- RESULTS: Provide ONLY the raw mathematical result (or the most simplified form) within the "numerical_answer" field. NEVER use \\\\boxed{{}} anywhere. 
-- BOLD: Put major headings, step titles (e.g., **Step 1:**), and key properties in **bold**.
-- MATH: ALWAYS wrap ALL mathematical expressions, variables, formulas, and results in valid LaTeX delimiters ($ or $$).
-- SYNTAX: Ensure LaTeX is syntactically perfect. ALWAYS use full braces for all commands and scripts (e.g., \\\\frac{{a}}{{b}} NOT \\\\frac ab, and \\\\log_{{e}} NOT \\\\log_e).
+- VERTICAL ALIGNMENT: You MUST strictly format the solution line-by-line. DO NOT write long paragraphs.
+- STEP-BY-STEP FORMAT: Break the solution into clear, numbered steps.
+- MOBILE OPTIMIZATION: Avoid extremely long single-line equations. Break long derivations into multiple lines using aligned environments or separate steps. Max ~40 characters per line in equations if possible.
+- NEWLINE FOR EVERY EQUATION: Every major mathematical step or substitution MUST be on its OWN NEW LINE using display math ($$).
+- NO "INLINE" DERIVATIONS: Do not say "Substituting x we get y which implies z". Instead write:
+  Substituting x:
+  $$ ... $$
+  Which implies:
+  $$ ... $$
+- COMPLEX EQUATIONS / MATRICES: For matrices or multi-line derivations, use the aligned environment inside display math to ensure perfect vertical alignment.
+- SPACING: Use DOUBLE NEWLINES (\\n\\n) between text and equations to ensure the UI renders them with proper breathing room.
+ - VECTOR NOTATION: Use standard unit vector notation ($\\hat{i}, \\hat{j}, \\hat{k}$) or coordinate notation $(x, y, z)$ with clear commas. Avoid using column vectors unless specifically required for matrix operations. If using column vectors, ensure they are properly formatted with \`pmatrix\`.
+
+- SYNTAX: Ensure LaTeX is syntactically perfect. ALWAYS use full braces for all commands and scripts.
+
+EXAMPLE FORMAT:
+**Step 1: Setup the equation**
+We are given the following vectors:
+$$
+\\vec{a} = 2\\hat{i} + 3\\hat{j} - \\hat{k}
+$$
+$$
+\\vec{b} = (1, 4, 2)
+$$
+
+**Step 2: Calculate the cross product**
+Using the determinant method:
+$$
+\\vec{a} \\times \\vec{b} = \\begin{vmatrix} \\hat{i} & \\hat{j} & \\hat{k} \\\\ 2 & 3 & -1 \\\\ 1 & 4 & 2 \\end{vmatrix}
+$$
+$$
+= \\hat{i}(6 - (-4)) - \\hat{j}(4 - (-1)) + \\hat{k}(8 - 3)
+$$
+$$
+= 10\\hat{i} - 5\\hat{j} + 5\\hat{k}
+$$
+
+**Step 3: Conclusion**
+The resulting vector is perpendicular to both inputs.
 
 QUESTION TEXT:
 {questionText}

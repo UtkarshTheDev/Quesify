@@ -10,7 +10,7 @@ export interface ApiResponse<T> {
 export interface GeminiExtractionResult {
   question_text: string
   options: string[]
-  type: 'MCQ' | 'VSA' | 'SA' | 'LA' | 'CASE_STUDY'
+  isMCQ: boolean
   has_diagram: boolean
   has_solution: boolean
   solution: string
