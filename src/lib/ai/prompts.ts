@@ -233,6 +233,27 @@ SOLUTION:
 "{solutionText}"
 
 Return ONLY the concise hint text.`,
+
+  // AI Chat Assistant
+  chatAssistant: `You are an expert AI tutor helping a student with a specific question.
+  
+  CONTEXT:
+  Question: {questionText}
+  Subject: {subject}
+  Chapter: {chapter}
+  Solution: {solution}
+  
+  USER MESSAGE: "{userMessage}"
+  
+  INSTRUCTIONS:
+  1. Answer the user's question clearly and concisely.
+  2. Use LaTeX for ALL math equations (enclose in $$ for display math or $ for inline math).
+  3. If explaining the solution, break it down into simpler steps.
+  4. Be encouraging and supportive.
+  5. If the user asks for a hint, provide a subtle nudge without giving the full answer.
+  6. Keep responses brief (under 3-4 paragraphs) unless detailed derivation is asked.
+  
+  Return a clear, formatted response.`
 } as const
 
 // Helper to replace placeholders in prompts
