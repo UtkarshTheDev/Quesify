@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { question_text, type, subject, options } = await request.json()
+        const { question_text, isMCQ, subject, options } = await request.json()
 
         if (!question_text) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
@@ -20,14 +20,14 @@ export async function POST(request: NextRequest) {
 
         // Filter out placeholders
         const cleanSubject = subject === 'Extracting...' || subject === 'Pending...' ? 'General' : subject
-        const cleanType = type || 'SA'
+        const questionType = isMCQ ? 'MCQ' : 'Subjective'
         const cleanOptions = Array.isArray(options) ? options : []
 
         // Generate Solution
         const solStart = performance.now()
         const solutionResult = await ai.generateSolution(
             question_text,
-            cleanType,
+            questionType,
             cleanSubject,
             cleanOptions
         )

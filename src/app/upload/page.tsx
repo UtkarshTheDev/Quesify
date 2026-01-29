@@ -66,7 +66,7 @@ export default function UploadPage() {
       setAnalysisStatus(prev => ({ ...prev, extracting: false }))
 
       // Kick off background tasks automatically after extraction
-      runSolve(result.data.question_text, result.data.type, result.data.subject, result.data.options)
+      runSolve(result.data.question_text, result.data.isMCQ, result.data.subject, result.data.options)
       runClassify(result.data.question_text, result.data.subject)
     } catch (error) {
       setAnalysisStatus(prev => ({
@@ -79,14 +79,14 @@ export default function UploadPage() {
   }
 
   // Phase 2: Solving
-  const runSolve = async (text: string, type: string, subject: string, options: string[] = []) => {
+  const runSolve = async (text: string, isMCQ: boolean, subject: string, options: string[] = []) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, solving: true, solveError: null }))
     try {
       const res = await fetch('/api/upload/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text, type, subject, options })
+        body: JSON.stringify({ question_text: text, isMCQ, subject, options })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Solving failed')
@@ -262,7 +262,7 @@ export default function UploadPage() {
             subject: 'Pending...',
             chapter: 'Pending...',
             topics: [],
-            type: 'MCQ',
+            isMCQ: true,
             difficulty: 'medium',
             importance: 5,
             has_diagram: false,
@@ -275,7 +275,7 @@ export default function UploadPage() {
           isSaving={isSaving}
           onReFinalize={handleReFinalize}
           onRetryExtract={() => selectedFile && runExtract(selectedFile)}
-          onRetrySolve={() => extractedData && runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
+          onRetrySolve={() => extractedData && runSolve(extractedData.question_text, extractedData.isMCQ, extractedData.subject, extractedData.options)}
           onRetryClassify={() => extractedData && runClassify(extractedData.question_text, extractedData.subject)}
         />
       )}
