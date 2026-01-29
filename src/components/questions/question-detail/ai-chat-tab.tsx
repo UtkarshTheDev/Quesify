@@ -39,15 +39,18 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
     }
   }, [messages])
 
-  // Hide main document scroll when in full screen
   useEffect(() => {
+    const navbar = document.querySelector('header')
     if (isFullScreen) {
       document.body.style.overflow = 'hidden'
+      if (navbar) navbar.style.display = 'none'
     } else {
       document.body.style.overflow = ''
+      if (navbar) navbar.style.display = ''
     }
     return () => {
       document.body.style.overflow = ''
+      if (navbar) navbar.style.display = ''
     }
   }, [isFullScreen])
 
@@ -161,10 +164,10 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
               )}
             >
               <div className={cn(
-                "flex-1 rounded-2xl px-4 py-3 md:px-5 md:py-3 text-sm leading-relaxed shadow-sm w-full",
+                "flex-1 rounded-2xl px-4 py-3 md:px-5 md:py-3 text-sm leading-relaxed shadow-sm w-fit max-w-[90%] md:max-w-[85%]",
                 msg.role === 'assistant'
                   ? "bg-transparent text-foreground pl-0 shadow-none max-w-full"
-                  : "bg-orange-600 text-white rounded-tr-sm shadow-md shadow-orange-600/10 max-w-[90%] md:max-w-[85%] ml-auto"
+                  : "bg-orange-600 text-white rounded-tr-sm shadow-md shadow-orange-600/10 text-left"
               )}>
                 <div className={cn(
                   "prose prose-sm max-w-none font-charter",
@@ -190,8 +193,14 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-3 md:p-4 bg-background/80 backdrop-blur-md border-t sticky bottom-0 z-30 pb- safe-area-bottom">
-        <div className="max-w-3xl mx-auto relative mb-16 md:mb-0">
+      <div className={cn(
+        "p-3 md:p-4 bg-background/80 backdrop-blur-md border-t sticky bottom-0 z-30 pb-safe-area-bottom",
+        !isFullScreen && "mb-0"
+      )}>
+        <div className={cn(
+          "max-w-3xl mx-auto relative",
+          !isFullScreen && "mb-0 md:mb-0"
+        )}>
           <form 
             onSubmit={handleSubmit}
             className="relative flex items-end gap-2 bg-muted/50 hover:bg-muted/70 focus-within:bg-background p-1.5 rounded-[26px] border border-transparent focus-within:border-orange-500/20 focus-within:ring-4 focus-within:ring-orange-500/5 transition-all duration-300 shadow-sm"
