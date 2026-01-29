@@ -1,9 +1,11 @@
+"use client";
+
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/upload/preview/skeleton";
-import { SectionFade } from "@/components/upload/preview/section-fade";
+import { Skeleton } from "./skeleton";
+import { SectionFade } from "./section-fade";
 import { SolutionSteps } from "@/components/questions/solution-steps";
 import { Latex } from "@/components/ui/latex";
 import { AIContentAssistant } from "@/components/ai/content-assistant";
@@ -41,66 +43,74 @@ export function SolutionSection({
     onRetrySolve,
     solutionRef,
 }: SolutionSectionProps) {
+    const isLoaded = !!displayData.solution && !status.solving;
+
     return (
-        <Card
-            ref={solutionRef}
-            className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0"
-        >
-            <CardHeader className="bg-muted/20 border-b border-border/40 p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
-                        {status.solving ? (
-                            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-primary" />
-                        ) : (
-                            <div className="w-2 h-2 rounded-full bg-primary" />
+        <SectionFade isLoaded={isLoaded} delay={0.15}>
+            <Card
+                ref={solutionRef}
+                className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0"
+            >
+                <CardHeader className="bg-muted/20 border-b border-border/40 p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2.5">
+                            {status.solving ? (
+                                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-primary" />
+                            ) : (
+                                <div className="w-2 h-2 rounded-full bg-primary" />
+                            )}
+                            Step-by-Step Solution
+                        </CardTitle>
+                        {status.solveError && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 sm:h-8 text-[10px] sm:text-xs text-destructive hover:bg-destructive/10"
+                                onClick={onRetrySolve}
+                            >
+                                <AlertTriangle className="h-3 w-3 sm:h-3.5 mr-1 sm:mr-1.5" />
+                                Retry Solve
+                            </Button>
                         )}
-                        Step-by-Step Solution
-                    </CardTitle>
-                    {status.solveError && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 sm:h-8 text-[10px] sm:text-xs text-destructive hover:bg-destructive/10"
-                            onClick={onRetrySolve}
-                        >
-                            <AlertTriangle className="h-3 w-3 sm:h-3.5 mr-1 sm:mr-1.5" />
-                            Retry Solve
-                        </Button>
-                    )}
-                </div>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-5 lg:p-8">
-                {status.solveError ? (
-                    <div className="py-8 sm:py-12 text-center space-y-4 px-4">
-                        <div className="p-2.5 rounded-full bg-destructive/10 w-10 h-10 sm:w-12 sm:h-12 mx-auto flex items-center justify-center text-destructive">
-                            <AlertTriangle className="h-5 w-5 sm:h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs sm:text-sm font-bold text-destructive">
-                                Analysis Failed
-                            </p>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground px-4 sm:px-12 leading-relaxed font-medium">
-                                The AI was unable to generate a solution. This
-                                can happen with very low-quality images or
-                                ambiguous text.
-                            </p>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onRetrySolve}
-                            className="rounded-xl h-8 text-[10px] font-bold"
-                        >
-                            Regenerate Solution
-                        </Button>
                     </div>
-                ) : status.solving ? (
-                    <div className="space-y-5 sm:space-y-6">
-                        <Skeleton className="h-8 sm:h-10 w-3/4" />
-                        <Skeleton className="h-32 sm:h-40 w-full" />
-                    </div>
-                ) : (
-                    <SectionFade isLoaded={true}>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-5 lg:p-8">
+                    {status.solveError ? (
+                        <div className="py-8 sm:py-12 text-center space-y-4 px-4">
+                            <div className="p-2.5 rounded-full bg-destructive/10 w-10 h-10 sm:w-12 sm:h-12 mx-auto flex items-center justify-center text-destructive">
+                                <AlertTriangle className="h-5 w-5 sm:h-6" />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs sm:text-sm font-bold text-destructive">
+                                    Analysis Failed
+                                </p>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground px-4 sm:px-12 leading-relaxed font-medium">
+                                    The AI was unable to generate a solution. This
+                                    can happen with very low-quality images or
+                                    ambiguous text.
+                                </p>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={onRetrySolve}
+                                className="rounded-xl h-8 text-[10px] font-bold"
+                            >
+                                Regenerate Solution
+                            </Button>
+                        </div>
+                    ) : status.solving ? (
+                        <div className="space-y-5 sm:space-y-6">
+                            <Skeleton 
+                                className="h-8 w-3/4" 
+                                statusText="Thinking through logic..." 
+                            />
+                            <Skeleton 
+                                className="h-40 w-full" 
+                                statusText="Writing step-by-step guidance..." 
+                            />
+                        </div>
+                    ) : (
                         <Tabs
                             value={activeSolutionTab}
                             onValueChange={(v) => setActiveSolutionTab(v as any)}
@@ -209,7 +219,9 @@ export function SolutionSection({
                                 </div>
                             </TabsContent>
                         </Tabs>
-
+                    )}
+                    
+                    {!status.solveError && !status.solving && (
                         <AIContentAssistant
                             content={displayData.solution}
                             contentType="solution"
@@ -232,9 +244,9 @@ export function SolutionSection({
                             }}
                             className="border-t pt-6"
                         />
-                    </SectionFade>
-                )}
-            </CardContent>
-        </Card>
+                    )}
+                </CardContent>
+            </Card>
+        </SectionFade>
     );
 }

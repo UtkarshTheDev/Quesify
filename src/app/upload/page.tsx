@@ -250,16 +250,33 @@ export default function UploadPage() {
         onClear={handleClear}
       />
 
-      {extractedData && (
+      {(extractedData || isProcessing) && (
         <PreviewCard
-          data={extractedData}
+          data={extractedData || {
+            question_text: '',
+            options: [],
+            correct_option: 0,
+            solution: '',
+            hint: '',
+            numerical_answer: '',
+            subject: 'Pending...',
+            chapter: 'Pending...',
+            topics: [],
+            type: 'MCQ',
+            difficulty: 'medium',
+            importance: 5,
+            has_diagram: false,
+            has_solution: false,
+            image_url: '',
+            embedding: []
+          }}
           status={analysisStatus}
           onSave={handleSave}
           isSaving={isSaving}
           onReFinalize={handleReFinalize}
           onRetryExtract={() => selectedFile && runExtract(selectedFile)}
-          onRetrySolve={() => runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
-          onRetryClassify={() => runClassify(extractedData.question_text, extractedData.subject)}
+          onRetrySolve={() => extractedData && runSolve(extractedData.question_text, extractedData.type, extractedData.subject, extractedData.options)}
+          onRetryClassify={() => extractedData && runClassify(extractedData.question_text, extractedData.subject)}
         />
       )}
     </div>
