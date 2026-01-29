@@ -1,71 +1,54 @@
 'use client'
 
+import ReactMarkdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import 'katex/dist/katex.min.css'
-import { InlineMath, BlockMath } from 'react-katex'
+import { cn } from '@/lib/utils'
 
 interface LatexProps {
   children?: string | null
-  block?: boolean
+  className?: string
 }
 
-export function Latex({ children }: LatexProps) {
+export function Latex({ children, className }: LatexProps) {
   if (!children) return null
-  if (typeof children !== 'string') return <span>{String(children)}</span>
-
-  // Resolve literal \n strings into actual newline characters
-  const resolvedContent = children.replace(/\\n/g, '\n')
-
-  // Recursive renderer to handle nested bold/math
-  const renderLatex = (text: string): React.ReactNode[] => {
-    const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[^$]*?\$|\*\*[\s\S]*?\*\*|__[\s\S]*?__)/g)
-
-    return parts.map((part, index) => {
-      if (!part) return null
-
-      if (part.startsWith('$$') && part.endsWith('$$')) {
-        const math = part.slice(2, -2).trim()
-        return (
-          <div key={index} className="my-2 overflow-x-auto py-1">
-            <BlockMath math={math} />
-          </div>
-        )
-      }
-
-      if (part.startsWith('$') && part.endsWith('$')) {
-        const math = part.slice(1, -1).trim()
-        if (!math) return part
-        return (
-          <span key={index} className="inline-block px-1 py-0.5">
-            <InlineMath math={math} />
-          </span>
-        )
-      }
-
-      // Bold Text (Recursive)
-      if (
-        (part.startsWith('**') && part.endsWith('**')) ||
-        (part.startsWith('__') && part.endsWith('__'))
-      ) {
-        const innerText = part.slice(2, -2)
-        return (
-          <strong key={index} className="font-bold text-foreground">
-            {renderLatex(innerText)}
-          </strong>
-        )
-      }
-
-      // Plain Text
-      return <span key={index}>{part}</span>
-    })
-  }
+  const content = typeof children === 'string' ? children : String(children)
 
   return (
-    <span className="whitespace-pre-wrap font-charter">
-      {renderLatex(resolvedContent)}
-    </span>
+    <div className={cn(
+      "prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-ol:text-foreground",
+      "[&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-4 [&_.katex-display]:my-2",
+      className
+    )}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          code({ node, inline, className, children, ...props }: any) {
+            const match = /language-(\w+)/.exec(className || '');
+            return !inline ? (
+              <pre className="bg-slate-900/70 rounded-xl p-4 border border-slate-700 overflow-x-auto my-4">
+                <code className="text-sm font-mono text-slate-200">{children}</code>
+              </pre>
+            ) : (
+              <code className="bg-slate-900/50 px-1.5 py-0.5 rounded text-xs font-mono border border-slate-700 text-slate-200">{children}</code>
+            );
+          },
+          p: ({ children }) => <p className="mb-4 leading-relaxed last:mb-0">{children}</p>,
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-indigo-500 pl-6 italic bg-slate-900/50 py-4 my-6 rounded-r-xl">
+              {children}
+            </blockquote>
+          )
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   )
 }
 
-export function LatexBlock({ children }: { children?: string | null }) {
-  return <Latex block>{children}</Latex>
+export function LatexBlock({ children, className }: { children?: string | null, className?: string }) {
+  return <Latex className={className}>{children}</Latex>
 }

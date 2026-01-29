@@ -10,20 +10,22 @@ interface SolutionStepsProps {
 }
 
 export function SolutionSteps({ content, className }: SolutionStepsProps) {
-    // Normalize literal \n into actual newlines if AI sends them as strings
     const normalizedContent = content.replace(/\\n/g, "\n");
 
-    // Split content by double newlines or single newlines if they start with Step X
-    // We filter out empty strings
-    const rawSteps = normalizedContent
-        .split(/\n\s*\n/)
+    let rawSteps = normalizedContent
+        .split(/(?=\*\*Step\s+\d+)/i)
         .filter((step) => step.trim().length > 0);
+
+    if (rawSteps.length === 1 && /Step\s+[2-9]/i.test(normalizedContent)) {
+        rawSteps = normalizedContent
+            .split(/(?=\*\*?Step\s+\d+[:.]?)/i)
+            .filter((step) => step.trim().length > 0);
+    }
 
     return (
         <div className={cn("space-y-0", className)}>
             <AnimatePresence mode="popLayout">
                 {rawSteps.map((stepContent, index) => {
-                    // Check if the step starts with a bold header like "**Step 1:**" or "Step 1:"
                     const isExplicitStep =
                         /^(?:\*\*|__)?(?:Step|Part|Phase)\s+\d+(?:[:.]|\s)(?:\*\*|__)?/i.test(
                             stepContent.trim(),
@@ -38,20 +40,18 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
                                 duration: 0.2,
                                 ease: "easeOut",
                             }}
-                            className="relative pl-8 lg:pb-12 pb-4 last:pb-0 group"
+                            className="relative pl-10 lg:pl-12 pb-8 lg:pb-12 last:pb-0 group"
                         >
-                            {/* Connector Line */}
                             {index !== rawSteps.length - 1 && (
                                 <div
-                                    className="absolute left-[11px] top-8 bottom-0 w-px bg-border group-hover:bg-primary/20 transition-colors"
+                                    className="absolute left-[15px] top-10 bottom-0 w-px bg-border group-hover:bg-primary/20 transition-colors"
                                     aria-hidden="true"
                                 />
                             )}
 
-                            {/* Step Number/Bullet */}
                             <div
                                 className={cn(
-                                    "absolute left-0 top-[2px] h-6 w-6 rounded-full border flex items-center justify-center text-[10px] font-mono font-medium z-10 transition-colors shadow-sm",
+                                    "absolute left-0 top-[4px] h-8 w-8 rounded-full border-2 flex items-center justify-center text-[12px] font-mono font-black z-10 transition-colors shadow-md",
                                     isExplicitStep
                                         ? "bg-primary text-primary-foreground border-primary"
                                         : "bg-background text-muted-foreground border-border group-hover:border-primary/50",
@@ -60,11 +60,10 @@ export function SolutionSteps({ content, className }: SolutionStepsProps) {
                                 {index + 1}
                             </div>
 
-                            {/* Content */}
-                            <div className="pt-0 min-w-0">
-                                <div className="prose dark:prose-invert max-w-none text-base leading-loose whitespace-pre-wrap font-charter">
-                                    <Latex>{stepContent.trim()}</Latex>
-                                </div>
+                            <div className="pt-0.5 min-w-0">
+                                <Latex className="prose-xl sm:prose-2xl leading-relaxed whitespace-pre-wrap font-charter font-medium tracking-tight">
+                                    {stepContent.trim()}
+                                </Latex>
                             </div>
                         </motion.div>
                     );
