@@ -873,6 +873,22 @@ export function PreviewCard({
                                             )}
                                         </div>
                                     </div>
+
+                                    <div className="flex items-center justify-between px-2 pt-3 border-t border-border/40 mt-4">
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium flex items-center gap-2">
+                                            <AlertCircle className="h-3.5 w-3.5 opacity-70 text-orange-500" />
+                                            AI may be inaccurate with classifications.
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={onRetryClassify}
+                                            className="h-9 text-xs font-bold text-muted-foreground hover:text-orange-600 hover:bg-orange-500/5 px-4 rounded-xl border-border/40 hover:border-orange-500/50 transition-all gap-2"
+                                        >
+                                            <RefreshCw className="h-3.5 w-3.5" />
+                                            Regenerate
+                                        </Button>
+                                    </div>
                                 </div>
                             </SectionFade>
                         )}
