@@ -149,7 +149,7 @@ export function PreviewCard({
                     setLocalEdits={setLocalEdits}
                     status={status}
                     onRetryExtract={onRetryExtract}
-                    delay={1.0}
+                    delay={1.2}
                 />
 
                 <SolutionSection
@@ -164,7 +164,7 @@ export function PreviewCard({
                     handleVerifyManualChanges={handleVerifyManualChanges}
                     onRetrySolve={onRetrySolve}
                     solutionRef={solutionRef}
-                    delay={2.0}
+                    delay={2.4}
                 />
             </div>
 
@@ -182,7 +182,7 @@ export function PreviewCard({
                     onRetryExtract={onRetryExtract}
                     onRetrySolve={onRetrySolve}
                     onRetryClassify={onRetryClassify}
-                    delay={1.5}
+                    delay={1.8}
                     handleSave={handleSave}
                     isSaving={isSaving}
                     duplicateCheck={data.duplicate_check}
@@ -194,13 +194,13 @@ export function PreviewCard({
                     difficultyColors={difficultyColors}
                     onRetryClassify={onRetryClassify}
                     formatTime={formatTime}
-                    delay={2.5}
+                    delay={3.0}
                 />
 
                 <StrategyHint 
                     status={status} 
                     data={displayData} 
-                    delay={3.0}
+                    delay={3.6}
                 />
             </div>
         </div>
