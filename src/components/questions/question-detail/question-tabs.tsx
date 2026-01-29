@@ -23,6 +23,7 @@ import { AIContentAssistant } from "@/components/ai/content-assistant";
 import { RevealSolutionPlaceholder } from "@/components/questions/reveal-solution-placeholder";
 import { SolutionCardList } from "@/components/questions/solution-card-list";
 import { cn } from "@/lib/utils";
+import { AIChatTab } from "@/components/questions/question-detail/ai-chat-tab";
 
 interface QuestionTabsProps {
     question: Question & { solutions: Solution[] };
@@ -118,11 +119,11 @@ export function QuestionTabs({
                             Hint
                         </TabsTrigger>
                         <TabsTrigger
-                            value="notes"
+                            value="chat"
                             className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                         >
                             <MessageSquare className="h-4 w-4" />
-                            Notes
+                            AI Chat
                         </TabsTrigger>
                     </TabsList>
                 </div>
@@ -460,25 +461,8 @@ export function QuestionTabs({
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="notes" className="mt-6 outline-none">
-                    <Card className="border-dashed bg-muted/5">
-                        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                                <MessageSquare className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <p className="font-medium">Personal Notes</p>
-                            <p className="text-sm text-muted-foreground max-w-[250px]">
-                                Keep track of your thoughts, mistakes, and key
-                                takeaways for this question.
-                            </p>
-                            <Button
-                                variant="outline"
-                                className="mt-6 cursor-not-allowed opacity-50"
-                            >
-                                Coming Soon
-                            </Button>
-                        </CardContent>
-                    </Card>
+                <TabsContent value="chat" className="mt-6 outline-none">
+                    <AIChatTab question={question} userId={userId} />
                 </TabsContent>
             </Tabs>
         </div>
