@@ -17,26 +17,23 @@ export function Latex({ children }: LatexProps) {
 
   // Recursive renderer to handle nested bold/math
   const renderLatex = (text: string): React.ReactNode[] => {
-    // Split by LaTeX delimiters AND bold delimiters
-    // Order: Display Math > Inline Math > Bold
     const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[^$]*?\$|\*\*[\s\S]*?\*\*|__[\s\S]*?__)/g)
 
     return parts.map((part, index) => {
       if (!part) return null
 
-      // Display Math
       if (part.startsWith('$$') && part.endsWith('$$')) {
         const math = part.slice(2, -2).trim()
         return (
-          <div key={index} className="my-0 overflow-x-auto py-0">
+          <div key={index} className="my-2 overflow-x-auto py-1">
             <BlockMath math={math} />
           </div>
         )
       }
 
-      // Inline Math
       if (part.startsWith('$') && part.endsWith('$')) {
         const math = part.slice(1, -1).trim()
+        if (!math) return part
         return (
           <span key={index} className="inline-block px-1 py-0.5">
             <InlineMath math={math} />
@@ -63,7 +60,7 @@ export function Latex({ children }: LatexProps) {
   }
 
   return (
-    <span className="whitespace-pre-wrap">
+    <span className="whitespace-pre-wrap font-charter">
       {renderLatex(resolvedContent)}
     </span>
   )
