@@ -149,6 +149,7 @@ export function PreviewCard({
                     setLocalEdits={setLocalEdits}
                     status={status}
                     onRetryExtract={onRetryExtract}
+                    delay={1.0}
                 />
 
                 <SolutionSection
@@ -163,6 +164,7 @@ export function PreviewCard({
                     handleVerifyManualChanges={handleVerifyManualChanges}
                     onRetrySolve={onRetrySolve}
                     solutionRef={solutionRef}
+                    delay={2.0}
                 />
             </div>
 
@@ -174,67 +176,17 @@ export function PreviewCard({
                     />
                 )}
 
-                <Card className="border-none bg-primary/5 ring-1 ring-primary/20 shadow-lg">
-                    <CardContent className="p-6 py-0 space-y-4">
-                        <ProgressTracker
-                            status={status}
-                            data={displayData}
-                            onRetryExtract={onRetryExtract}
-                            onRetrySolve={onRetrySolve}
-                            onRetryClassify={onRetryClassify}
-                        />
-
-                        <Button
-                            className={`w-full h-12 rounded-xl text-sm font-bold shadow-lg mt-2 ring-1 ring-white/10 hover:scale-[1.02] active:scale-95 transition-all ${
-                                data.duplicate_check?.is_duplicate
-                                    ? "bg-green-600 hover:bg-green-500 text-white"
-                                    : ""
-                            }`}
-                            onClick={handleSave}
-                            disabled={
-                                isSaving ||
-                                status.solving ||
-                                status.classifying ||
-                                status.extracting ||
-                                !!status.extractError
-                            }
-                        >
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />{" "}
-                                    {data.duplicate_check?.is_duplicate
-                                        ? data.duplicate_check.match_type ===
-                                          "DIFFERENT_APPROACH"
-                                            ? "Contributing..."
-                                            : "Linking..."
-                                        : "Adding to Bank..."}
-                                </>
-                            ) : (
-                                <>
-                                    {data.duplicate_check?.is_duplicate ? (
-                                        data.duplicate_check.match_type ===
-                                        "DIFFERENT_APPROACH" ? (
-                                            <>
-                                                <Copy className="h-4 w-4 mr-2" />{" "}
-                                                Add Your Approach & Link
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy className="h-4 w-4 mr-2" />{" "}
-                                                Link to Your Bank
-                                            </>
-                                        )
-                                    ) : (
-                                        <>
-                                            <Check className="h-4 w-4 mr-2" />{" "}
-                                            Add to Question Bank
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </Button>
-                    </CardContent>
-                </Card>
+                <ProgressTracker
+                    status={status}
+                    data={displayData}
+                    onRetryExtract={onRetryExtract}
+                    onRetrySolve={onRetrySolve}
+                    onRetryClassify={onRetryClassify}
+                    delay={1.5}
+                    handleSave={handleSave}
+                    isSaving={isSaving}
+                    duplicateCheck={data.duplicate_check}
+                />
 
                 <ClassificationSummary
                     status={status}
@@ -242,9 +194,14 @@ export function PreviewCard({
                     difficultyColors={difficultyColors}
                     onRetryClassify={onRetryClassify}
                     formatTime={formatTime}
+                    delay={2.5}
                 />
 
-                <StrategyHint status={status} data={displayData} />
+                <StrategyHint 
+                    status={status} 
+                    data={displayData} 
+                    delay={3.0}
+                />
             </div>
         </div>
     );

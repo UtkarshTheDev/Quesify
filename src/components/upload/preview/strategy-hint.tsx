@@ -11,13 +11,14 @@ interface StrategyHintProps {
     data: {
         hint: string;
     };
+    delay?: number;
 }
 
-export function StrategyHint({ status, data }: StrategyHintProps) {
+export function StrategyHint({ status, data, delay = 0 }: StrategyHintProps) {
     const isLoaded = !!data.hint && !status.solving;
 
     return (
-        <SectionFade isLoaded={isLoaded} delay={0.45}>
+        <SectionFade isLoaded={isLoaded} delay={delay}>
             <Card className="border-none shadow-lg bg-yellow-500/[0.03] ring-1 ring-yellow-500/10">
                 <CardHeader className="pb-2 border-b border-yellow-500/10">
                     <Label className="uppercase tracking-widest text-[10px] font-bold text-yellow-600/70">
