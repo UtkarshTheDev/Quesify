@@ -139,19 +139,22 @@ class AIClient {
     try {
       const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
       const rawText = jsonMatch ? jsonMatch[1] : response
-      let cleaned = rawText.trim().replace(/^JSON:\s*/i, '')
+      const cleaned = rawText.trim().replace(/^JSON:\s*/i, '')
 
       try {
         return JSON.parse(cleaned) as T
       } catch (e) {}
 
-      let repaired = cleaned.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\')
+      const repaired = cleaned.replace(/(\\\\)|(\\)(?![n"\\/u])/g, (match, p1) => {
+        if (p1) return p1 
+        return "\\\\" 
+      })
 
       try {
         return JSON.parse(repaired) as T
       } catch (e) {}
 
-      let aggressiveRepaired = (repaired || cleaned)
+      const aggressiveRepaired = repaired
         .replace(/"([\s\S]*?)"/g, (match, p1) => {
           return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t')}"`
         })

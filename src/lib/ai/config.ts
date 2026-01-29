@@ -11,8 +11,8 @@ export const AI_CONFIG = {
     models: {
         // LaTeX extraction & image analysis
         vision: {
-            provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "gemini",
-            model: process.env.AI_MODEL_VISION || "gemini-2.5-flash",
+            provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "groq",
+            model: process.env.AI_MODEL_VISION || "meta-llama/llama-4-maverick-17b-128e-instruct",
         } as ModelConfig,
         
         // MCQ solutions & high-speed validation
@@ -36,7 +36,7 @@ export const AI_CONFIG = {
         // User Q&A / Chat
         qa: {
             provider: (process.env.AI_PROVIDER_QA as AIProvider) || "groq",
-            model: process.env.AI_MODEL_QA || "meta-llama/llama-4-scout-17b-16e-instruct",
+            model: process.env.AI_MODEL_QA || "llama-3.3-70b-versatile",
         } as ModelConfig,
 
         // Embedding model (currently only gemini supported)
