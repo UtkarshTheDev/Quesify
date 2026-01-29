@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react'
+import { Send, Sparkles, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Latex } from '@/components/ui/latex'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -31,6 +30,7 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
   ])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -38,6 +38,18 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  // Hide main document scroll when in full screen
+  useEffect(() => {
+    if (isFullScreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isFullScreen])
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -100,37 +112,64 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
   }
 
   return (
-    <div className="flex flex-col bg-muted/5 rounded-xl border border-border/50 overflow-hidden h-[600px] md:h-[600px] h-[calc(100vh-280px)] min-h-[400px]">
+    <div className={cn(
+      "flex flex-col bg-background/95 backdrop-blur-sm border border-border/50 overflow-hidden transition-all duration-300",
+      isFullScreen 
+        ? "fixed inset-0 z-50 rounded-none h-full w-full" 
+        : "h-[600px] md:h-[600px] h-[calc(100vh-280px)] min-h-[400px] rounded-xl bg-muted/5"
+    )}>
+      {/* Header (Visible only in full screen usually, but useful for toggle) */}
+      <div className={cn(
+        "flex items-center justify-between px-4 py-3 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-20",
+        !isFullScreen && "hidden md:flex" 
+      )}>
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-orange-600" />
+          <span className="text-sm font-semibold text-foreground/80">AI Study Assistant</span>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-8 w-8 p-0 rounded-full hover:bg-muted"
+          onClick={() => setIsFullScreen(!isFullScreen)}
+        >
+          {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Floating Toggle for Mobile (when not full screen) */}
+      {!isFullScreen && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full hover:bg-muted md:hidden z-20"
+          onClick={() => setIsFullScreen(true)}
+        >
+          <Maximize2 className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      )}
+
       {/* Chat Area */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-6 max-w-3xl mx-auto pb-4">
+        <div className="space-y-8 max-w-3xl mx-auto pb-4">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={cn(
-                "flex gap-3 md:gap-4",
-                msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                "flex flex-col gap-1 max-w-[90%] md:max-w-[85%]",
+                msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
               )}
             >
               <div className={cn(
-                "h-8 w-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm",
-                msg.role === 'assistant' 
-                  ? "bg-gradient-to-br from-orange-500 to-orange-600 border-orange-400/20 text-white shadow-orange-500/20" 
-                  : "bg-muted border-border text-muted-foreground"
-              )}>
-                {msg.role === 'assistant' ? <Sparkles className="h-4 w-4" /> : <User className="h-4 w-4" />}
-              </div>
-              
-              <div className={cn(
-                "flex-1 max-w-[85%] md:max-w-[80%] rounded-2xl px-4 py-3 md:px-5 md:py-3 text-sm leading-relaxed shadow-sm",
+                "px-5 py-3 text-sm leading-relaxed shadow-sm break-words",
                 msg.role === 'assistant'
-                  ? "bg-card border border-border/50 text-foreground rounded-tl-none shadow-sm"
-                  : "bg-orange-600 text-white rounded-tr-none shadow-md shadow-orange-600/10"
+                  ? "bg-transparent text-foreground pl-0 shadow-none"
+                  : "bg-orange-600 text-white rounded-2xl rounded-tr-sm shadow-md shadow-orange-600/10"
               )}>
                 <div className={cn(
-                  "prose prose-sm max-w-none break-words font-charter",
+                  "prose prose-sm max-w-none font-charter",
                   msg.role === 'assistant' 
-                    ? "dark:prose-invert prose-headings:text-orange-900 dark:prose-headings:text-orange-100 prose-a:text-orange-600" 
+                    ? "dark:prose-invert prose-headings:text-foreground prose-a:text-orange-600 prose-p:leading-relaxed" 
                     : "text-white prose-invert prose-p:text-white prose-headings:text-white"
                 )}>
                   <Latex>{msg.content}</Latex>
@@ -140,16 +179,10 @@ export function AIChatTab({ question, userId }: AIChatTabProps) {
           ))}
           
           {isLoading && (
-            <div className="flex gap-4">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-400/20 text-white flex items-center justify-center shrink-0 shadow-orange-500/20">
-                <Sparkles className="h-4 w-4 animate-pulse" />
-              </div>
-              <div className="bg-card border border-border/50 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-2 shadow-sm">
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce"></span>
-                </div>
+            <div className="mr-auto items-start pl-0">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Sparkles className="h-4 w-4 animate-pulse text-orange-600" />
+                <span className="text-xs font-medium animate-pulse">Thinking...</span>
               </div>
             </div>
           )}
