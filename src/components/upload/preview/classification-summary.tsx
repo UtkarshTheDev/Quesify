@@ -32,48 +32,50 @@ export function ClassificationSummary({
     onRetryClassify,
     formatTime,
 }: ClassificationSummaryProps) {
+    const isLoaded = data.subject !== "Pending..." && !status.classifying;
+
     return (
-        <Card className="border-none shadow-lg bg-card/40 backdrop-blur-sm ring-1 ring-white/5">
-            <CardHeader className="pb-3 border-b border-border/40 flex flex-row items-center justify-between">
-                <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">
-                    Classification
-                </Label>
-                {status.classifyError && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 text-destructive"
-                        onClick={onRetryClassify}
-                    >
-                        <AlertTriangle className="h-3 w-3" />
-                    </Button>
-                )}
-            </CardHeader>
-            <CardContent className="px-6 pb-3 space-y-6">
-                {status.classifyError ? (
-                    <div className="text-center py-4 space-y-2">
-                        <p className="text-[10px] text-destructive leading-tight px-4 font-medium">
-                            {status.classifyError}
-                        </p>
+        <SectionFade isLoaded={isLoaded} delay={0.3}>
+            <Card className="border-none shadow-lg bg-card/40 backdrop-blur-sm ring-1 ring-white/5">
+                <CardHeader className="pb-3 border-b border-border/40 flex flex-row items-center justify-between">
+                    <Label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground opacity-70">
+                        Classification
+                    </Label>
+                    {status.classifyError && (
                         <Button
-                            variant="link"
-                            className="h-auto p-0 text-[10px] text-primary"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-destructive"
                             onClick={onRetryClassify}
                         >
-                            Retry Classification
+                            <AlertTriangle className="h-3 w-3" />
                         </Button>
-                    </div>
-                ) : status.classifying ? (
-                    <div className="space-y-4">
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <div className="flex gap-2">
-                            <Skeleton className="h-6 w-12" />
-                            <Skeleton className="h-6 w-16" />
+                    )}
+                </CardHeader>
+                <CardContent className="px-6 pb-3 space-y-6">
+                    {status.classifyError ? (
+                        <div className="text-center py-4 space-y-2">
+                            <p className="text-[10px] text-destructive leading-tight px-4 font-medium">
+                                {status.classifyError}
+                            </p>
+                            <Button
+                                variant="link"
+                                className="h-auto p-0 text-[10px] text-primary"
+                                onClick={onRetryClassify}
+                            >
+                                Retry Classification
+                            </Button>
                         </div>
-                    </div>
-                ) : (
-                    <SectionFade isLoaded={true}>
+                    ) : status.classifying ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-5 w-3/4" statusText="Syllabus mapping..." />
+                            <Skeleton className="h-4 w-1/2" />
+                            <div className="flex gap-2">
+                                <Skeleton className="h-6 w-12" />
+                                <Skeleton className="h-6 w-16" />
+                            </div>
+                        </div>
+                    ) : (
                         <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <h3 className="text-lg font-bold text-primary/90 leading-tight">
@@ -140,9 +142,9 @@ export function ClassificationSummary({
                                 </Button>
                             </div>
                         </div>
-                    </SectionFade>
-                )}
-            </CardContent>
-        </Card>
+                    )}
+                </CardContent>
+            </Card>
+        </SectionFade>
     );
 }
