@@ -74,13 +74,13 @@ export function QuestionCard({ question }: QuestionCardProps) {
             </div>
 
             {/* Question */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="text-stone-50 text-base leading-[1.75] font-normal tracking-wide drop-shadow-sm line-clamp-2 prose dark:prose-invert font-charter">
                 <Latex>{question.question_text}</Latex>
               </div>
 
               {/* Topic section */}
-              <div className="pt-3 border-t border-stone-800/80">
+              <div className="pt-4 border-t border-stone-800/80">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-start gap-2.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-lg shadow-orange-500/50 mt-2 shrink-0" />
