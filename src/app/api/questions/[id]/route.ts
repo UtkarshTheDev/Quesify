@@ -27,48 +27,30 @@ export async function DELETE(
     }
 
     const isOwner = question.owner_id === user.id
-    console.log(`Starting deletion for question ${id}. User is owner: ${isOwner}`)
+    
+    const { data: otherUsersCount, error: countError } = await supabase.rpc('get_other_users_count', { 
+      q_id: id 
+    })
 
-    // 2. Perform deletions based on ownership
-    if (isOwner) {
-      console.log(`[Delete] Authorized purge attempt for question ${id} by owner ${user.id}`)
+    if (countError) {
+      console.error('[Delete] Failed to check usage stats:', countError)
+      return NextResponse.json({ error: 'Failed to verify question usage' }, { status: 500 })
+    }
 
-      // Check if others are using it (BYPASS RLS with RPC)
-      // We use an RPC function that is SECURITY DEFINER to safely count other users
-      // without exposing the service role key in the application code.
-      const { data: otherUsersCount, error: countError } = await supabase.rpc('get_other_users_count', { 
-        q_id: id 
-      })
+    const { error: luqErr } = await supabase
+      .from('user_questions')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('question_id', id)
 
-      if (countError) {
-        console.error('[Delete] Failed to check usage stats:', countError)
-        // Fail safe: assume shared if check fails? Or fail delete?
-        // Better to fail safe and soft delete if unsure, but for now let's just log and proceed cautiously or error.
-        // Let's error to prevent data loss.
-        return NextResponse.json({ error: 'Failed to verify question usage' }, { status: 500 })
-      }
+    if (luqErr) {
+      console.error('[Delete] Link deletion failed:', luqErr)
+      return NextResponse.json({ error: luqErr.message }, { status: 500 })
+    }
 
-      if (otherUsersCount && otherUsersCount > 0) {
-        console.log(`[Delete] Question ${id} is shared with ${otherUsersCount} other users. Soft removing for owner.`)
-        
-        const { error: luqErr } = await supabase
-          .from('user_questions')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('question_id', id)
-
-        if (luqErr) return NextResponse.json({ error: luqErr.message }, { status: 500 })
-
-        return NextResponse.json({
-          success: true,
-          softDelete: true,
-          message: 'Question removed from your library. It remains on the platform as it is being practiced by other students.'
-        })
-      }
-
+    if (!otherUsersCount || otherUsersCount === 0) {
       console.log(`[Delete] No other users. Purging question ${id}`)
 
-      // a. Storage Cleanup (Buckets don't cascade)
       if (question.image_url) {
         try {
           const { deleteQuestionImage } = await import('@/lib/storage/upload')
@@ -78,51 +60,46 @@ export async function DELETE(
         }
       }
 
-      // b. Atomic Delete (Cascade handled by DB)
-      const { error: qErr, count } = await supabase
+      const { error: qErr } = await supabase
         .from('questions')
         .delete({ count: 'exact' })
         .eq('id', id)
 
       if (qErr) {
-        console.error('[Delete] Question delete error:', qErr)
-        return NextResponse.json({ error: `Deletion failed: ${qErr.message}` }, { status: 500 })
+        console.error('[Delete] Question purge error:', qErr)
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Removed from your library, but full purge failed.' 
+        })
       }
 
-      if (count === 0) {
-        // This handles cases where RLS might still block despite code check
-        console.warn('[Delete] DB reported 0 rows deleted despite owner check passing.')
-        return NextResponse.json({ error: 'Database policy blocked the deletion. Please contact support.' }, { status: 500 })
+      if (isOwner) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('total_uploaded')
+          .eq('user_id', user.id)
+          .single()
+          
+        if (profile && (profile.total_uploaded || 0) > 0) {
+          await supabase
+            .from('user_profiles')
+            .update({ total_uploaded: profile.total_uploaded - 1 })
+            .eq('user_id', user.id)
+        }
       }
 
-      // c. Stats Update
-      const { data: profile } = await supabase.from('user_profiles').select('total_uploaded').eq('user_id', user.id).single()
-      if (profile && (profile.total_uploaded || 0) > 0) {
-        await supabase.from('user_profiles').update({ total_uploaded: profile.total_uploaded - 1 }).eq('user_id', user.id)
-      }
-
-      console.log(`[Delete] Successfully purged question ${id}`)
       return NextResponse.json({
         success: true,
         message: 'Question permanently deleted'
       })
-    } else {
-      // SOFT REMOVE: Just remove this user's link
-      console.log(`[Delete] User ${user.id} removing link to shared question ${id}`)
-
-      const { error: luqErr } = await supabase
-        .from('user_questions')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('question_id', id)
-
-      if (luqErr) return NextResponse.json({ error: luqErr.message }, { status: 500 })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Removed from your library'
-      })
     }
+
+    console.log(`[Delete] Question ${id} is shared. Link removed for user ${user.id}`)
+    return NextResponse.json({
+      success: true,
+      softDelete: true,
+      message: 'Removed from your library. It remains available for other students.'
+    })
   } catch (error) {
     console.error('Delete operation failed:', error)
     return NextResponse.json(

@@ -15,12 +15,10 @@ interface QuestionDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   onDelete: () => void
   isDeleting: boolean
-  isShared?: boolean
   usageCount?: number | null
 }
 
-export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting, isShared, usageCount }: QuestionDeleteDialogProps) {
-  // Determine if other users have this question
+export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting, usageCount }: QuestionDeleteDialogProps) {
   const hasOtherUsers = usageCount !== undefined && usageCount !== null && usageCount > 0
   
   return (
@@ -28,14 +26,12 @@ export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting,
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {hasOtherUsers ? 'Remove from your library?' : (isShared ? 'Remove from your library?' : 'Are you absolutely sure?')}
+            {hasOtherUsers ? 'Unlink from Bank?' : 'Permanently Delete?'}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {hasOtherUsers 
-              ? `Warning: This question is being practiced by ${usageCount} other student${usageCount !== 1 ? 's' : ''}. Deleting it will remove it only from your library. It will remain on the platform.`
-              : (isShared 
-                ? "This question is being practiced by other students. You can only remove it from your own library, but it will remain on the platform for others to use."
-                : "This action cannot be undone. This will permanently delete the question and all associated solutions from our servers.")
+              ? `This question is being practiced by ${usageCount} other student${usageCount !== 1 ? 's' : ''}. Unlinking it will remove it from your bank, but it will remain on the platform for others.`
+              : "No other students are currently practicing this question. This action cannot be undone and will permanently delete the question and all its solutions from our servers."
             }
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -49,7 +45,11 @@ export function QuestionDeleteDialog({ show, onOpenChange, onDelete, isDeleting,
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={isDeleting}
           >
-            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Delete'}
+            {isDeleting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              hasOtherUsers ? 'Unlink' : 'Delete'
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

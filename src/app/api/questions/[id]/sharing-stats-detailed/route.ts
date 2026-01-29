@@ -15,40 +15,30 @@ export async function GET(
 
     const { id } = await params
 
-    // Verify the user owns this question
-    const { data: question } = await supabase
+    const { data: question, error: qError } = await supabase
       .from('questions')
-      .select('owner_id')
+      .select('id, owner_id')
       .eq('id', id)
       .single()
 
-    if (!question || question.owner_id !== user.id) {
-      return NextResponse.json({ count: 0 })
+    if (qError || !question) {
+      return NextResponse.json({ error: 'Question not found' }, { status: 404 })
     }
 
-    // Call the RPC to get count of other users (using the same parameter as in delete route)
-    const { data, error } = await supabase.rpc('get_other_users_count', { 
+    // This RPC is SECURITY DEFINER to count linkers bypassing RLS constraints
+    const { data: otherUsersCount, error: rpcError } = await supabase.rpc('get_other_users_count', { 
       q_id: id 
     })
 
-    if (error) {
-      console.error('RPC Error:', error)
-      // Fallback to direct database query if RPC fails
-      const { count: directCount, error: directError } = await supabase
-        .from('user_questions')
-        .select('*', { count: 'exact', head: true })
-        .eq('question_id', id)
-        .neq('user_id', user.id)
-        
-      if (directError) {
-        console.error('Direct query error:', directError)
-        return NextResponse.json({ count: 0 })
-      }
-      
-      return NextResponse.json({ count: directCount || 0 })
+    if (rpcError) {
+      console.error('Sharing stats RPC Error:', rpcError)
+      return NextResponse.json({ count: 0, error: 'Failed to fetch sharing stats' })
     }
 
-    return NextResponse.json({ count: data || 0 })
+    return NextResponse.json({ 
+      count: otherUsersCount || 0,
+      isOwner: question.owner_id === user.id
+    })
   } catch (error) {
     console.error('Error fetching sharing stats:', error)
     return NextResponse.json({ count: 0 })
