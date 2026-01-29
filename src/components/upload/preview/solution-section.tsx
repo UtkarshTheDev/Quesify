@@ -49,13 +49,13 @@ export function SolutionSection({
     delay = 0,
 }: SolutionSectionProps) {
     const isActuallyLoaded = !!displayData.solution && !status.solving && !status.extracting;
-    const showSkeleton = status.solving || status.extracting || (!displayData.solution && !status.solveError);
+    const showSkeleton = status.solving || status.extracting || (!displayData.solution?.trim() && !status.solveError);
 
     return (
         <SectionFade isLoaded={true} delay={delay}>
             <Card
                 ref={solutionRef}
-                className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0"
+                className="overflow-hidden border-none shadow-2xl bg-card/60 backdrop-blur-md ring-1 ring-white/10 py-0 gap-0 min-h-[300px]"
             >
                 <CardHeader className="bg-muted/20 border-b border-border/40 p-4 sm:p-6">
                     <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export function SolutionSection({
                     ) : (
                         <div className="space-y-6">
                             <div className="min-h-[200px] relative">
-                                <AnimatePresence mode="wait">
+                                <AnimatePresence mode="popLayout">
                                     {showSkeleton ? (
                                         <motion.div
                                             key="skeleton"
