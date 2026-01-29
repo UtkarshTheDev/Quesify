@@ -21,6 +21,8 @@ interface QuestionsPageProps {
     page?: string
     ids?: string
     title?: string
+    difficulty?: string
+    isMCQ?: string
   }>
 }
 
@@ -28,7 +30,8 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
   const params = await searchParams
   const subject = params.subject
   const chapter = params.chapter
-  // const search = params.search // Search temporarily disabled
+  const difficulty = params.difficulty
+  const isMCQ = params.isMCQ
   const idsParam = params.ids
   const title = params.title
   const page = Number(params.page) || 1
@@ -72,6 +75,16 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     }
     if (chapter) {
       query = query.eq('question.chapter', chapter)
+    }
+    if (difficulty) {
+      query = query.eq('question.difficulty', difficulty)
+    }
+    if (isMCQ !== undefined) {
+      if (isMCQ === 'true') {
+        query = query.eq('question.type', 'MCQ')
+      } else {
+        query = query.neq('question.type', 'MCQ')
+      }
     }
   }
 
@@ -121,6 +134,18 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
   defaultSubjects.forEach(s => usedSubjects.add(s))
 
   const subjects = Array.from(usedSubjects).sort()
+
+  const sortedChapters = currentSubjectData ? (() => {
+    const withQuestions = currentSubjectData.chapters
+      .filter(ch => ch.questionCount > 0)
+      .sort((a, b) => b.questionCount - a.questionCount)
+    
+    const withoutQuestions = currentSubjectData.chapters
+      .filter(ch => ch.questionCount === 0)
+      .sort((a, b) => b.priority - a.priority)
+      
+    return [...withQuestions, ...withoutQuestions]
+  })() : []
 
   return (
     <div className="space-y-6">
@@ -185,11 +210,11 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
                   asChild
                   className="rounded-full h-8"
                 >
-                  <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}`}>
+                  <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
                     All Chapters
                   </Link>
                 </Button>
-                {currentSubjectData.chapters.map((ch) => (
+                {sortedChapters.map((ch) => (
                   <Button
                     key={ch.chapter}
                     variant={chapter === ch.chapter ? "secondary" : "outline"}
@@ -200,9 +225,14 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
                       chapter === ch.chapter ? "border-primary" : "border-dashed"
                     )}
                   >
-                    <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(ch.chapter)}`}>
+                    <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(ch.chapter)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
                       {ch.chapter}
-                      <span className="ml-1.5 text-xs text-muted-foreground bg-muted-foreground/10 px-1.5 py-0.5 rounded-full">
+                      <span className={cn(
+                        "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
+                        ch.questionCount > 0 
+                          ? "bg-primary/10 text-primary font-medium" 
+                          : "bg-muted-foreground/10 text-muted-foreground"
+                      )}>
                         {ch.questionCount}
                       </span>
                     </Link>
@@ -211,19 +241,114 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
              </div>
           </div>
         )}
-      </div>
 
-      {/* Results */}
-      {questions.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
-          <p className="text-muted-foreground">No questions found.</p>
-          {(subject || chapter) && (
-            <Button variant="link" asChild className="mt-2">
-              <Link href={subject ? `/dashboard/questions?subject=${encodeURIComponent(subject)}` : "/dashboard/questions"}>
+        {/* Additional Filters: Difficulty & Type */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">Difficulty:</span>
+            <div className="flex gap-1">
+              {['easy', 'medium', 'hard', 'very_hard'].map((d) => (
+                <Button
+                  key={d}
+                  variant={difficulty === d ? "secondary" : "ghost"}
+                  size="sm"
+                  asChild
+                  className="h-7 text-xs capitalize rounded-full px-3"
+                >
+                  <Link href={`/dashboard/questions?${new URLSearchParams({
+                    ...(subject ? { subject } : {}),
+                    ...(chapter ? { chapter } : {}),
+                    ...(isMCQ ? { isMCQ } : {}),
+                    ...(difficulty === d ? {} : { difficulty: d })
+                  }).toString()}`}>
+                    {d.replace('_', ' ')}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-px h-4 bg-border hidden md:block" />
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">Type:</span>
+            <div className="flex gap-1">
+              <Button
+                variant={isMCQ === 'true' ? "secondary" : "ghost"}
+                size="sm"
+                asChild
+                className="h-7 text-xs rounded-full px-3"
+              >
+                <Link href={`/dashboard/questions?${new URLSearchParams({
+                  ...(subject ? { subject } : {}),
+                  ...(chapter ? { chapter } : {}),
+                  ...(difficulty ? { difficulty } : {}),
+                  ...(isMCQ === 'true' ? {} : { isMCQ: 'true' })
+                }).toString()}`}>
+                  MCQ
+                </Link>
+              </Button>
+              <Button
+                variant={isMCQ === 'false' ? "secondary" : "ghost"}
+                size="sm"
+                asChild
+                className="h-7 text-xs rounded-full px-3"
+              >
+                <Link href={`/dashboard/questions?${new URLSearchParams({
+                  ...(subject ? { subject } : {}),
+                  ...(chapter ? { chapter } : {}),
+                  ...(difficulty ? { difficulty } : {}),
+                  ...(isMCQ === 'false' ? {} : { isMCQ: 'false' })
+                }).toString()}`}>
+                  Subjective
+                </Link>
+              </Button>
+            </div>
+          </div>
+          
+          {(difficulty || isMCQ) && (
+            <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground ml-auto">
+              <Link href={`/dashboard/questions?${new URLSearchParams({
+                ...(subject ? { subject } : {}),
+                ...(chapter ? { chapter } : {})
+              }).toString()}`}>
                 Clear filters
               </Link>
             </Button>
           )}
+        </div>
+      </div>
+
+      {/* Results */}
+      {questions.length === 0 ? (
+        <div className="text-center py-16 border rounded-lg bg-muted/10 border-dashed flex flex-col items-center justify-center gap-4">
+          <div className="bg-primary/10 p-4 rounded-full">
+            <Filter className="h-8 w-8 text-primary opacity-50" />
+          </div>
+          <div className="space-y-2 max-w-sm">
+            <h3 className="text-lg font-semibold">No questions found</h3>
+            <p className="text-muted-foreground text-sm">
+              {subject || chapter || difficulty || isMCQ 
+                ? "Try adjusting your filters to see more results."
+                : "Your question bank is empty. Start by uploading your first question!"}
+            </p>
+          </div>
+          
+          <div className="flex gap-3 mt-2">
+            {(subject || chapter || difficulty || isMCQ) && (
+              <Button variant="outline" asChild>
+                <Link href={subject ? `/dashboard/questions?subject=${encodeURIComponent(subject)}` : "/dashboard/questions"}>
+                  Clear filters
+                </Link>
+              </Button>
+            )}
+            
+            <Button asChild>
+              <Link href="/upload">
+                Upload Question
+              </Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
