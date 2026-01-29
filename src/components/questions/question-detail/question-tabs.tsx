@@ -120,7 +120,7 @@ export function QuestionTabs({
                         </TabsTrigger>
                         <TabsTrigger
                             value="chat"
-                            className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/10 data-[state=active]:to-orange-600/10 data-[state=active]:text-orange-600 data-[state=active]:border-orange-200/50 data-[state=active]:shadow-sm border border-transparent"
+                            className="flex-1 rounded-lg h-12 px-4 gap-2 text-sm font-semibold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/10 data-[state=active]:to-orange-600/10 data-[state=active]:text-orange-600 data-[state=active]:border-orange-200/50 data-[state=active]:shadow-sm border border-transparent bg-gradient-to-r from-orange-500/5 to-orange-600/5 text-orange-600/80"
                         >
                             <Sparkles className="h-4 w-4" />
                             Ask with AI
