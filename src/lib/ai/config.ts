@@ -1,15 +1,49 @@
 // AI Configuration - Single source of truth for all AI settings
+export type AIProvider = "gemini" | "groq";
+
+export interface ModelConfig {
+    provider: AIProvider;
+    model: string;
+}
+
 export const AI_CONFIG = {
-    // Models
+    // Models configuration by task category
     models: {
-        // Default/Fast model for high-speed tasks (extraction, validation)
-        fast: process.env.AI_MODEL_FAST || "gemini-2.0-flash",
-        // Reasoning model for complex logic (solutions)
-        reasoning: process.env.AI_MODEL_REASONING || "gemini-2.5-flash",
-        // Vision model for image analysis
-        vision: process.env.AI_MODEL_VISION || "gemini-2.5-flash-lite",
-        // Embedding model for vector search
-        embedding: process.env.AI_MODEL_EMBEDDING || "gemini-embedding-001",
+        // LaTeX extraction & image analysis
+        vision: {
+            provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_VISION || "gemini-2.5-flash",
+        } as ModelConfig,
+        
+        // MCQ solutions & high-speed validation
+        fast: {
+            provider: (process.env.AI_PROVIDER_FAST as AIProvider) || "groq",
+            model: process.env.AI_MODEL_FAST || "llama-3.1-8b-instant",
+        } as ModelConfig,
+        
+        // Complex reasoning (LA, charts)
+        reasoning: {
+            provider: (process.env.AI_PROVIDER_REASONING as AIProvider) || "groq",
+            model: process.env.AI_MODEL_REASONING || "llama-3.3-70b-versatile",
+        } as ModelConfig,
+        
+        // Feedback refinement & updates
+        updates: {
+            provider: (process.env.AI_PROVIDER_UPDATES as AIProvider) || "groq",
+            model: process.env.AI_MODEL_UPDATES || "llama-3.3-70b-versatile",
+        } as ModelConfig,
+        
+        // User Q&A / Chat
+        qa: {
+            provider: (process.env.AI_PROVIDER_QA as AIProvider) || "groq",
+            model: process.env.AI_MODEL_QA || "meta-llama/llama-4-scout-17b-16e-instruct",
+        } as ModelConfig,
+
+        // Embedding model (currently only gemini supported)
+        embedding: {
+            provider: "gemini",
+            model: process.env.AI_MODEL_EMBEDDING || "gemini-embedding-001",
+        } as ModelConfig,
     },
 
     // Generation settings
