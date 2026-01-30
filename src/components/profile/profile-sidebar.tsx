@@ -17,6 +17,7 @@ interface ProfileSidebarProps {
   followersCount: number
   followingCount: number
   isFollowing: boolean
+  availableSubjects: string[]
 }
 
 export function ProfileSidebar({ 
@@ -24,7 +25,8 @@ export function ProfileSidebar({
   currentUser, 
   followersCount, 
   followingCount,
-  isFollowing
+  isFollowing,
+  availableSubjects
 }: ProfileSidebarProps) {
   const isOwner = currentUser?.id === profile.user_id
   const [socialModal, setSocialModal] = useState<{ isOpen: boolean, type: 'followers' | 'following' }>({
@@ -39,6 +41,7 @@ export function ProfileSidebar({
         profile={profile}
         isOpen={isEditorOpen}
         onClose={() => setIsEditorOpen(false)}
+        availableSubjects={availableSubjects}
       />
       <SocialModal 
         userId={profile.user_id}

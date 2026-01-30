@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,11 +16,11 @@ interface ProfileEditorProps {
   profile: any
   isOpen: boolean
   onClose: () => void
+  availableSubjects: string[]
 }
 
-const AVAILABLE_SUBJECTS = ['Mathematics', 'Physics', 'Chemistry']
-
-export function ProfileEditor({ profile, isOpen, onClose }: ProfileEditorProps) {
+export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: ProfileEditorProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [formData, setFormData] = useState({
     display_name: profile.display_name || '',
@@ -46,6 +47,11 @@ export function ProfileEditor({ profile, isOpen, onClose }: ProfileEditorProps) 
       try {
         await updateProfile(profile.user_id, formData)
         toast.success('Profile updated successfully')
+        
+        if (profile.username !== formData.username) {
+          router.push(`/u/${formData.username}`)
+        }
+        
         onClose()
       } catch (error: any) {
         toast.error(error.message || 'Failed to update profile')
@@ -95,7 +101,7 @@ export function ProfileEditor({ profile, isOpen, onClose }: ProfileEditorProps) 
               Interested Subjects
             </Label>
             <div className="flex flex-wrap gap-2">
-              {AVAILABLE_SUBJECTS.map((subject) => {
+              {availableSubjects.map((subject: string) => {
                 const isSelected = formData.subjects.includes(subject)
                 return (
                   <Badge

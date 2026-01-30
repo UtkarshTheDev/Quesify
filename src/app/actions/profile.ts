@@ -169,3 +169,18 @@ export async function updateProfile(userId: string, data: {
   revalidatePath(`/u/${data.username}`)
   return { success: true }
 }
+
+export async function getAvailableSubjects() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('syllabus')
+    .select('subject')
+
+  if (error) {
+    console.error('Error fetching subjects:', error)
+    return ['Mathematics', 'Physics', 'Chemistry']
+  }
+
+  const subjects = Array.from(new Set(data.map(item => item.subject))).sort()
+  return subjects
+}
