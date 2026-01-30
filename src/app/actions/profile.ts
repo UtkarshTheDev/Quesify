@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { ActivityItem } from '@/components/profile/activity-feed'
 import { UserActivity } from '@/lib/types'
 
@@ -125,4 +126,46 @@ export async function getMoreSolutions(userId: string, page: number) {
   const hasMore = (contributedSolutions?.length || 0) === ITEMS_PER_PAGE
 
   return { solutions: contributedSolutions || [], hasMore }
+}
+
+export async function updateProfile(userId: string, data: {
+  display_name: string
+  username: string
+  subjects: string[]
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.id !== userId) throw new Error('Unauthorized')
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('username')
+    .eq('user_id', userId)
+    .single()
+
+  if (profile?.username !== data.username) {
+    const { data: existing } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('username', data.username)
+      .single()
+
+    if (existing) throw new Error('Username already taken')
+  }
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({
+      display_name: data.display_name,
+      username: data.username,
+      subjects: data.subjects,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+
+  if (error) throw error
+
+  revalidatePath(`/u/${data.username}`)
+  return { success: true }
 }

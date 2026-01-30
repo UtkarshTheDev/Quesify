@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FollowButton } from './follow-button'
 import { SocialModal } from './social-modal'
+import { ProfileEditor } from './profile-editor'
 import type { UserProfile } from '@/lib/types'
 import { useState } from 'react'
 
@@ -30,9 +31,15 @@ export function ProfileSidebar({
     isOpen: false,
     type: 'followers'
   })
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
 
   return (
     <div className="space-y-6">
+      <ProfileEditor 
+        profile={profile}
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+      />
       <SocialModal 
         userId={profile.user_id}
         type={socialModal.type}
@@ -57,7 +64,11 @@ export function ProfileSidebar({
 
         <div className="pt-2">
           {isOwner ? (
-            <Button variant="outline" className="w-full font-bold border-border/60 hover:bg-muted/50">
+            <Button 
+              variant="outline" 
+              className="w-full font-bold border-border/60 hover:bg-muted/50"
+              onClick={() => setIsEditorOpen(true)}
+            >
               <Edit className="w-4 h-4 mr-2" />
               Edit Profile
             </Button>
