@@ -31,10 +31,22 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const path = request.nextUrl.pathname
+
+  if (
+    path.startsWith('/api') ||
+    path.startsWith('/_next') ||
+    path.startsWith('/static') ||
+    path.includes('.') ||
+    path === '/auth/callback'
+  ) {
+    return supabaseResponse
+  }
+
   // Protected routes
   const protectedPaths = ['/dashboard', '/upload', '/daily', '/profile']
-  const isProtectedPath = protectedPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
+  const isProtectedPath = protectedPaths.some(p =>
+    path.startsWith(p)
   )
 
   if (isProtectedPath && !user) {
@@ -44,10 +56,33 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect logged-in users away from login
-  if (request.nextUrl.pathname === '/login' && user) {
+  if (path === '/login' && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
+  }
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('username')
+      .eq('user_id', user.id)
+      .single()
+
+    const hasUsername = !!profile?.username
+    const isOnboarding = path === '/onboarding'
+
+    if (!hasUsername && !isOnboarding) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+
+    if (hasUsername && isOnboarding) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
