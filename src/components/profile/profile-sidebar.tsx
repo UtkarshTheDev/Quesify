@@ -1,9 +1,8 @@
 'use client'
 
 import { format } from 'date-fns'
-import { Calendar, Users, Edit, UserCheck } from 'lucide-react'
+import { Calendar, Edit } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FollowButton } from './follow-button'
 import { SocialModal } from './social-modal'
@@ -36,7 +35,7 @@ export function ProfileSidebar({
   const [isEditorOpen, setIsEditorOpen] = useState(false)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 flex flex-col items-center">
       <ProfileEditor 
         profile={profile}
         isOpen={isEditorOpen}
@@ -50,9 +49,10 @@ export function ProfileSidebar({
         onClose={() => setSocialModal(prev => ({ ...prev, isOpen: false }))}
         currentUserId={currentUser?.id || null}
       />
-      <div className="flex flex-col gap-4">
-        <div className="relative group w-fit mx-auto md:mx-0">
-          <Avatar className="w-32 h-32 md:w-64 md:h-64 border-4 border-background shadow-xl rounded-full transition-transform duration-500 group-hover:scale-[1.02]">
+      
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="relative group">
+          <Avatar className="w-32 h-32 md:w-64 md:h-64 border-4 border-background shadow-xl rounded-full transition-transform duration-500 hover:scale-[1.02]">
             <AvatarImage src={profile.avatar_url || ''} />
             <AvatarFallback className="text-6xl bg-orange-100 text-orange-600">
               {profile.display_name?.[0]?.toUpperCase() || 'U'}
@@ -60,76 +60,56 @@ export function ProfileSidebar({
           </Avatar>
         </div>
 
-        <div className="space-y-1 text-center md:text-left">
-          <h1 className="text-2xl font-bold leading-tight">{profile.display_name}</h1>
-          <p className="text-xl text-muted-foreground font-light tracking-tight">@{profile.username}</p>
-        </div>
-
-        <div className="pt-2">
-          {isOwner ? (
-            <Button 
-              variant="outline" 
-              className="w-full font-bold border-border/60 hover:bg-muted/50"
-              onClick={() => setIsEditorOpen(true)}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <FollowButton 
-              followingId={profile.user_id} 
-              initialIsFollowing={isFollowing} 
-            />
-          )}
-        </div>
-
-        <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-4 text-sm text-muted-foreground pt-2">
-            <button 
-              className="flex items-center gap-1.5 hover:text-foreground transition-colors group"
-              onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}
-            >
-              <span className="font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span> 
-              <span>followers</span>
-            </button>
-            <button 
-              className="flex items-center gap-1.5 hover:text-foreground transition-colors group"
-              onClick={() => setSocialModal({ isOpen: true, type: 'following' })}
-            >
-              <span className="font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span> 
-              <span>following</span>
-            </button>
-        </div>
-
-        <div className="flex flex-col gap-2.5 text-sm text-muted-foreground pt-4 border-t border-border/40">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0">
-                <UserCheck className="w-4 h-4 text-emerald-500" />
-              </div>
-              <div>
-                <span className="font-bold text-foreground">{profile.total_solved}</span> solved
-                <span className="mx-1.5 text-muted-foreground/30">·</span>
-                <span className="font-bold text-foreground">{profile.total_uploaded}</span> uploaded
-              </div>
-            </div>
-          
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0">
-              <Calendar className="w-4 h-4 text-orange-500" />
-            </div>
-            <span>Joined {format(new Date(profile.created_at), 'MMMM yyyy')}</span>
-          </div>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight">{profile.display_name}</h1>
+          <p className="text-lg text-muted-foreground font-medium">@{profile.username}</p>
         </div>
       </div>
 
-      <div className="space-y-3 pt-6 border-t border-border/40">
-        <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Subjects</h3>
-        <div className="flex flex-wrap gap-2">
-          {profile.subjects?.map((subject) => (
-            <Badge key={subject} variant="secondary" className="bg-orange-500/5 text-orange-500 hover:bg-orange-500/10 border-orange-500/10 px-3 py-1 text-[11px] font-bold">
-              {subject}
-            </Badge>
-          ))}
+      <div className="w-full max-w-sm">
+        {isOwner ? (
+          <Button 
+            variant="outline" 
+            className="w-full font-bold border-border/60 hover:bg-muted/50 h-11"
+            onClick={() => setIsEditorOpen(true)}
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Profile
+          </Button>
+        ) : (
+          <FollowButton 
+            followingId={profile.user_id} 
+            initialIsFollowing={isFollowing} 
+            className="h-11 text-base"
+          />
+        )}
+      </div>
+
+      <div className="w-full max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-y border-border/40">
+        <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}>
+          <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
+          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Followers</span>
         </div>
+        
+        <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'following' })}>
+          <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
+          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Following</span>
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-3xl font-bold text-emerald-500">{profile.total_solved}</span>
+          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Solved</span>
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-3xl font-bold text-blue-500">{profile.total_uploaded}</span>
+          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Uploaded</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/60">
+        <Calendar className="w-4 h-4" />
+        <span>Joined {format(new Date(profile.created_at), 'MMMM yyyy')}</span>
       </div>
     </div>
   )
