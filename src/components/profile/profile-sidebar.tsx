@@ -6,7 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { FollowButton } from './follow-button'
+import { SocialModal } from './social-modal'
 import type { UserProfile } from '@/lib/types'
+import { useState } from 'react'
 
 interface ProfileSidebarProps {
   profile: UserProfile
@@ -24,9 +26,20 @@ export function ProfileSidebar({
   isFollowing
 }: ProfileSidebarProps) {
   const isOwner = currentUser?.id === profile.user_id
+  const [socialModal, setSocialModal] = useState<{ isOpen: boolean, type: 'followers' | 'following' }>({
+    isOpen: false,
+    type: 'followers'
+  })
 
   return (
     <div className="space-y-6">
+      <SocialModal 
+        userId={profile.user_id}
+        type={socialModal.type}
+        isOpen={socialModal.isOpen}
+        onClose={() => setSocialModal(prev => ({ ...prev, isOpen: false }))}
+        currentUserId={currentUser?.id || null}
+      />
       <div className="flex flex-col gap-4">
         <div className="relative group w-fit mx-auto md:mx-0">
           <Avatar className="w-32 h-32 md:w-64 md:h-64 border-4 border-background shadow-xl rounded-full transition-transform duration-500 group-hover:scale-[1.02]">
@@ -57,11 +70,17 @@ export function ProfileSidebar({
         </div>
 
         <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-4 text-sm text-muted-foreground pt-2">
-            <button className="flex items-center gap-1.5 hover:text-foreground transition-colors group">
+            <button 
+              className="flex items-center gap-1.5 hover:text-foreground transition-colors group"
+              onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}
+            >
               <span className="font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span> 
               <span>followers</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-foreground transition-colors group">
+            <button 
+              className="flex items-center gap-1.5 hover:text-foreground transition-colors group"
+              onClick={() => setSocialModal({ isOpen: true, type: 'following' })}
+            >
               <span className="font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span> 
               <span>following</span>
             </button>
