@@ -8,6 +8,7 @@ import { PaginatedActivityFeed } from '@/components/profile/paginated-activity-f
 import { PaginatedQuestionList } from '@/components/profile/paginated-questions'
 import { PaginatedSolutionList } from '@/components/profile/paginated-solutions'
 import { getFollowStats, checkIsFollowing } from '@/app/actions/social'
+import { getAvailableSubjects } from '@/app/actions/profile'
 import type { ActivityItem } from '@/components/profile/activity-feed'
 import type { Metadata } from 'next'
 
@@ -46,7 +47,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
     { data: forkedQuestions },
     { data: allActivityCounts },
     followStats,
-    isFollowing
+    isFollowing,
+    availableSubjects
   ] = await Promise.all([
     supabase
       .from('user_activities')
@@ -89,7 +91,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()),
     
     getFollowStats(profile.user_id),
-    checkIsFollowing(profile.user_id)
+    checkIsFollowing(profile.user_id),
+    getAvailableSubjects()
   ])
 
   const filteredSolutions = contributedSolutions?.filter((s: any) => 
@@ -106,6 +109,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       case 'question_deleted': title = `Deleted question in ${act.metadata.subject || 'unknown'}`; break
       case 'solution_deleted': title = `Deleted solution`; break
       case 'hint_updated': title = `Updated hint for ${act.metadata.subject || 'unknown'} question`; break
+      case 'user_followed': title = `Followed ${act.metadata.following_username || 'a user'}`; break
       default: title = 'User activity'
     }
     return {
@@ -120,7 +124,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   })
 
   const contributionCounts: Record<string, number> = {}
-  allActivityCounts?.forEach(act => {
+  allActivityCounts?.forEach((act: any) => {
     const date = act.created_at.split('T')[0]
     contributionCounts[date] = (contributionCounts[date] || 0) + 1
   })
@@ -143,6 +147,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
               followersCount={followStats.followersCount}
               followingCount={followStats.followingCount}
               isFollowing={isFollowing}
+              availableSubjects={availableSubjects}
            />
         </div>
 
