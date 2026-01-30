@@ -32,9 +32,11 @@ import type { Solution } from "@/lib/types";
 import { toast } from "sonner";
 import { cn, stripBoxed } from "@/lib/utils";
 
+import Link from "next/link";
+
 interface SolutionCardProps {
     solution: Solution & {
-        author?: { display_name: string | null; avatar_url: string | null };
+        author?: { display_name: string | null; avatar_url: string | null; username?: string | null };
     };
     currentUserId: string | null;
     onDelete?: (id: string) => void;
@@ -150,58 +152,58 @@ export function SolutionCard({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {!isEditing && (
-                            <Avatar className="h-8 w-8 border shadow-sm">
-                                <AvatarImage
-                                    src={solution.author?.avatar_url || ""}
-                                />
-                                <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
-                                    {solution.author?.display_name?.charAt(0) ||
-                                        "U"}
-                                </AvatarFallback>
-                            </Avatar>
+                            <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} className={cn("flex items-center gap-3", !solution.author?.username && "pointer-events-none")}>
+                                <Avatar className="h-8 w-8 border shadow-sm">
+                                    <AvatarImage
+                                        src={solution.author?.avatar_url || ""}
+                                    />
+                                    <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
+                                        {solution.author?.username?.charAt(0) ||
+                                            "U"}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col gap-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold hover:underline">
+                                            @{solution.author?.username ||
+                                                "contributor"}
+                                        </span>
+                                        <Badge
+                                            variant={
+                                                solution.is_ai_best
+                                                    ? "default"
+                                                    : "secondary"
+                                            }
+                                            className="font-bold text-[10px] uppercase tracking-tight h-4 px-1.5"
+                                        >
+                                            {solution.is_ai_best
+                                                ? "AI Best"
+                                                : "Contributor"}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground/70 font-medium">
+                                        <Clock className="h-3 w-3" />
+                                        <span>
+                                            {dateLabel}{" "}
+                                            {format(
+                                                new Date(displayDate),
+                                                "MMM d, yyyy",
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
                         )}
-                        <div className="flex flex-col gap-0.5">
-                            {!isEditing && (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold">
-                                        {solution.author?.display_name ||
-                                            "Contributor"}
-                                    </span>
-                                    <Badge
-                                        variant={
-                                            solution.is_ai_best
-                                                ? "default"
-                                                : "secondary"
-                                        }
-                                        className="font-bold text-[10px] uppercase tracking-tight h-4 px-1.5"
-                                    >
-                                        {solution.is_ai_best
-                                            ? "AI Best"
-                                            : "Contributor"}
-                                    </Badge>
-                                </div>
-                            )}
-                            {!isEditing && (
-                                <div className="flex items-center gap-1 text-[11px] text-muted-foreground/70 font-medium">
-                                    <Clock className="h-3 w-3" />
-                                    <span>
-                                        {dateLabel}{" "}
-                                        {format(
-                                            new Date(displayDate),
-                                            "MMM d, yyyy",
-                                        )}
-                                    </span>
-                                </div>
-                            )}
-                            {isEditing && (
+                        {isEditing && (
+                            <div className="flex flex-col gap-0.5">
                                 <div className="flex items-center gap-2 text-primary">
                                     <Edit className="h-4 w-4" />
                                     <span className="font-bold text-xs uppercase tracking-widest">
                                         Editor Mode
                                     </span>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2">

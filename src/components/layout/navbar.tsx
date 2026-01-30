@@ -9,6 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { Home, Upload, Zap, User, LogOut } from "lucide-react";
 
 export async function Navbar() {
@@ -19,7 +20,7 @@ export async function Navbar() {
 
     const { data: profile } = await supabase
         .from("user_profiles")
-        .select("*")
+        .select("display_name, avatar_url, username, total_uploaded, streak_count")
         .eq("user_id", user?.id)
         .single();
 
@@ -116,8 +117,8 @@ export async function Navbar() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link
-                                    href="/profile"
-                                    className="flex items-center"
+                                    href={profile?.username ? `/u/${profile.username}` : "#"}
+                                    className={cn("flex items-center", !profile?.username && "pointer-events-none opacity-50")}
                                 >
                                     <User className="mr-2 h-4 w-4" />
                                     Profile

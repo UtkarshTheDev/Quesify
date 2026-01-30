@@ -74,7 +74,8 @@ export default async function PublicQuestionPage({ params }: PageProps) {
       ),
       author:user_profiles!owner_id (
         display_name,
-        avatar_url
+        avatar_url,
+        username
       )
     `)
         .eq('id', id)
@@ -91,7 +92,8 @@ export default async function PublicQuestionPage({ params }: PageProps) {
         *,
         author:user_profiles!contributor_id (
             display_name,
-            avatar_url
+            avatar_url,
+            username
         )
         `)
         .eq('question_id', id)
@@ -117,6 +119,7 @@ export default async function PublicQuestionPage({ params }: PageProps) {
         author?: {
             display_name: string | null
             avatar_url: string | null
+            username?: string | null
         }
     }
 

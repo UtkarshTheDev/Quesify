@@ -12,8 +12,10 @@ import type { Solution } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
+import Link from 'next/link'
+
 interface SolutionCardListProps {
-  solutions: (Solution & { author?: { display_name: string | null; avatar_url: string | null } })[]
+  solutions: (Solution & { author?: { display_name: string | null; avatar_url: string | null; username?: string | null } })[]
   onSelect: (solutionId: string) => void
   activeSolutionId?: string | null
   currentUserId: string | null
@@ -36,7 +38,7 @@ export function SolutionCardList({ solutions, onSelect, activeSolutionId, curren
 }
 
 interface SolutionListItemProps {
-  solution: Solution & { author?: { display_name: string | null; avatar_url: string | null } }
+  solution: Solution & { author?: { display_name: string | null; avatar_url: string | null; username?: string | null } }
   isActive: boolean
   onSelect: () => void
   currentUserId: string | null
@@ -110,19 +112,21 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
     >
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <Avatar className="h-10 w-10 border-2 border-background shadow-sm shrink-0 ring-1 ring-border/20">
-            <AvatarImage src={solution.author?.avatar_url || ''} />
-            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
-              {solution.author?.display_name?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} onClick={(e) => e.stopPropagation()}>
+            <Avatar className="h-10 w-10 border-2 border-background shadow-sm shrink-0 ring-1 ring-border/20 hover:ring-primary/50 transition-all">
+                <AvatarImage src={solution.author?.avatar_url || ''} />
+                <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
+                {solution.author?.username?.charAt(0) || 'U'}
+                </AvatarFallback>
+            </Avatar>
+          </Link>
           
           <div className="flex-1 space-y-4 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm truncate">
-                  {solution.author?.display_name || 'Contributor'}
-                </span>
+                <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} onClick={(e) => e.stopPropagation()} className="font-bold text-sm truncate hover:underline hover:text-primary transition-colors">
+                  @{solution.author?.username || 'contributor'}
+                </Link>
                 <Badge variant={solution.is_ai_best ? "default" : "secondary"} className="text-[9px] uppercase tracking-tighter h-4 px-1.5 font-black">
                   {solution.is_ai_best ? 'AI Best' : 'Contributor'}
                 </Badge>
