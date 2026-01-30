@@ -8,12 +8,9 @@ export async function getNotifications(limit = 20) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  const { data, error } = await supabase
+  const { data: notifications, error } = await supabase
     .from('notifications')
-    .select(`
-      *,
-      sender:user_profiles!sender_id (display_name, avatar_url, username)
-    `)
+    .select('*')
     .eq('recipient_id', user.id)
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -23,7 +20,23 @@ export async function getNotifications(limit = 20) {
     return []
   }
 
-  return data
+  const senderIds = Array.from(new Set(notifications.map(n => n.sender_id).filter(Boolean)))
+  
+  if (senderIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('user_profiles')
+      .select('user_id, display_name, avatar_url, username')
+      .in('user_id', senderIds)
+
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]))
+
+    return notifications.map(n => ({
+      ...n,
+      sender: n.sender_id ? profileMap.get(n.sender_id) : null
+    }))
+  }
+
+  return notifications.map(n => ({ ...n, sender: null }))
 }
 
 export async function markAsRead(notificationId: string) {
