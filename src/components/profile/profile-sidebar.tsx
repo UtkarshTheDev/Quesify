@@ -1,7 +1,7 @@
 'use client'
 
 import { format } from 'date-fns'
-import { Calendar, Edit } from 'lucide-react'
+import { Calendar, Edit, Share2, Link as LinkIcon, Check } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { FollowButton } from './follow-button'
@@ -9,6 +9,7 @@ import { SocialModal } from './social-modal'
 import { ProfileEditor } from './profile-editor'
 import type { UserProfile } from '@/lib/types'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface ProfileSidebarProps {
   profile: UserProfile
@@ -33,6 +34,15 @@ export function ProfileSidebar({
     type: 'followers'
   })
   const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleShare = () => {
+    const url = window.location.href
+    navigator.clipboard.writeText(url)
+    setIsCopied(true)
+    toast.success('Profile link copied to clipboard')
+    setTimeout(() => setIsCopied(false), 2000)
+  }
 
   return (
     <div className="space-y-8 flex flex-col items-center">
@@ -66,44 +76,54 @@ export function ProfileSidebar({
         </div>
       </div>
 
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm flex gap-3">
         {isOwner ? (
           <Button 
             variant="outline" 
-            className="w-full font-bold border-border/60 hover:bg-muted/50 h-11"
+            className="flex-1 font-bold border-border/60 hover:bg-muted/50 h-11"
             onClick={() => setIsEditorOpen(true)}
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit Profile
           </Button>
         ) : (
-          <FollowButton 
-            followingId={profile.user_id} 
-            initialIsFollowing={isFollowing} 
-            className="h-11 text-base"
-          />
+          <div className="flex-1">
+            <FollowButton 
+              followingId={profile.user_id} 
+              initialIsFollowing={isFollowing} 
+              className="h-11 text-base w-full"
+            />
+          </div>
         )}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 shrink-0 border-border/60 hover:bg-muted/50"
+          onClick={handleShare}
+        >
+          {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Share2 className="w-4 h-4" />}
+        </Button>
       </div>
 
-      <div className="w-full max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-y border-border/40">
+      <div className="w-full max-w-2xl grid grid-cols-4 gap-2 md:gap-8 py-8 border-y border-border/40">
         <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}>
-          <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
-          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Followers</span>
+          <span className="text-xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
+          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Followers</span>
         </div>
         
         <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'following' })}>
-          <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
-          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Following</span>
+          <span className="text-xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
+          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Following</span>
         </div>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="text-3xl font-bold text-emerald-500">{profile.total_solved}</span>
-          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Solved</span>
+          <span className="text-xl md:text-3xl font-bold text-emerald-500">{profile.total_solved}</span>
+          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Solved</span>
         </div>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="text-3xl font-bold text-blue-500">{profile.total_uploaded}</span>
-          <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Uploaded</span>
+          <span className="text-xl md:text-3xl font-bold text-blue-500">{profile.total_uploaded}</span>
+          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Uploaded</span>
         </div>
       </div>
 
