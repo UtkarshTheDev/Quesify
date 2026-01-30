@@ -32,7 +32,8 @@ export async function toggleFollow(followingId: string) {
       })
   }
 
-  revalidatePath(`/u`)
+  revalidatePath('/u/[username]', 'page') 
+  revalidatePath('/u')
 }
 
 export async function getFollowStats(userId: string) {
@@ -67,11 +68,9 @@ export async function checkIsFollowing(followingId: string) {
 export async function getFollowers(userId: string) {
   const supabase = await createClient()
   
-  const { data, error } = await supabase
+  const { data: follows, error } = await supabase
     .from('user_follows')
-    .select(`
-      follower:user_profiles!follower_id (user_id, display_name, avatar_url, username)
-    `)
+    .select('follower_id, created_at')
     .eq('following_id', userId)
     .order('created_at', { ascending: false })
 
@@ -80,17 +79,24 @@ export async function getFollowers(userId: string) {
     return []
   }
 
-  return data.map(item => item.follower)
+  if (!follows || follows.length === 0) return []
+
+  const followerIds = follows.map(f => f.follower_id)
+  const { data: profiles } = await supabase
+    .from('user_profiles')
+    .select('user_id, display_name, avatar_url, username')
+    .in('user_id', followerIds)
+
+  const profileMap = new Map(profiles?.map(p => [p.user_id, p]))
+  return follows.map(f => profileMap.get(f.follower_id)).filter(Boolean)
 }
 
 export async function getFollowing(userId: string) {
   const supabase = await createClient()
   
-  const { data, error } = await supabase
+  const { data: follows, error } = await supabase
     .from('user_follows')
-    .select(`
-      following:user_profiles!following_id (user_id, display_name, avatar_url, username)
-    `)
+    .select('following_id, created_at')
     .eq('follower_id', userId)
     .order('created_at', { ascending: false })
 
@@ -99,5 +105,14 @@ export async function getFollowing(userId: string) {
     return []
   }
 
-  return data.map(item => item.following)
+  if (!follows || follows.length === 0) return []
+
+  const followingIds = follows.map(f => f.following_id)
+  const { data: profiles } = await supabase
+    .from('user_profiles')
+    .select('user_id, display_name, avatar_url, username')
+    .in('user_id', followingIds)
+
+  const profileMap = new Map(profiles?.map(p => [p.user_id, p]))
+  return follows.map(f => profileMap.get(f.following_id)).filter(Boolean)
 }

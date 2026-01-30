@@ -72,7 +72,7 @@ export default async function NotificationsPage() {
 
         {notifications.length === 0 ? (
           <ProfileEmptyState 
-            icon={Bell}
+            icon={<Bell className="w-10 h-10" />}
             title="All caught up!"
             description="You don't have any notifications at the moment. Interactions with your profile will appear here."
           />
