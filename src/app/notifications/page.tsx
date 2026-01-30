@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getNotifications, markAllAsRead } from '@/app/actions/notifications'
-import { Bell, Check, History, UserPlus, ThumbsUp, GitFork, Link as LinkIcon, Calendar } from 'lucide-react'
+import { Bell, Check, UserPlus, ThumbsUp, GitFork, Link as LinkIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatDistanceToNow } from 'date-fns'
@@ -35,6 +35,16 @@ export default async function NotificationsPage() {
       case 'solution_linked': return `linked to your question`
       case 'new_contribution': return `added a solution to your question`
       default: return `sent you a notification`
+    }
+  }
+
+  const getActionLabel = (type: string) => {
+    switch (type) {
+      case 'follow': return 'View Profile'
+      case 'solution_like': return 'View Solution'
+      case 'solution_linked': return 'View Question'
+      case 'new_contribution': return 'View Solution'
+      default: return 'View Details'
     }
   }
 
@@ -82,7 +92,7 @@ export default async function NotificationsPage() {
               <div 
                 key={n.id} 
                 className={cn(
-                  "flex items-start gap-4 p-5 rounded-3xl border transition-all duration-300 relative overflow-hidden group",
+                  "flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 relative overflow-hidden group",
                   n.is_read 
                     ? "bg-card/30 border-border/40" 
                     : "bg-orange-500/5 border-orange-500/20 shadow-lg shadow-orange-500/5"
@@ -101,8 +111,8 @@ export default async function NotificationsPage() {
                   </Avatar>
                 </Link>
 
-                <div className="flex-1 space-y-2 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
                     <p className="text-sm md:text-base leading-snug">
                       <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
                         @{n.sender?.username || 'user'}
@@ -111,24 +121,23 @@ export default async function NotificationsPage() {
                         {getContent(n)}
                       </span>
                     </p>
-                    <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
-                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                    </span>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        {getIcon(n.type)}
+                        {n.type.replace('_', ' ')}
+                      </div>
+                      <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                      {getIcon(n.type)}
-                      {n.type.replace('_', ' ')}
-                    </div>
-                    
-                    <Link 
-                      href={getUrl(n)} 
-                      className="text-[11px] font-bold text-orange-500 hover:underline flex items-center gap-1"
-                    >
-                      View details
+                  <Button variant="outline" size="sm" className="h-9 px-4 shrink-0 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap ml-auto sm:ml-0" asChild>
+                    <Link href={getUrl(n)}>
+                      {getActionLabel(n.type)}
                     </Link>
-                  </div>
+                  </Button>
                 </div>
               </div>
             ))}
