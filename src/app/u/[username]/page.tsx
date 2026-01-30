@@ -155,8 +155,8 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
         <div className="md:col-span-3 space-y-12">
           <Tabs defaultValue="overview" className="w-full">
-            <div className="sticky top-0 bg-background/95 backdrop-blur z-20 border-b mb-8">
-              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10">
+            <div className="sticky top-0 bg-background/95 backdrop-blur z-20 border-b mb-8 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
+              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10 min-w-max">
                 <TabsTrigger 
                   value="overview"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:shadow-none h-full px-2 bg-transparent font-bold text-base md:text-lg flex items-center gap-3 transition-all duration-300 hover:text-orange-500/80 data-[state=active]:text-orange-500"
