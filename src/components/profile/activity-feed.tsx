@@ -89,7 +89,7 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
   if (items.length === 0) {
     return (
       <ProfileEmptyState 
-        icon={History}
+        icon={<History className="w-10 h-10" />}
         title="No recent activity"
         description="User hasn't performed any actions on the platform yet."
       />

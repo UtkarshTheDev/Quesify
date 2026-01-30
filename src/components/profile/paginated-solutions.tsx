@@ -44,7 +44,7 @@ export function PaginatedSolutionList({ initialSolutions, userId, currentUserId 
   if (solutions.length === 0) {
     return (
       <ProfileEmptyState 
-        icon={GitFork}
+        icon={<GitFork className="w-10 h-10" />}
         title="No contributed solutions"
         description="This user hasn't contributed any solutions to other users' questions yet."
       />

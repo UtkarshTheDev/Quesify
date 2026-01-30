@@ -43,7 +43,7 @@ export function PaginatedQuestionList({ initialQuestions, userId }: PaginatedQue
   if (questions.length === 0) {
     return (
       <ProfileEmptyState 
-        icon={BookOpen}
+        icon={<BookOpen className="w-10 h-10" />}
         title="No questions found"
         description="This user hasn't uploaded or added any questions to their bank yet."
       />

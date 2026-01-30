@@ -1,24 +1,24 @@
 'use client'
 
-import { LucideIcon } from 'lucide-react'
+import { ReactNode } from 'react'
 import { Card } from '@/components/ui/card'
 
 interface ProfileEmptyStateProps {
-  icon: LucideIcon
+  icon: ReactNode
   title: string
   description: string
 }
 
-export function ProfileEmptyState({ icon: Icon, title, description }: ProfileEmptyStateProps) {
+export function ProfileEmptyState({ icon, title, description }: ProfileEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 text-center border-2 border-dashed border-border/60 rounded-[2rem] bg-zinc-900/50 backdrop-blur-sm shadow-xl animate-in fade-in duration-700">
-      <div className="w-20 h-20 rounded-3xl bg-orange-500/10 flex items-center justify-center mb-8 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)]">
-        <Icon className="w-10 h-10 text-orange-500/60" />
+    <Card className="flex flex-col items-center justify-center py-20 px-6 text-center border-dashed bg-card/50 border-2 rounded-3xl animate-in fade-in zoom-in-95 duration-500 shadow-lg">
+      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-6 border border-primary/10 shadow-inner text-primary/40">
+        {icon}
       </div>
-      <h3 className="text-2xl font-bold tracking-tight mb-3 text-stone-100">{title}</h3>
-      <p className="text-stone-400 text-sm max-w-[340px] leading-relaxed font-medium">
+      <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">{title}</h3>
+      <p className="text-muted-foreground text-sm max-w-[320px] leading-relaxed font-medium">
         {description}
       </p>
-    </div>
+    </Card>
   )
 }
