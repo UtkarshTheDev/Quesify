@@ -1,7 +1,7 @@
 'use client'
 
 import { format } from 'date-fns'
-import { Calendar, Edit, Share2, Link as LinkIcon, Check } from 'lucide-react'
+import { Calendar, Edit, Share2, Check } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { FollowButton } from './follow-button'
@@ -91,6 +91,7 @@ export function ProfileSidebar({
             <FollowButton 
               followingId={profile.user_id} 
               initialIsFollowing={isFollowing} 
+              currentUserId={currentUser?.id || null}
               className="h-11 text-base w-full"
             />
           </div>
@@ -105,25 +106,53 @@ export function ProfileSidebar({
         </Button>
       </div>
 
-      <div className="w-full max-w-2xl grid grid-cols-4 gap-2 md:gap-8 py-8 border-y border-border/40">
-        <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}>
-          <span className="text-xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
-          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Followers</span>
-        </div>
-        
-        <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'following' })}>
-          <span className="text-xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
-          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Following</span>
+      <div className="w-full max-w-2xl py-8 border-y border-border/40">
+        <div className="grid grid-cols-4 gap-2 md:hidden">
+          <div className="flex flex-col items-center gap-0.5 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}>
+            <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Followers</span>
+          </div>
+          
+          <div className="flex flex-col items-center gap-0.5 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'following' })}>
+            <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Following</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xl font-bold text-emerald-500">{profile.total_solved}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Solved</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-xl font-bold text-blue-500">{profile.total_uploaded}</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Uploaded</span>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-xl md:text-3xl font-bold text-emerald-500">{profile.total_solved}</span>
-          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Solved</span>
-        </div>
+        <div className="hidden md:flex flex-col gap-8">
+          <div className="grid grid-cols-2 gap-8 w-full max-w-sm mx-auto">
+            <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'followers' })}>
+              <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followersCount}</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Followers</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => setSocialModal({ isOpen: true, type: 'following' })}>
+              <span className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">{followingCount}</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Following</span>
+            </div>
+          </div>
 
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-xl md:text-3xl font-bold text-blue-500">{profile.total_uploaded}</span>
-          <span className="text-[10px] md:text-sm font-medium text-muted-foreground uppercase tracking-wider text-center line-clamp-1 w-full">Uploaded</span>
+          <div className="w-1/2 mx-auto h-px bg-border/40" />
+
+          <div className="grid grid-cols-2 gap-8 w-full max-w-sm mx-auto">
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-3xl font-bold text-emerald-500">{profile.total_solved}</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Solved</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-3xl font-bold text-blue-500">{profile.total_uploaded}</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Uploaded</span>
+            </div>
+          </div>
         </div>
       </div>
 
