@@ -38,6 +38,7 @@ export interface Solution {
   author?: {
     display_name: string | null
     avatar_url: string | null
+    username?: string | null
   }
 }
 
@@ -71,6 +72,8 @@ export interface UserProfile {
   id: string
   user_id: string
   display_name: string | null
+  username: string | null
+  subjects: string[] | null
   avatar_url: string | null
   streak_count: number
   last_streak_date: string | null
@@ -104,6 +107,31 @@ export interface ReviseLater {
   user_id: string
   question_id: string
   added_at: string
+}
+
+export type ActivityType = 
+  | 'question_created' 
+  | 'solution_contributed' 
+  | 'question_solved' 
+  | 'question_forked' 
+  | 'hint_updated' 
+  | 'question_deleted' 
+  | 'solution_deleted'
+
+export interface UserActivity {
+  id: string
+  user_id: string
+  activity_type: ActivityType
+  target_id: string | null
+  target_type: 'question' | 'solution' | null
+  metadata: {
+    title?: string
+    subject?: string
+    chapter?: string
+    snippet?: string
+    [key: string]: any
+  }
+  created_at: string
 }
 
 // Extended types with relations
