@@ -61,35 +61,35 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[450px] p-6 gap-6">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Edit Profile</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight">Edit Profile</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="display_name" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            <Label htmlFor="display_name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
               Full Name
             </Label>
             <Input 
               id="display_name"
               placeholder="Your Name"
-              className="bg-muted/50 h-12 border-none font-medium"
+              className="bg-muted/30 h-11 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
               value={formData.display_name}
               onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            <Label htmlFor="username" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
               Username
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">@</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">@</span>
               <Input 
                 id="username"
                 placeholder="username"
-                className="bg-muted/50 h-12 border-none pl-8 font-medium"
+                className="bg-muted/30 h-11 border-border/60 pl-8 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                 value={formData.username}
                 onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
               />
@@ -97,7 +97,7 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
           </div>
 
           <div className="space-y-3">
-            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
               Interested Subjects
             </Label>
             <div className="flex flex-wrap gap-2">
@@ -108,36 +108,37 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
                     key={subject}
                     variant={isSelected ? "default" : "outline"}
                     className={cn(
-                      "px-4 py-2 text-sm font-bold rounded-xl cursor-pointer transition-all border-2",
+                      "px-3 py-1.5 text-sm font-medium rounded-lg cursor-pointer transition-all border",
                       isSelected 
-                        ? "bg-orange-500 hover:bg-orange-600 border-orange-500 shadow-md shadow-orange-500/20" 
-                        : "bg-muted/30 border-transparent hover:border-orange-500/30"
+                        ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" 
+                        : "bg-transparent border-border hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                     )}
                     onClick={() => toggleSubject(subject)}
                   >
                     {subject}
-                    {isSelected && <Check className="ml-2 h-3 w-3" />}
+                    {isSelected && <Check className="ml-1.5 h-3 w-3" />}
                   </Badge>
                 )
               })}
             </div>
           </div>
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-2 flex gap-3">
              <Button 
                 type="button" 
                 variant="ghost" 
-                className="flex-1 h-12 font-bold"
+                className="flex-1 h-11 font-semibold"
                 onClick={onClose}
              >
                Cancel
              </Button>
              <Button 
                 type="submit" 
-                className="flex-[2] h-12 bg-orange-500 hover:bg-orange-600 font-bold shadow-lg shadow-orange-500/20"
+                className="flex-[2] h-11 font-bold bg-primary hover:bg-primary/90"
                 disabled={isPending}
              >
-               {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
+               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+               Save Changes
              </Button>
           </div>
         </form>
