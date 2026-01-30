@@ -20,6 +20,7 @@ interface QuestionDetailProps {
     author?: {
       display_name: string | null
       avatar_url: string | null
+      username?: string | null
     }
   }
   userId: string | null
