@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
 import { 
   Link2, Lightbulb, CheckCircle2, PlusCircle, 
-  Loader2, Edit3, Trash2, ChevronDown, ChevronRight, History 
+  Loader2, Edit3, Trash2, ChevronDown, ChevronRight, History, UserPlus
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -14,7 +14,7 @@ import { ProfileEmptyState } from './empty-state'
 export type ActivityType = 
   | 'created_question' | 'contributed_solution' | 'solved_question' | 'added_to_bank'
   | 'question_created' | 'solution_contributed' | 'question_solved' | 'question_forked' 
-  | 'hint_updated' | 'question_deleted' | 'solution_deleted'
+  | 'hint_updated' | 'question_deleted' | 'solution_deleted' | 'user_followed'
 
 export interface ActivityItem {
   id: string
@@ -122,6 +122,8 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
       case 'question_deleted':
       case 'solution_deleted':
         return <Trash2 className="w-5 h-5 text-red-500" />
+      case 'user_followed':
+        return <UserPlus className="h-5 w-5 text-blue-500" />
     }
   }
 
@@ -148,6 +150,8 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
         return { action: `Deleted ${count} question${s} in`, subject: group.subject }
       case 'solution_deleted':
         return { action: `Deleted ${count} solution${s} in`, subject: group.subject }
+      case 'user_followed':
+        return { action: `Followed ${count} user${s}`, subject: '' }
       default:
         return { action: `${count} activities in`, subject: group.subject }
     }
