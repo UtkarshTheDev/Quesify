@@ -7,6 +7,7 @@ import { ProfileSidebar } from '@/components/profile/profile-sidebar'
 import { PaginatedActivityFeed } from '@/components/profile/paginated-activity-feed'
 import { PaginatedQuestionList } from '@/components/profile/paginated-questions'
 import { PaginatedSolutionList } from '@/components/profile/paginated-solutions'
+import { getFollowStats, checkIsFollowing } from '@/app/actions/social'
 import type { ActivityItem } from '@/components/profile/activity-feed'
 import type { Metadata } from 'next'
 
@@ -43,7 +44,9 @@ export default async function PublicProfilePage({ params }: PageProps) {
     { data: createdQuestions },
     { data: contributedSolutions },
     { data: forkedQuestions },
-    { data: allActivityCounts }
+    { data: allActivityCounts },
+    followStats,
+    isFollowing
   ] = await Promise.all([
     supabase
       .from('user_activities')
@@ -83,7 +86,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .from('user_activities')
       .select('created_at')
       .eq('user_id', profile.user_id)
-      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
+      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()),
+    
+    getFollowStats(profile.user_id),
+    checkIsFollowing(profile.user_id)
   ])
 
   const filteredSolutions = contributedSolutions?.filter((s: any) => 
@@ -131,7 +137,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
     <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
         <div className="md:col-span-1">
-           <ProfileSidebar profile={profile} currentUser={currentUser} />
+           <ProfileSidebar 
+              profile={profile} 
+              currentUser={currentUser} 
+              followersCount={followStats.followersCount}
+              followingCount={followStats.followingCount}
+              isFollowing={isFollowing}
+           />
         </div>
 
         <div className="md:col-span-3 space-y-12">
