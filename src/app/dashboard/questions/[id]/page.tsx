@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { QuestionDetail } from '@/components/questions/question-detail'
+import { QuestionSkeleton } from '@/components/questions/question-skeleton'
 import { Question, Solution, UserQuestionStats } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -77,7 +78,7 @@ export default async function DashboardQuestionPage({ params }: PageProps) {
 
   return (
     <div className="py-6">
-      <Suspense fallback={<div className="h-24 w-full bg-muted animate-pulse rounded-md" />}>
+      <Suspense fallback={<QuestionSkeleton isPublic={false} />}>
         <QuestionDetail
           question={question as unknown as QuestionWithDetails}
           userId={user.id}
