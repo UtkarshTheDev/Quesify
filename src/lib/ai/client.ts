@@ -161,11 +161,13 @@ class AIClient {
         return JSON.parse(cleaned) as T
       } catch (e) {}
 
-      // Step 4: Repair common escaping issues (especially with LaTeX)
-      // Handle unescaped newlines in strings, unescaped backslashes
-      const repaired = cleaned
-        .replace(/\\(?![nrt"\\/u])/g, '\\\\') // Escape lone backslashes
-        .replace(/\n/g, '\\n') // Convert literal newlines to escaped ones (if they look like JSON strings)
+
+        const repaired = cleaned.replace(/(\\\\)|(\\)(?![n"\\/u])/g, (match, p1) => {
+        if (p1) return p1 
+        return "\\\\" 
+      })
+
+
 
       try {
         return JSON.parse(repaired) as T
@@ -176,7 +178,7 @@ class AIClient {
       const aggressiveRepaired = repaired
         .replace(/"([\s\S]*?)"/g, (match, p1) => {
           // Escape newlines and tabs inside string values
-          return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/"/g, '\\"')}"`
+          return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t')}"`
         })
 
       try {
