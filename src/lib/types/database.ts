@@ -112,7 +112,7 @@ export interface ReviseLater {
 export type ActivityType = 
   | 'question_created' 
   | 'solution_contributed' 
-  | 'question_solved' 
+  | 'solution_updated' 
   | 'question_forked' 
   | 'hint_updated' 
   | 'question_deleted' 
