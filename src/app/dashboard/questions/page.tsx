@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { QuestionCard } from '@/components/questions/question-card'
+import { InfiniteQuestionList } from '@/components/questions/infinite-question-list'
 import { Button } from '@/components/ui/button'
 import { Filter, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -18,7 +18,6 @@ interface QuestionsPageProps {
     subject?: string
     chapter?: string
     search?: string
-    page?: string
     ids?: string
     title?: string
     difficulty?: string
@@ -34,9 +33,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
   const isMCQ = params.isMCQ
   const idsParam = params.ids
   const title = params.title
-  const page = Number(params.page) || 1
   const limit = 20
-  const offset = (page - 1) * limit
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -45,12 +42,9 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     redirect('/login')
   }
 
-  // Fetch syllabus progress (subjects and chapters with counts)
   const syllabusProgress = await getUserSyllabusProgress(user.id, subject)
   const currentSubjectData = subject ? syllabusProgress[subject] : null
 
-  // Build query
-  // We use !inner on questions to filter by question properties
   let query = supabase
     .from('user_questions')
     .select(`
@@ -60,12 +54,11 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
         solutions(count),
         user_question_stats(*)
       )
-    `, { count: 'exact' })
+    `)
     .eq('user_id', user.id)
     .order('added_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .limit(limit + 1)
 
-  // Apply filters
   if (idsParam) {
     const ids = idsParam.split(',')
     query = query.in('question_id', ids)
@@ -88,37 +81,22 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     }
   }
 
-  // Note: Text search on related table is tricky in Supabase JS client without a specific RPC or view
-  // For now, if there is a search term, we might have to rely on a different approach or accept
-  // that we can't easily search across the joined relation in a single query efficiently without setup.
-  // However, we can search on the top level if we had the text there.
-  // We'll skip text search implementation in the DB query for this MVP step to avoid complex PostgREST syntax errors
-  // or use a simple client-side filter if the dataset was small (but it's not guaranteed).
-  // Alternatively, we can use the `textSearch` filter if we assume questions are text indexed.
-  // query = query.textSearch('question.question_text', search) // This implies 'question' is the alias, but dot notation in filter might work depending on PostgREST version.
-
-  const { data: questionsData, count, error } = await query
+  const { data: questionsData, error } = await query
 
   if (error) {
     console.error('Error fetching questions:', error)
   }
 
-  const questions = (questionsData as UserQuestionWithStatsJoinResult[] | null)?.map((q) => {
+  const allQuestions = (questionsData as UserQuestionWithStatsJoinResult[] | null)?.map((q) => {
     return extractQuestion(q.question)
   }).filter(Boolean) as Question[] ?? []
-  const totalPages = count ? Math.ceil(count / limit) : 0
 
-  // Fetch unique subjects for filter list from actual usage to ensure we show what users have
-  // But also we want to show available subjects from syllabus?
-  // Let's stick to the existing method for the top-level subject filter to show what they have,
-  // or use the keys from getAllSyllabus if we want to show everything.
-  // Mixing both: show keys from syllabusProgress since it covers both static and DB.
+  const hasMore = allQuestions.length > limit
+  const questions = hasMore ? allQuestions.slice(0, limit) : allQuestions
+  const initialCursor = hasMore && questions.length > 0 
+    ? questionsData?.[questions.length - 1]?.added_at 
+    : null
 
-  // Actually, we can just use syllabusProgress keys if we fetched all subjects (when subject is undefined)
-  // But getUserSyllabusProgress(userId, subject) only returns one if subject is defined.
-  // So we need a list of ALL subjects for the top bar.
-
-  // Let's get all subjects efficiently just for the top bar
   const { data: allSubjects } = await supabase
     .from('user_questions')
     .select('question:questions(subject)')
@@ -129,7 +107,6 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     return q?.subject
   }).filter(Boolean) as string[])
 
-  // Add Physics, Chemistry, Mathematics to the set if not present (to encourage usage)
   const defaultSubjects = ['Physics', 'Chemistry', 'Mathematics']
   defaultSubjects.forEach(s => usedSubjects.add(s))
 
@@ -168,9 +145,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col gap-4">
-        {/* Subject Filter (Horizontal Scroll) */}
         <div className="w-full overflow-x-auto pb-2 border-b">
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -199,7 +174,6 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
           </div>
         </div>
 
-        {/* Chapter Filter (Only if subject is selected) */}
         {subject && currentSubjectData && (
           <div className="w-full overflow-x-auto pb-2">
              <div className="flex items-center gap-2">
@@ -242,7 +216,6 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
           </div>
         )}
 
-        {/* Additional Filters: Difficulty & Type */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">Difficulty:</span>
@@ -319,67 +292,18 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
         </div>
       </div>
 
-      {/* Results */}
-      {questions.length === 0 ? (
-        <div className="text-center py-16 border rounded-lg bg-muted/10 border-dashed flex flex-col items-center justify-center gap-4">
-          <div className="bg-primary/10 p-4 rounded-full">
-            <Filter className="h-8 w-8 text-primary opacity-50" />
-          </div>
-          <div className="space-y-2 max-w-sm">
-            <h3 className="text-lg font-semibold">No questions found</h3>
-            <p className="text-muted-foreground text-sm">
-              {subject || chapter || difficulty || isMCQ 
-                ? "Try adjusting your filters to see more results."
-                : "Your question bank is empty. Start by uploading your first question!"}
-            </p>
-          </div>
-          
-          <div className="flex gap-3 mt-2">
-            {(subject || chapter || difficulty || isMCQ) && (
-              <Button variant="outline" asChild>
-                <Link href={subject ? `/dashboard/questions?subject=${encodeURIComponent(subject)}` : "/dashboard/questions"}>
-                  Clear filters
-                </Link>
-              </Button>
-            )}
-            
-            <Button asChild>
-              <Link href="/upload">
-                Upload Question
-              </Link>
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {questions.map((question: Question) => (
-            <QuestionCard key={question.id} question={question} />
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-8">
-          {page > 1 && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/questions?page=${page - 1}${subject ? `&subject=${subject}` : ''}${chapter ? `&chapter=${chapter}` : ''}`}>
-                Previous
-              </Link>
-            </Button>
-          )}
-          <div className="flex items-center px-4 text-sm font-medium">
-            Page {page} of {totalPages}
-          </div>
-          {page < totalPages && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/questions?page=${page + 1}${subject ? `&subject=${subject}` : ''}${chapter ? `&chapter=${chapter}` : ''}`}>
-                Next
-              </Link>
-            </Button>
-          )}
-        </div>
-      )}
+      <InfiniteQuestionList
+        userId={user.id}
+        initialQuestions={questions}
+        initialCursor={initialCursor}
+        filters={{
+          subject,
+          chapter,
+          difficulty,
+          isMCQ,
+          ids: idsParam,
+        }}
+      />
     </div>
   )
 }
