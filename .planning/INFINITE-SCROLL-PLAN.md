@@ -31,31 +31,98 @@ Add infinite scroll with pagination across dashboard questions and profile pages
 
 ## Phase 1: API Layer - Cursor-Based Pagination
 
-### New Endpoints
+### Strategy: Modify Existing, Add Generic Endpoints
 
-**`src/app/api/questions/infinite/route.ts`**
+Instead of creating separate "infinite" endpoints, we'll:
+
+1. **Create ONE reusable pagination API route** for each entity type
+2. **Modify server components** to support cursor parameter
+3. **Maintain backward compatibility** with page-based pagination
+
+### New Reusable Endpoints
+
+**`src/app/api/pagination/questions/route.ts`**
+
 ```typescript
-GET ?user_id=xxx&subject=Physics&after_id=xxx&limit=20
-Returns: { questions: Question[], next_cursor: string|null, has_more: boolean }
+GET ?user_id=xxx&subject=Physics&cursor=xxx&limit=20
+
+Response:
+{
+  "data": Question[],
+  "next_cursor": "uuid-of-last-item" | null,
+  "has_more": boolean,
+  "total_count": number  // For "Showing X of Y" display
+}
 ```
 
-**`src/app/api/activities/infinite/route.ts`**
+**`src/app/api/pagination/activities/route.ts`**
+
 ```typescript
-GET ?user_id=xxx&after_id=xxx&limit=20
-Returns: { activities: ActivityItem[], next_cursor: string|null, has_more: boolean }
+GET ?user_id=xxx&cursor=xxx&limit=20
+
+Response:
+{
+  "data": ActivityItem[],
+  "next_cursor": "uuid-of-last-item" | null,
+  "has_more": boolean
+}
 ```
 
-**`src/app/api/solutions/infinite/route.ts`**
+**`src/app/api/pagination/solutions/route.ts`**
+
 ```typescript
-GET ?user_id=xxx&after_id=xxx&limit=20
-Returns: { solutions: Solution[], next_cursor: string|null, has_more: boolean }
+GET ?user_id=xxx&cursor=xxx&limit=20
+
+Response:
+{
+  "data": Solution[],
+  "next_cursor": "uuid-of-last-item" | null,
+  "has_more": boolean
+}
 ```
 
-**`src/app/api/user-questions/infinite/route.ts`**
+### Server Component Updates
+
+**`src/app/dashboard/questions/page.tsx`**
+
+Current code:
 ```typescript
-GET ?user_id=xxx&subject=Physics&after_id=xxx&limit=20
-Returns: { questions: Question[], next_cursor: string|null, has_more: boolean }
+const page = Number(params.page) || 1
+const limit = 20
+const offset = (page - 1) * limit
+// ... range query
+.range(offset, offset + limit - 1)
 ```
+
+Updated code:
+```typescript
+// Support BOTH cursor and page for backward compatibility
+const cursor = params.cursor || null
+const page = Number(params.page) || 1
+
+if (cursor) {
+  // Cursor-based query for infinite scroll
+  const { data, error } = await supabase
+    .from('user_questions')
+    .select('..., question:questions!inner(...)')
+    .eq('user_id', user.id)
+    .order('added_at', { ascending: false })
+    .lt('id', cursor)  // Cursor is the last item's ID
+    .limit(limit + 1)  // Fetch one extra to check hasMore
+} else if (page === 1) {
+  // First page - same as before, just use .limit(20)
+} else {
+  // Fallback to offset-based for page param (backward compatibility)
+  const offset = (page - 1) * limit
+  // ...
+}
+```
+
+**Benefits of this approach:**
+- ✅ Single endpoint per entity type
+- ✅ Backward compatible with existing page-based URLs
+- ✅ Cursor-based = better performance for deep pagination
+- ✅ Less code than creating "infinite" versions of everything
 
 ---
 
@@ -95,14 +162,13 @@ function useInfiniteScroll(options: InfiniteScrollOptions): InfiniteScrollReturn
 ### Update `src/app/dashboard/questions/page.tsx`
 
 **Changes:**
-1. Replace page-based query with cursor-based API call
-2. Add `useInfiniteScroll` hook
-3. Maintain local state: `questions[]`, `cursor|null`, `hasMore`
-4. Initial load: Fetch 20 items, store cursor
-5. On scroll to 90%: Call API with cursor, append results
-6. On filter change: Reset state, cursor, scroll to top
-7. Add loading skeleton at bottom
-8. Show "End of results" when `!hasMore`
+1. Add `useInfiniteScroll` hook
+2. Maintain local state: `questions[]`, `cursor|null`, `hasMore`
+3. Initial load: Fetch 20 items, store cursor
+4. On scroll to 90%: Call API with cursor, append results
+5. On filter change: Reset state, cursor, scroll to top
+6. Add loading skeleton at bottom
+7. Show "End of results" when `!hasMore`
 
 **State Management:**
 ```typescript
@@ -127,15 +193,14 @@ const { sentinelRef, isLoading, reset } = useInfiniteScroll({
 ```typescript
 interface InfiniteActivityFeedProps {
   userId: string
-  initialItems?: ActivityItem[]
 }
 
-export function InfiniteActivityFeed({ userId, initialItems = [] }: InfiniteActivityFeedProps)
+export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps)
 ```
 
 **Updates:**
 - Add `useInfiniteScroll` hook
-- API call to `/api/activities/infinite`
+- API call to `/api/pagination/activities`
 - Append new activities to existing list
 - Track cursor for pagination
 
@@ -144,8 +209,8 @@ export function InfiniteActivityFeed({ userId, initialItems = [] }: InfiniteActi
 **`src/components/profile/infinite-questions.tsx`**
 
 **Updates:**
-- Add `useInfiniteScroll` hook  
-- API call to `/api/user-questions/infinite`
+- Add `useInfiniteScroll` hook
+- API call to `/api/pagination/questions`
 - Merge created + forked questions
 - Track cursor separately for each source
 
@@ -155,7 +220,7 @@ export function InfiniteActivityFeed({ userId, initialItems = [] }: InfiniteActi
 
 **Updates:**
 - Add `useInfiniteScroll` hook
-- API call to `/api/solutions/infinite`
+- API call to `/api/pagination/solutions`
 - Append solutions to list
 - Track cursor
 
@@ -272,10 +337,9 @@ export const QuestionCard = React.memo(function QuestionCard({
 
 ### New Files
 - `.planning/INFINITE-SCROLL-PLAN.md` (this file)
-- `src/app/api/questions/infinite/route.ts`
-- `src/app/api/activities/infinite/route.ts`
-- `src/app/api/solutions/infinite/route.ts`
-- `src/app/api/user-questions/infinite/route.ts`
+- `src/app/api/pagination/questions/route.ts`
+- `src/app/api/pagination/activities/route.ts`
+- `src/app/api/pagination/solutions/route.ts`
 - `src/hooks/use-infinite-scroll.ts`
 - `src/components/profile/infinite-activity-feed.tsx`
 - `src/components/profile/infinite-questions.tsx`
@@ -284,9 +348,9 @@ export const QuestionCard = React.memo(function QuestionCard({
 ### Modified Files
 - `src/app/dashboard/questions/page.tsx` - Add infinite scroll
 - `src/app/u/[username]/page.tsx` - Use infinite components
-- `src/components/profile/paginated-activity-feed.tsx` - Archive or update
-- `src/components/profile/paginated-questions.tsx` - Archive or update
-- `src/components/profile/paginated-solutions.tsx` - Archive or update
+- `src/components/profile/paginated-activity-feed.tsx` - Archive or refactor
+- `src/components/profile/paginated-questions.tsx` - Archive or refactor
+- `src/components/profile/paginated-solutions.tsx` - Archive or refactor
 - `src/components/questions/question-card.tsx` - Add React.memo
 
 ### Removed Files
@@ -296,10 +360,10 @@ export const QuestionCard = React.memo(function QuestionCard({
 
 ## API Response Format
 
-All infinite scroll endpoints return:
+All pagination endpoints return:
 
 ```typescript
-interface InfiniteScrollResponse<T> {
+interface PaginationResponse<T> {
   data: T[]
   next_cursor: string | null  // ID of last item for next page
   has_more: boolean
@@ -328,7 +392,7 @@ interface InfiniteScrollResponse<T> {
 ## Next Steps
 
 1. ✅ Create branch `feature/infinite-scroll`
-2. ⬜ Create API endpoints with cursor-based pagination
+2. ⬜ Create pagination API endpoints (modify existing approach)
 3. ⬜ Build `useInfiniteScroll` hook
 4. ⬜ Update dashboard questions page
 5. ⬜ Create infinite scroll profile components
@@ -341,3 +405,4 @@ interface InfiniteScrollResponse<T> {
 ---
 
 *Plan created: 2026-02-01*
+*Updated: 2026-02-01 - Changed from creating new endpoints to modifying existing + generic pagination endpoints*
