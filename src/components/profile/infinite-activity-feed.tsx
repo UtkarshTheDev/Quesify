@@ -34,7 +34,31 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
 
       const data = await response.json()
 
-      setActivities((prev) => (cursor ? [...prev, ...data.data] : data.data))
+      const transformedActivities: ActivityItem[] = (data.data || []).map((act: any) => {
+        const getLocation = () => act.metadata?.chapter || act.metadata?.subject || 'General'
+        let title = ''
+        switch (act.activity_type) {
+          case 'question_created': title = `Created question in ${getLocation()}`; break
+          case 'solution_contributed': title = `Contributed solution to ${getLocation()}`; break
+          case 'question_solved': title = `Solved ${getLocation()} question`; break
+          case 'question_forked': title = `Added ${getLocation()} question to bank`; break
+          case 'question_deleted': title = `Deleted question in ${getLocation()}`; break
+          case 'solution_deleted': title = `Deleted solution`; break
+          case 'hint_updated': title = `Updated hint for ${getLocation()} question`; break
+          default: title = 'User activity'
+        }
+        return {
+          id: act.id,
+          type: act.activity_type,
+          date: act.created_at,
+          title: title,
+          url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
+          meta: act.metadata?.snippet || '',
+          metadata: act.metadata
+        }
+      })
+
+      setActivities((prev) => (cursor ? [...prev, ...transformedActivities] : transformedActivities))
       setCursor(data.next_cursor)
 
       if (!data.has_more) {
