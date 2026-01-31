@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Clock, ThumbsUp, ChevronRight, Sparkles } from 'lucide-react'
+import { Clock, ThumbsUp, ChevronRight, Sparkles, Timer } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Latex } from '@/components/ui/latex'
 import type { Solution } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { cn, formatDuration } from '@/lib/utils'
 import { toast } from 'sonner'
 
 import Link from 'next/link'
@@ -144,9 +144,17 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
                   <ThumbsUp className={cn("h-3.5 w-3.5", liked && "fill-current")} />
                   <span>{likesCount}</span>
                 </Button>
-                <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground/60 font-medium">
-                  <Clock className="h-3 w-3" />
-                  <span>{format(new Date(solution.created_at), 'MMM d')}</span>
+                <div className="hidden sm:flex items-center gap-2 text-[10px] text-muted-foreground/60 font-medium">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{format(new Date(solution.created_at), 'MMM d')}</span>
+                  </div>
+                  {solution.avg_solve_time > 0 && (
+                    <div className="flex items-center gap-1 text-primary/70">
+                      <Timer className="h-3 w-3" />
+                      <span>~{formatDuration(solution.avg_solve_time)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

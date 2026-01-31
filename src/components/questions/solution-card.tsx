@@ -11,6 +11,7 @@ import {
     ThumbsUp,
     Sparkles,
     CheckCircle2,
+    Timer,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -30,7 +31,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Solution } from "@/lib/types";
 import { toast } from "sonner";
-import { cn, stripBoxed } from "@/lib/utils";
+import { cn, stripBoxed, formatDuration } from "@/lib/utils";
 
 import Link from "next/link";
 
@@ -181,15 +182,23 @@ export function SolutionCard({
                                                 : "Contributor"}
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground/70 font-medium">
-                                        <Clock className="h-3 w-3" />
-                                        <span>
-                                            {dateLabel}{" "}
-                                            {format(
-                                                new Date(displayDate),
-                                                "MMM d, yyyy",
-                                            )}
-                                        </span>
+                                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 font-medium">
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="h-3 w-3" />
+                                            <span>
+                                                {dateLabel}{" "}
+                                                {format(
+                                                    new Date(displayDate),
+                                                    "MMM d, yyyy",
+                                                )}
+                                            </span>
+                                        </div>
+                                        {solution.avg_solve_time > 0 && (
+                                            <div className="flex items-center gap-1 text-primary/80">
+                                                <Timer className="h-3 w-3" />
+                                                <span>~{formatDuration(solution.avg_solve_time)}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </Link>
