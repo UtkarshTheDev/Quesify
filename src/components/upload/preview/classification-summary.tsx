@@ -21,7 +21,7 @@ interface ClassificationSummaryProps {
         topics: string[];
     };
     difficultyColors: Record<string, string>;
-    onRetryClassify?: () => void;
+    onRetryClassify?: (regenerate?: boolean) => void;
     formatTime: (seconds?: number) => string;
     delay?: number;
 }
@@ -48,7 +48,7 @@ export function ClassificationSummary({
                             variant="ghost"
                             size="icon"
                             className="h-5 w-5 text-destructive"
-                            onClick={onRetryClassify}
+                            onClick={() => onRetryClassify?.(false)}
                         >
                             <AlertTriangle className="h-3 w-3" />
                         </Button>
@@ -63,7 +63,7 @@ export function ClassificationSummary({
                             <Button
                                 variant="link"
                                 className="h-auto p-0 text-[10px] text-primary"
-                                onClick={onRetryClassify}
+                                onClick={() => onRetryClassify?.(true)}
                             >
                                 Retry Classification
                             </Button>
@@ -87,7 +87,7 @@ export function ClassificationSummary({
                                     {data.chapter}
                                 </p>
                             </div>
-
+                            
                             <div className="flex flex-wrap gap-2">
                                 <Badge
                                     variant="outline"
@@ -110,7 +110,7 @@ export function ClassificationSummary({
                                     </Badge>
                                 ) : null}
                             </div>
-
+                            
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-bold text-muted-foreground uppercase opacity-50">
                                     Related Topics
@@ -127,7 +127,7 @@ export function ClassificationSummary({
                                     ))}
                                 </div>
                             </div>
-
+                            
                             <div className="flex items-center justify-between px-2 pt-3 border-t border-border/40 mt-4">
                                 <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium flex items-center gap-2">
                                     <AlertCircle className="h-3.5 w-3.5 opacity-70 text-orange-500" />
@@ -136,7 +136,7 @@ export function ClassificationSummary({
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={onRetryClassify}
+                                    onClick={() => onRetryClassify?.(true)}
                                     className="h-9 text-xs font-bold text-muted-foreground hover:text-orange-600 hover:bg-orange-500/5 px-4 rounded-xl border-border/40 hover:border-orange-500/50 transition-all gap-2"
                                 >
                                     <RefreshCw className="h-3.5 w-3.5" />

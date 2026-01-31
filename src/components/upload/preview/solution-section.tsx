@@ -29,7 +29,7 @@ interface SolutionSectionProps {
     isSolutionModified: boolean;
     isVerifying: boolean;
     handleVerifyManualChanges: () => Promise<void>;
-    onRetrySolve?: () => void;
+    onRetrySolve?: (regenerate?: boolean) => void;
     solutionRef: React.RefObject<HTMLDivElement | null>;
     delay?: number;
 }
@@ -72,7 +72,7 @@ export function SolutionSection({
                                 variant="ghost"
                                 size="sm"
                                 className="h-7 sm:h-8 text-[10px] sm:text-xs text-destructive hover:bg-destructive/10"
-                                onClick={onRetrySolve}
+                                onClick={() => onRetrySolve?.(false)}
                             >
                                 <AlertTriangle className="h-3 w-3 sm:h-3.5 mr-1 sm:mr-1.5" />
                                 Retry Solve
@@ -99,7 +99,7 @@ export function SolutionSection({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={onRetrySolve}
+                                onClick={() => onRetrySolve?.(true)}
                                 className="rounded-xl h-8 text-[10px] font-bold"
                             >
                                 Regenerate Solution

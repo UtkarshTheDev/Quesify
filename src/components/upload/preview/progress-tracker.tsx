@@ -11,7 +11,7 @@ interface ProgressLinkProps {
     isLoading: boolean;
     error: string | null;
     done: boolean;
-    onRetry?: () => void;
+    onRetry?: (regenerate?: boolean) => void;
 }
 
 const ProgressLink = ({
@@ -28,7 +28,7 @@ const ProgressLink = ({
                 variant="ghost"
                 size="icon"
                 className="h-5 w-5 text-destructive"
-                onClick={onRetry}
+                onClick={() => onRetry?.(true)}
             >
                 <AlertTriangle className="h-3 w-3" />
             </Button>
@@ -56,9 +56,9 @@ interface ProgressTrackerProps {
         solution: string;
         subject: string;
     };
-    onRetryExtract?: () => void;
-    onRetrySolve?: () => void;
-    onRetryClassify?: () => void;
+    onRetryExtract?: (regenerate?: boolean) => void;
+    onRetrySolve?: (regenerate?: boolean) => void;
+    onRetryClassify?: (regenerate?: boolean) => void;
     delay?: number;
     handleSave: () => void;
     isSaving: boolean;
