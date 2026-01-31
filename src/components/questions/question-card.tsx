@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Latex } from '@/components/ui/latex'
 import type { Question, UserQuestionStats } from '@/lib/types'
+import { memo } from 'react'
 
 interface QuestionCardProps {
   question: Question & {
@@ -14,7 +15,7 @@ interface QuestionCardProps {
   }
 }
 
-export function QuestionCard({ question }: QuestionCardProps) {
+export const QuestionCard = memo(function QuestionCard({ question }: QuestionCardProps) {
   const stats = question.user_question_stats?.[0] || null
 
   const getDifficultyStyles = (level: string) => {
@@ -102,4 +103,4 @@ export function QuestionCard({ question }: QuestionCardProps) {
       </Card>
     </Link>
   )
-}
+})

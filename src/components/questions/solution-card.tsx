@@ -157,6 +157,7 @@ export function SolutionCard({
                                 <Avatar className="h-8 w-8 border shadow-sm">
                                     <AvatarImage
                                         src={solution.author?.avatar_url || ""}
+                                        loading="lazy"
                                     />
                                     <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
                                         {solution.author?.username?.charAt(0) ||
