@@ -31,7 +31,7 @@ export function ProfileSidebar({ profile, currentUser }: ProfileSidebarProps) {
             <div className="flex flex-col gap-4">
                 <div className="relative group w-fit mx-auto md:mx-0">
                     <Avatar className="w-32 h-32 md:w-64 md:h-64 border-4 border-background shadow-xl rounded-full">
-                        <AvatarImage src={currentProfile.avatar_url || ""} />
+                        <AvatarImage src={currentProfile.avatar_url || ""} loading="lazy" />
                         <AvatarFallback className="text-6xl bg-orange-100 text-orange-600 font-bold">
                             {currentProfile.display_name?.[0]?.toUpperCase() || currentProfile.username?.[0]?.toUpperCase() || "U"}
                         </AvatarFallback>
