@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { question_text, solution_text } = await request.json()
+        const { question_text, solution_text, regenerate } = await request.json()
 
         if (!question_text) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
                     question_text,
                     solution_text || '',
                     topMatch.question_text,
-                    topMatch.matched_solution_text || ''
+                    topMatch.matched_solution_text || '',
+                    { useBestModel: !!regenerate }
                 )
 
                 console.log(`[Route/Finalize] AI Verdict: ${analysis.match_type}, Confidence: ${analysis.confidence}`)
