@@ -28,7 +28,11 @@ interface Notification {
   entityDetails?: any
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  userId?: string
+}
+
+export function NotificationBell({ userId }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -39,18 +43,17 @@ export function NotificationBell() {
 
     // Subscribe to realtime updates for the current user
     const subscribeToNotifications = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!userId) return
 
       const channel = supabase
-        .channel(`notifications-${user.id}`)
+        .channel(`notifications-${userId}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `recipient_id=eq.${user.id}`
+            filter: `recipient_id=eq.${userId}`
           },
           (payload) => {
             setUnreadCount((prev) => prev + 1)
