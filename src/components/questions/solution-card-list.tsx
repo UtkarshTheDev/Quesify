@@ -111,9 +111,9 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
       className={cn(
         "group cursor-pointer transition-all duration-300 overflow-hidden relative",
         // Base styles for the card - darker, subtle border
-        "bg-card/40 border border-border/60 hover:border-orange-500/30 hover:shadow-[0_0_20px_-5px_rgba(249,115,22,0.1)]",
+        "bg-card/40 border border-border/60 hover:border-orange-500/20 hover:shadow-[0_4px_20px_-10px_rgba(249,115,22,0.1)]",
         isActive 
-          ? "border-orange-500/50 bg-orange-500/[0.03] shadow-md shadow-orange-500/5 ring-1 ring-orange-500/20" 
+          ? "border-orange-500/40 bg-orange-500/[0.02] shadow-[0_0_15px_-5px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/10" 
           : "hover:bg-card/60"
       )}
       onClick={onSelect}
@@ -199,14 +199,14 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
             
             {/* Strategic Approach Section - Highlighted */}
             {solution.approach_description && (
-              <div className="relative group/approach mt-2 overflow-hidden rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-transparent">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500/50" />
-                <div className="p-3.5 pl-4 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-orange-600">
+              <div className="relative group/approach mt-2 overflow-hidden rounded-lg border border-orange-500/10 bg-gradient-to-r from-orange-500/[0.02] to-transparent">
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-orange-500/40" />
+                <div className="p-3 pl-3.5 space-y-1">
+                  <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-orange-600/80">
                     <Sparkles className="h-3 w-3" />
                     Strategic Approach
                   </div>
-                  <div className="text-[13px] text-foreground/90 leading-relaxed line-clamp-2 font-medium">
+                  <div className="text-[13px] text-muted-foreground/90 leading-relaxed line-clamp-2 font-medium">
                     <Latex>{solution.approach_description}</Latex>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
             <div className="flex items-end justify-between gap-4 pt-1">
               <div className="text-[13px] text-muted-foreground line-clamp-2 flex-1 relative h-10 overflow-hidden leading-relaxed font-medium">
                 <Latex>{solution.solution_text}</Latex>
-                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-background via-background/80 to-transparent" />}
+                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card/40 to-transparent" />}
               </div>
               <Button 
                 variant="outline" 
