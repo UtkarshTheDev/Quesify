@@ -37,7 +37,11 @@ import Link from "next/link";
 
 interface SolutionCardProps {
     solution: Solution & {
-        author?: { display_name: string | null; avatar_url: string | null; username?: string | null };
+        author?: {
+            display_name: string | null;
+            avatar_url: string | null;
+            username?: string | null;
+        };
     };
     currentUserId: string | null;
     onDelete?: (id: string) => void;
@@ -153,7 +157,18 @@ export function SolutionCard({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {!isEditing && (
-                            <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} className={cn("flex items-center gap-3", !solution.author?.username && "pointer-events-none")}>
+                            <Link
+                                href={
+                                    solution.author?.username
+                                        ? `/u/${solution.author.username}`
+                                        : "#"
+                                }
+                                className={cn(
+                                    "flex items-center gap-3",
+                                    !solution.author?.username &&
+                                        "pointer-events-none",
+                                )}
+                            >
                                 <Avatar className="h-8 w-8 border shadow-sm">
                                     <AvatarImage
                                         src={solution.author?.avatar_url || ""}
@@ -167,7 +182,8 @@ export function SolutionCard({
                                 <div className="flex flex-col gap-0.5">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-semibold hover:underline">
-                                            @{solution.author?.username ||
+                                            @
+                                            {solution.author?.username ||
                                                 "contributor"}
                                         </span>
                                         <Badge
@@ -197,7 +213,12 @@ export function SolutionCard({
                                         {solution.avg_solve_time > 0 && (
                                             <div className="flex items-center gap-1 text-primary/80">
                                                 <Timer className="h-3 w-3" />
-                                                <span>~{formatDuration(solution.avg_solve_time)}</span>
+                                                <span>
+                                                    ~
+                                                    {formatDuration(
+                                                        solution.avg_solve_time,
+                                                    )}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
@@ -381,7 +402,7 @@ export function SolutionCard({
                                 <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
                                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-primary/80">
                                     <Sparkles className="h-3 w-3" />
-                                    Core Strategy \u0026 Approach
+                                    Core Strategy & Approach
                                 </div>
                                 <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed font-semibold italic opacity-90">
                                     <Latex>
