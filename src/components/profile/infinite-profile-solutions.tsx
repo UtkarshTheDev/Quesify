@@ -86,35 +86,33 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
         </div>
       ) : (
         <>
-          {solutions.length === 0 ? (
+          <SolutionCardList
+            solutions={solutions}
+            onSelect={handleSelectSolution}
+            currentUserId={currentUserId}
+          />
+
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center py-4">
+              {isLoading && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading more...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!hasMore && solutions.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <p>No solutions contributed yet</p>
             </div>
-          ) : (
-            <>
-              <SolutionCardList
-                solutions={solutions}
-                onSelect={handleSelectSolution}
-                currentUserId={currentUserId}
-              />
+          )}
 
-              {hasMore && (
-                <div ref={sentinelRef} className="flex justify-center py-4">
-                  {isLoading && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="text-sm">Loading more...</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!hasMore && solutions.length > 0 && (
-                <div className="text-center py-4 text-muted-foreground text-sm">
-                  No more solutions
-                </div>
-              )}
-            </>
+          {!hasMore && solutions.length > 0 && (
+            <div className="text-center py-4 text-muted-foreground text-sm">
+              No more solutions
+            </div>
           )}
         </>
       )}
