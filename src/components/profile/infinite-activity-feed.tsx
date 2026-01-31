@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { ActivityFeed, ActivityItem } from '@/components/profile/activity-feed'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
@@ -14,6 +14,9 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
   const [cursor, setCursor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [initialLoaded, setInitialLoaded] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  
+  const setIsLoadingRef = useRef<((value: boolean) => void) | null>(null)
 
   const loadMore = useCallback(async () => {
     try {
@@ -44,14 +47,21 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load activities')
     } finally {
-      setIsLoading(false)
+      if (setIsLoadingRef.current) {
+        setIsLoadingRef.current(false)
+      }
     }
   }, [cursor, userId, initialLoaded])
 
-  const { sentinelRef, isLoading, hasMore, setHasMore, setIsLoading } = useInfiniteScroll({
+  const { sentinelRef, isLoading, setIsLoading } = useInfiniteScroll({
     onLoadMore: loadMore,
-    enabled: !initialLoaded || !!cursor,
+    enabled: hasMore && (!initialLoaded || !!cursor),
   })
+
+  useEffect(() => {
+    setIsLoadingRef.current = setIsLoading
+  }, [setIsLoading])
+
 
   if (error && activities.length === 0) {
     return (
