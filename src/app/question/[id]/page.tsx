@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { QuestionDetail } from '@/components/questions/question-detail'
+import { QuestionSkeleton } from '@/components/questions/question-skeleton'
 import { Question, Solution, UserQuestionStats } from '@/lib/types'
 import { PublicNav } from '@/components/layout/public-nav'
 import type { Metadata } from 'next'
@@ -127,12 +128,7 @@ export default async function PublicQuestionPage({ params }: PageProps) {
         <div className="min-h-screen flex flex-col">
             <PublicNav userId={user?.id} />
             <main className="flex-1 mx-auto px-4 py-12">
-                <Suspense fallback={
-                    <div className="max-w-4xl mx-auto space-y-6">
-                        <div className="h-10 w-24 bg-muted animate-pulse rounded-md" />
-                        <div className="h-[400px] w-full bg-muted animate-pulse rounded-xl" />
-                    </div>
-                }>
+                <Suspense fallback={<QuestionSkeleton isPublic={true} />}>
                     <QuestionDetail
                         question={questionWithDetails as unknown as QuestionWithDetails}
                         userId={user?.id || null}
