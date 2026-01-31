@@ -21,6 +21,7 @@ export default function UploadPage() {
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const finalizationLock = useRef(false)
+  const isBestModelActive = useRef(false)
 
   // Analysis states for progressive feedback
   const [analysisStatus, setAnalysisStatus] = useState({
@@ -35,12 +36,22 @@ export default function UploadPage() {
   })
 
   // Phase 1: Extraction
-  const runExtract = async (file: File) => {
+  const runExtract = async (file: File, regenerate = false) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, extracting: true, extractError: null }))
+    finalizationLock.current = false
+    isBestModelActive.current = regenerate
+    
+    if (regenerate) {
+      toast.info("High-quality model is being used. It may take some time, please be patient.")
+    }
+
     try {
       const formData = new FormData()
       formData.append('file', file)
+      if (regenerate) {
+        formData.append('regenerate', 'true')
+      }
 
       const res = await fetch('/api/upload/extract', {
         method: 'POST',
@@ -66,8 +77,8 @@ export default function UploadPage() {
       setAnalysisStatus(prev => ({ ...prev, extracting: false }))
 
       // Kick off background tasks automatically after extraction
-      runSolve(result.data.question_text, result.data.isMCQ, result.data.subject, result.data.options)
-      runClassify(result.data.question_text, result.data.subject)
+      runSolve(result.data.question_text, result.data.isMCQ, result.data.subject, result.data.options, regenerate)
+      runClassify(result.data.question_text, result.data.subject, regenerate)
     } catch (error) {
       setAnalysisStatus(prev => ({
         ...prev,
@@ -79,14 +90,27 @@ export default function UploadPage() {
   }
 
   // Phase 2: Solving
-  const runSolve = async (text: string, isMCQ: boolean, subject: string, options: string[] = []) => {
+  const runSolve = async (text: string, isMCQ: boolean, subject: string, options: string[] = [], regenerate = false) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, solving: true, solveError: null }))
+    finalizationLock.current = false
+    isBestModelActive.current = regenerate || isBestModelActive.current
+    
+    if (regenerate && !analysisStatus.extracting) {
+      toast.info("High-quality model is being used. It may take some time, please be patient.")
+    }
+
     try {
       const res = await fetch('/api/upload/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text, isMCQ, subject, options })
+        body: JSON.stringify({ 
+          question_text: text, 
+          isMCQ, 
+          subject, 
+          options,
+          regenerate: regenerate || undefined
+        })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Solving failed')
@@ -113,14 +137,25 @@ export default function UploadPage() {
   }
 
   // Phase 3: Classification
-  const runClassify = async (text: string, subject: string) => {
+  const runClassify = async (text: string, subject: string, regenerate = false) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, classifying: true, classifyError: null }))
+    finalizationLock.current = false
+    isBestModelActive.current = regenerate || isBestModelActive.current
+
+    if (regenerate && !analysisStatus.extracting) {
+      toast.info("High-quality model is being used. It may take some time, please be patient.")
+    }
+
     try {
       const res = await fetch('/api/upload/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text, subject })
+        body: JSON.stringify({ 
+          question_text: text, 
+          subject,
+          regenerate: regenerate || undefined
+        })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || 'Classification failed')
@@ -168,7 +203,11 @@ export default function UploadPage() {
       const res = await fetch('/api/upload/finalize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_text: text, solution_text: solution })
+        body: JSON.stringify({ 
+          question_text: text, 
+          solution_text: solution,
+          regenerate: isBestModelActive.current || undefined
+        })
       })
       const result = await res.json()
       if (result.success) {
@@ -263,6 +302,7 @@ export default function UploadPage() {
             chapter: 'Pending...',
             topics: [],
             isMCQ: true,
+            type: 'MCQ',
             difficulty: 'medium',
             importance: 5,
             has_diagram: false,
@@ -274,9 +314,9 @@ export default function UploadPage() {
           onSave={handleSave}
           isSaving={isSaving}
           onReFinalize={handleReFinalize}
-          onRetryExtract={() => selectedFile && runExtract(selectedFile)}
-          onRetrySolve={() => extractedData && runSolve(extractedData.question_text, extractedData.isMCQ, extractedData.subject, extractedData.options)}
-          onRetryClassify={() => extractedData && runClassify(extractedData.question_text, extractedData.subject)}
+          onRetryExtract={(regen) => selectedFile && runExtract(selectedFile, regen)}
+          onRetrySolve={(regen) => extractedData && runSolve(extractedData.question_text, extractedData.isMCQ, extractedData.subject, extractedData.options, regen)}
+          onRetryClassify={(regen) => extractedData && runClassify(extractedData.question_text, extractedData.subject, regen)}
         />
       )}
     </div>
