@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { Clock, ThumbsUp, ChevronRight, Sparkles, Timer } from 'lucide-react'
+import { Clock, ThumbsUp, ChevronRight, Sparkles, Timer, User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -100,57 +100,95 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
     }
   }
 
+  // Helper to get display name and avatar fallback
+  const displayName = solution.author?.display_name || solution.author?.username || 'Contributor'
+  const username = solution.author?.username
+  const avatarFallback = displayName.charAt(0).toUpperCase()
+  const profileUrl = username ? `/u/${username}` : '#'
+
   return (
     <Card 
       className={cn(
-        "group cursor-pointer transition-all duration-300 border-2 overflow-hidden",
+        "group cursor-pointer transition-all duration-300 overflow-hidden relative",
+        // Base styles for the card - darker, subtle border
+        "bg-card/40 border border-border/60 hover:border-orange-500/30 hover:shadow-[0_0_20px_-5px_rgba(249,115,22,0.1)]",
         isActive 
-          ? "border-primary bg-primary/[0.04] shadow-lg shadow-primary/10 ring-1 ring-primary/20" 
-          : "border-border/60 bg-muted/20 hover:bg-muted/40 hover:border-primary/40 hover:shadow-md"
+          ? "border-orange-500/50 bg-orange-500/[0.03] shadow-md shadow-orange-500/5 ring-1 ring-orange-500/20" 
+          : "hover:bg-card/60"
       )}
       onClick={onSelect}
     >
+      {/* Active Indicator Strip */}
+      {isActive && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+      )}
+
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} onClick={(e) => e.stopPropagation()}>
-            <Avatar className="h-10 w-10 border-2 border-background shadow-sm shrink-0 ring-1 ring-border/20 hover:ring-primary/50 transition-all">
+          {/* Avatar Section */}
+          <Link href={profileUrl} onClick={(e) => !username && e.preventDefault()} className={cn("shrink-0", !username && "cursor-default")}>
+            <Avatar className="h-10 w-10 border border-border shadow-sm ring-2 ring-transparent group-hover:ring-orange-500/20 transition-all">
                 <AvatarImage src={solution.author?.avatar_url || ''} />
-                <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
-                {solution.author?.username?.charAt(0) || 'U'}
+                <AvatarFallback className="bg-orange-500/10 text-orange-600 text-xs font-bold">
+                  {avatarFallback}
                 </AvatarFallback>
             </Avatar>
           </Link>
           
           <div className="flex-1 space-y-4 min-w-0">
+            {/* Header: Author & Stats */}
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Link href={solution.author?.username ? `/u/${solution.author.username}` : "#"} onClick={(e) => e.stopPropagation()} className="font-bold text-sm truncate hover:underline hover:text-primary transition-colors">
-                  @{solution.author?.username || 'contributor'}
-                </Link>
-                <Badge variant={solution.is_ai_best ? "default" : "secondary"} className="text-[9px] uppercase tracking-tighter h-4 px-1.5 font-black">
-                  {solution.is_ai_best ? 'AI Best' : 'Contributor'}
-                </Badge>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href={profileUrl} 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (!username) e.preventDefault()
+                      }} 
+                      className={cn(
+                        "font-bold text-sm truncate transition-colors",
+                        username ? "hover:text-orange-500 hover:underline decoration-orange-500/30" : "cursor-default"
+                      )}
+                    >
+                      {displayName}
+                    </Link>
+                    {solution.is_ai_best && (
+                      <Badge variant="default" className="text-[9px] uppercase tracking-tighter h-4 px-1.5 font-black bg-orange-500 hover:bg-orange-600 border-orange-600/20">
+                        AI Best
+                      </Badge>
+                    )}
+                  </div>
+                  {username && (
+                    <span className="text-[10px] text-muted-foreground font-medium truncate">@{username}</span>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+
+              <div className="flex items-center gap-2 shrink-0">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-7 px-2 gap-1.5 text-[10px] font-bold rounded-full transition-colors bg-background/50 border border-border/30",
-                    liked ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : "text-muted-foreground hover:bg-background"
+                    "h-7 px-2 gap-1.5 text-[10px] font-bold rounded-full transition-colors border",
+                    liked 
+                      ? "bg-orange-500/10 text-orange-600 border-orange-500/20 hover:bg-orange-500/20" 
+                      : "bg-background/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                   onClick={handleLike}
                 >
                   <ThumbsUp className={cn("h-3.5 w-3.5", liked && "fill-current")} />
                   <span>{likesCount}</span>
                 </Button>
+                
                 <div className="hidden sm:flex items-center gap-2 text-[10px] text-muted-foreground/60 font-medium">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     <span>{format(new Date(solution.created_at), 'MMM d')}</span>
                   </div>
                   {solution.avg_solve_time > 0 && (
-                    <div className="flex items-center gap-1 text-primary/70">
+                    <div className="flex items-center gap-1 text-orange-600/70">
                       <Timer className="h-3 w-3" />
                       <span>~{formatDuration(solution.avg_solve_time)}</span>
                     </div>
@@ -159,32 +197,36 @@ function SolutionListItem({ solution, isActive, onSelect, currentUserId }: Solut
               </div>
             </div>
             
+            {/* Strategic Approach Section - Highlighted */}
             {solution.approach_description && (
-              <div className="relative group/approach">
-                <div className="absolute -left-3 top-0 bottom-0 w-1.5 bg-primary rounded-full" />
-                <div className="bg-card/80 border border-border/60 p-3.5 rounded-r-xl space-y-1.5 shadow-sm">
-                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-primary">
+              <div className="relative group/approach mt-2 overflow-hidden rounded-xl border border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-transparent">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500/50" />
+                <div className="p-3.5 pl-4 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-orange-600">
                     <Sparkles className="h-3 w-3" />
                     Strategic Approach
                   </div>
-                  <div className="text-[13px] text-foreground leading-relaxed line-clamp-2 font-medium">
+                  <div className="text-[13px] text-foreground/90 leading-relaxed line-clamp-2 font-medium">
                     <Latex>{solution.approach_description}</Latex>
                   </div>
                 </div>
               </div>
             )}
             
-            <div className="flex items-end justify-between gap-4">
+            {/* Solution Preview */}
+            <div className="flex items-end justify-between gap-4 pt-1">
               <div className="text-[13px] text-muted-foreground line-clamp-2 flex-1 relative h-10 overflow-hidden leading-relaxed font-medium">
                 <Latex>{solution.solution_text}</Latex>
-                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-muted/20 to-transparent" />}
+                {!isActive && <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-background via-background/80 to-transparent" />}
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className={cn(
-                  "h-8 px-4 text-[11px] font-bold uppercase tracking-widest gap-2 rounded-lg shrink-0 transition-all shadow-sm",
-                  isActive ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" : "bg-background hover:border-primary hover:text-primary hover:shadow-md"
+                  "h-8 px-4 text-[10px] font-bold uppercase tracking-widest gap-2 rounded-lg shrink-0 transition-all shadow-sm border",
+                  isActive 
+                    ? "bg-orange-500 text-white border-orange-600 hover:bg-orange-600" 
+                    : "bg-background hover:border-orange-500/50 hover:text-orange-600 hover:shadow-md hover:shadow-orange-500/5"
                 )}
               >
                 {isActive ? 'Current' : 'View'}
