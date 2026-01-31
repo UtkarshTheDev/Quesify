@@ -33,7 +33,7 @@ export const AI_CONFIG = {
         // Feedback refinement & updates (Tweak / Regeneration)
         updates: {
             provider: (process.env.AI_PROVIDER_UPDATES as AIProvider) || "gemini",
-            model: process.env.AI_MODEL_UPDATES || "gemini-3.0-flash-preview",
+            model: process.env.AI_MODEL_UPDATES || "gemini-3-flash-preview",
         } as ModelConfig,
         
         // User Q&A / Chat
@@ -45,7 +45,7 @@ export const AI_CONFIG = {
         // High Quality / Regeneration fallback (New category)
         best: {
             provider: "gemini",
-            model: "gemini-3.0-flash-preview", 
+            model: "gemini-3-flash-preview", 
         } as ModelConfig,
 
         // Embedding model (currently only gemini supported)
