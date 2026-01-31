@@ -1,5 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCache, setCache, deleteCache, recordCacheHit, recordCacheMiss, resetCacheHitTracker, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/api-cache'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
+  resetCacheHitTracker()
+
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const cacheKey = CACHE_KEYS.USER.PROFILE(user.id)
+    const cached = await getCache(cacheKey)
+
+    if (cached.fromCache) {
+      recordCacheHit()
+      console.log(`[Cache] HIT ${cacheKey}`)
+      return NextResponse.json({
+        success: true,
+        data: cached.data,
+        fromCache: true,
+      })
+    }
+
+    recordCacheMiss()
+    console.log(`[Cache] MISS ${cacheKey}`)
+
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (error) {
+      console.error('Profile fetch error:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch profile' },
+        { status: 500 }
+      )
+    }
+
+    await setCache(cacheKey, profile, CACHE_TTL.USER_DATA)
+
+    return NextResponse.json({
+      success: true,
+      data: profile,
+      fromCache: false,
+    })
+  } catch (error) {
+    console.error('Profile fetch error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -61,6 +121,10 @@ export async function PATCH(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    const cacheKey = CACHE_KEYS.USER.PROFILE(user.id)
+    await deleteCache(cacheKey)
+    console.log(`[Cache] INVALIDATED ${cacheKey} after profile update`)
 
     return NextResponse.json({
       success: true,
