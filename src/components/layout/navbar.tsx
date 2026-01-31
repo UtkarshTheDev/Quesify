@@ -82,7 +82,7 @@ export async function Navbar() {
                         </div>
                     )}
 
-                    <NotificationBell />
+                    <NotificationBell userId={user?.id} />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
