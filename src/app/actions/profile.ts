@@ -33,8 +33,8 @@ export async function getMoreActivities(userId: string, page: number) {
       case 'solution_contributed':
         title = `Contributed solution to ${getLocation()}`
         break
-      case 'question_solved':
-        title = `Solved ${getLocation()} question`
+      case 'solution_updated':
+        title = `Updated solution for ${getLocation()}`
         break
       case 'question_forked':
         title = `Added ${getLocation()} question to bank`
