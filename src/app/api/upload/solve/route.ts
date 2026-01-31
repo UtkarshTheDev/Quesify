@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { question_text, isMCQ, subject, options } = await request.json()
+        const { question_text, isMCQ, subject, options, regenerate } = await request.json()
 
         if (!question_text) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
             question_text,
             questionType,
             cleanSubject,
-            cleanOptions
+            cleanOptions,
+            { useBestModel: !!regenerate }
         )
         console.log(`[Route/Solve] AI Solution generation took ${(performance.now() - solStart).toFixed(2)}ms`)
 

@@ -79,7 +79,8 @@ export const ai = {
   async extractQuestion(
     imageBase64: string,
     mimeType: string,
-    subjectsList: string[]
+    subjectsList: string[],
+    options?: { useBestModel?: boolean }
   ): Promise<GeminiExtractionResult & { isValid: boolean; reason?: string }> {
     const client = getAIClient()
 
@@ -87,11 +88,21 @@ export const ai = {
       subjectsList: subjectsList.join(', ')
     })
 
+    const modelType = options?.useBestModel ? 'best' : 'vision'
+
+    // If using 'best' (Gemini) for vision task, we use generateFromImage
+    // If 'vision' is mapped to Groq, generateFromImage handles it too.
+    // However, 'best' category in config is generic. 
+    // Ideally 'best' for vision should be a vision model.
+    // Gemini 2.0 Flash IS multimodal, so it works for text AND vision.
+    // So passing 'best' to generateFromImage should work if the underlying model supports vision.
+    // gemini-2.0-flash-exp supports vision.
+    
     const response = await client.generateFromImage(
       imageBase64,
       mimeType,
       prompt,
-      'vision'
+      modelType as any // Cast because 'best' is added to config but TS might not infer it immediately in this file context without full reload
     )
 
     const result = client.parseAiJson<GeminiExtractionResult & { isValid: boolean; reason?: string }>(response)
@@ -145,7 +156,8 @@ export const ai = {
     questionText: string,
     questionType: string,
     subject: string,
-    options: string[] = []
+    options: string[] = [],
+    config?: { useBestModel?: boolean }
   ): Promise<SolutionGenerationResponse> {
     const client = getAIClient()
 
@@ -160,7 +172,8 @@ export const ai = {
       options: optionsText
     })
 
-    const response = await client.generateText(prompt, 'reasoning')
+    const modelType = config?.useBestModel ? 'best' : 'reasoning'
+    const response = await client.generateText(prompt, modelType as any)
     return client.parseAiJson<SolutionGenerationResponse>(response)
   },
 
@@ -169,7 +182,8 @@ export const ai = {
    */
   async classifyQuestion(
     questionText: string,
-    syllabusChapters: string
+    syllabusChapters: string,
+    options?: { useBestModel?: boolean }
   ): Promise<GeminiExtractionResult> {
     const client = getAIClient()
 
@@ -178,7 +192,8 @@ export const ai = {
       syllabusChapters,
     })
 
-    const response = await client.generateText(prompt, 'fast')
+    const modelType = options?.useBestModel ? 'best' : 'fast'
+    const response = await client.generateText(prompt, modelType as any)
     return client.parseAiJson<GeminiExtractionResult>(response)
   },
 

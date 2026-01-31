@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
 
         const formData = await request.formData()
         const file = formData.get('file') as File
+        const isRegeneration = formData.get('regenerate') === 'true'
 
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -33,7 +34,8 @@ export async function POST(request: NextRequest) {
         const rawExtraction = await ai.extractQuestion(
             base64,
             file.type,
-            subjectsList
+            subjectsList,
+            { useBestModel: isRegeneration }
         )
         console.log(`[Route/Extract] Consolidated AI Extraction took ${(performance.now() - extStart).toFixed(2)}ms`)
 
