@@ -20,14 +20,14 @@ export const AI_CONFIG = {
         // First pass: Groq (Llama 3 70B)
         fast: {
             provider: (process.env.AI_PROVIDER_FAST as AIProvider) || "groq",
-            model: process.env.AI_MODEL_FAST || "llama3-70b-8192",
+            model: process.env.AI_MODEL_FAST || "llama-3.3-70b-versatile",
         } as ModelConfig,
         
         // Complex reasoning (LA, charts)
         // First pass: Groq (Llama 3 70B)
         reasoning: {
             provider: (process.env.AI_PROVIDER_REASONING as AIProvider) || "groq",
-            model: process.env.AI_MODEL_REASONING || "llama3-70b-8192",
+            model: process.env.AI_MODEL_REASONING || "llama-3.3-70b-versatile",
         } as ModelConfig,
         
         // Feedback refinement & updates (Tweak / Regeneration)
@@ -39,7 +39,7 @@ export const AI_CONFIG = {
         // User Q&A / Chat
         qa: {
             provider: (process.env.AI_PROVIDER_QA as AIProvider) || "gemini",
-            model: process.env.AI_MODEL_QA || "gemini-3.0-flash-preview",
+            model: process.env.AI_MODEL_QA || "gemini-2.5-flash",
         } as ModelConfig,
 
         // High Quality / Regeneration fallback (New category)
