@@ -13,7 +13,7 @@ export const AI_CONFIG = {
         // First pass: Groq (Llama 3.2 Vision) for speed
         vision: {
             provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "groq",
-            model: process.env.AI_MODEL_VISION || "llama-3.2-11b-vision-preview",
+            model: process.env.AI_MODEL_VISION || "meta-llama/llama-4-maverick-17b-128e-instruct",
         } as ModelConfig,
         
         // MCQ solutions & high-speed validation
