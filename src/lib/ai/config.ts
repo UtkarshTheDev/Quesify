@@ -9,34 +9,34 @@ export interface ModelConfig {
 export const AI_CONFIG = {
     // Models configuration by task category
     models: {
-        // LaTeX extraction & image analysis
+        // LaTeX extraction & image analysis (Vision tasks)
         vision: {
-            provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "groq",
-            model: process.env.AI_MODEL_VISION || "meta-llama/llama-4-maverick-17b-128e-instruct",
+            provider: (process.env.AI_PROVIDER_VISION as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_VISION || "gemini-1.5-flash",
         } as ModelConfig,
         
         // MCQ solutions & high-speed validation
         fast: {
-            provider: (process.env.AI_PROVIDER_FAST as AIProvider) || "groq",
-            model: process.env.AI_MODEL_FAST || "llama-3.1-8b-instant",
+            provider: (process.env.AI_PROVIDER_FAST as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_FAST || "gemini-1.5-flash",
         } as ModelConfig,
         
         // Complex reasoning (LA, charts)
         reasoning: {
-            provider: (process.env.AI_PROVIDER_REASONING as AIProvider) || "groq",
-            model: process.env.AI_MODEL_REASONING || "llama-3.3-70b-versatile",
+            provider: (process.env.AI_PROVIDER_REASONING as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_REASONING || "gemini-1.5-flash",
         } as ModelConfig,
         
         // Feedback refinement & updates
         updates: {
-            provider: (process.env.AI_PROVIDER_UPDATES as AIProvider) || "groq",
-            model: process.env.AI_MODEL_UPDATES || "llama-3.3-70b-versatile",
+            provider: (process.env.AI_PROVIDER_UPDATES as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_UPDATES || "gemini-1.5-flash",
         } as ModelConfig,
         
         // User Q&A / Chat
         qa: {
-            provider: (process.env.AI_PROVIDER_QA as AIProvider) || "groq",
-            model: process.env.AI_MODEL_QA || "llama-3.3-70b-versatile",
+            provider: (process.env.AI_PROVIDER_QA as AIProvider) || "gemini",
+            model: process.env.AI_MODEL_QA || "gemini-1.5-flash",
         } as ModelConfig,
 
         // Embedding model (currently only gemini supported)
