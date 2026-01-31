@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Question } from '@/lib/types'
 
+import { ListEndDivider } from '@/components/ui/list-end-divider'
+
 interface InfiniteQuestionListProps {
   userId: string
   initialQuestions: Question[]
@@ -131,9 +133,7 @@ export function InfiniteQuestionList({
       )}
 
       {!hasMore && questions.length > 0 && (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          You&apos;ve reached the end
-        </div>
+        <ListEndDivider />
       )}
     </div>
   )

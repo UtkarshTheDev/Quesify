@@ -5,6 +5,8 @@ import { ActivityFeed, ActivityItem } from '@/components/profile/activity-feed'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
 
+import { ListEndDivider } from '@/components/ui/list-end-divider'
+
 interface InfiniteActivityFeedProps {
   userId: string
 }
@@ -103,7 +105,7 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
         </div>
       ) : (
         <>
-          <ActivityFeed items={activities} />
+          <ActivityFeed items={activities} showEmptyState={false} />
 
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-4">
@@ -116,10 +118,8 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
             </div>
           )}
 
-          {!hasMore && activities.length > 0 && (
-            <div className="text-center py-4 text-muted-foreground text-sm">
-              No more activities
-            </div>
+          {!hasMore && (
+            <ListEndDivider />
           )}
         </>
       )}
