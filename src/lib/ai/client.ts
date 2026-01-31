@@ -137,26 +137,46 @@ class AIClient {
 
   parseAiJson<T>(response: string): T {
     try {
+      // Step 1: Handle Gemini's common markdown blocks (```json ... ``` or ``` ... ```)
+      // Also handles cases where response is just "Here is the JSON: { ... }"
+      let rawText = response
+
+      // Check for markdown code blocks
       const jsonMatch = response.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
-      const rawText = jsonMatch ? jsonMatch[1] : response
+      if (jsonMatch) {
+        rawText = jsonMatch[1]
+      } else {
+        // If no code block, check for common prefixes like "Here is the JSON:" or "Response:"
+        const prefixMatch = response.match(/^(?:Here is|Here is the|Sure, here).*?:\s*([\s\S]*)$/i)
+        if (prefixMatch) {
+          rawText = prefixMatch[1]
+        }
+      }
+
+      // Step 2: Trim and clean leading/trailing whitespace
       const cleaned = rawText.trim().replace(/^JSON:\s*/i, '')
 
+      // Step 3: Attempt direct parse
       try {
         return JSON.parse(cleaned) as T
       } catch (e) {}
 
-      const repaired = cleaned.replace(/(\\\\)|(\\)(?![n"\\/u])/g, (match, p1) => {
-        if (p1) return p1 
-        return "\\\\" 
-      })
+      // Step 4: Repair common escaping issues (especially with LaTeX)
+      // Handle unescaped newlines in strings, unescaped backslashes
+      const repaired = cleaned
+        .replace(/\\(?![nrt"\\/u])/g, '\\\\') // Escape lone backslashes
+        .replace(/\n/g, '\\n') // Convert literal newlines to escaped ones (if they look like JSON strings)
 
       try {
         return JSON.parse(repaired) as T
       } catch (e) {}
 
+      // Step 5: Aggressive repair - try to fix broken quotes
+      // This is a last resort for malformed JSON
       const aggressiveRepaired = repaired
         .replace(/"([\s\S]*?)"/g, (match, p1) => {
-          return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t')}"`
+          // Escape newlines and tabs inside string values
+          return `"${p1.replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/"/g, '\\"')}"`
         })
 
       try {
