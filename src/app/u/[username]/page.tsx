@@ -93,15 +93,16 @@ export default async function PublicProfilePage({ params }: PageProps) {
   ) || []
 
   const activityItems: ActivityItem[] = (initialActivities || []).map((act: any) => {
+    const getLocation = () => act.metadata.chapter || act.metadata.subject || 'General'
     let title = ''
     switch (act.activity_type) {
-      case 'question_created': title = `Created question in ${act.metadata.subject || 'unknown'}`; break
-      case 'solution_contributed': title = `Contributed solution to ${act.metadata.subject || 'unknown'}`; break
-      case 'question_solved': title = `Solved ${act.metadata.subject || 'unknown'} question`; break
-      case 'question_forked': title = `Added ${act.metadata.subject || 'unknown'} question to bank`; break
-      case 'question_deleted': title = `Deleted question in ${act.metadata.subject || 'unknown'}`; break
+      case 'question_created': title = `Created question in ${getLocation()}`; break
+      case 'solution_contributed': title = `Contributed solution to ${getLocation()}`; break
+      case 'question_solved': title = `Solved ${getLocation()} question`; break
+      case 'question_forked': title = `Added ${getLocation()} question to bank`; break
+      case 'question_deleted': title = `Deleted question in ${getLocation()}`; break
       case 'solution_deleted': title = `Deleted solution`; break
-      case 'hint_updated': title = `Updated hint for ${act.metadata.subject || 'unknown'} question`; break
+      case 'hint_updated': title = `Updated hint for ${getLocation()} question`; break
       default: title = 'User activity'
     }
     return {

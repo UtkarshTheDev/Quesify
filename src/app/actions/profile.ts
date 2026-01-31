@@ -24,28 +24,29 @@ export async function getMoreActivities(userId: string, page: number) {
   }
 
   const items: ActivityItem[] = activities.map((act: UserActivity) => {
+    const getLocation = () => act.metadata.chapter || act.metadata.subject || 'General'
     let title = ''
     switch (act.activity_type) {
       case 'question_created':
-        title = `Created question in ${act.metadata.subject || 'unknown'}`
+        title = `Created question in ${getLocation()}`
         break
       case 'solution_contributed':
-        title = `Contributed solution to ${act.metadata.subject || 'unknown'}`
+        title = `Contributed solution to ${getLocation()}`
         break
       case 'question_solved':
-        title = `Solved ${act.metadata.subject || 'unknown'} question`
+        title = `Solved ${getLocation()} question`
         break
       case 'question_forked':
-        title = `Added ${act.metadata.subject || 'unknown'} question to bank`
+        title = `Added ${getLocation()} question to bank`
         break
       case 'question_deleted':
-        title = `Deleted question in ${act.metadata.subject || 'unknown'}`
+        title = `Deleted question in ${getLocation()}`
         break
       case 'solution_deleted':
         title = `Deleted solution`
         break
       case 'hint_updated':
-        title = `Updated hint for ${act.metadata.subject || 'unknown'} question`
+        title = `Updated hint for ${getLocation()} question`
         break
       default:
         title = 'User activity'
