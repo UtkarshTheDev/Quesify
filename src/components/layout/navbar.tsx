@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Home, Upload, Zap, User, LogOut } from "lucide-react";
 
+import { NotificationBell } from "@/components/layout/notification-bell";
+
 export async function Navbar() {
     const supabase = await createClient();
     const {
@@ -74,11 +76,13 @@ export async function Navbar() {
 
                 <div className="flex flex-1 items-center justify-end space-x-2">
                     {profile && (
-                        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground mr-2">
                             <Zap className="h-4 w-4 text-orange-500" />
                             <span>{profile.streak_count} day streak</span>
                         </div>
                     )}
+
+                    <NotificationBell />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
