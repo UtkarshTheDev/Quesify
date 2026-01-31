@@ -45,7 +45,10 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
     const groups: GroupedActivity[] = []
     
     items.forEach(item => {
-      const dateKey = format(new Date(item.date), 'yyyy-MM-dd')
+      const itemDate = item.date ? new Date(item.date) : null
+      if (!itemDate || isNaN(itemDate.getTime())) return
+      
+      const dateKey = format(itemDate, 'yyyy-MM-dd')
       
       let subject = item.metadata?.subject || 'General'
       if (subject.toLowerCase().startsWith('math')) subject = 'Mathematics'
@@ -65,7 +68,10 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
         if (gType === 'contributed_solution') gType = 'solution_contributed'
         if (gType === 'solved_question') gType = 'question_solved'
 
-        return format(new Date(g.date), 'yyyy-MM-dd') === dateKey && 
+        const groupDate = g.date ? new Date(g.date) : null
+        if (!groupDate || isNaN(groupDate.getTime())) return false
+
+        return format(groupDate, 'yyyy-MM-dd') === dateKey && 
                gType === type && 
                g.subject === subject
       })
@@ -201,7 +207,11 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
                   </div>
                 </div>
                 <span className="text-[11px] font-medium text-muted-foreground/60 whitespace-nowrap ml-4">
-                  {formatDistanceToNow(new Date(group.date), { addSuffix: true })}
+                  {(() => {
+                    const d = group.date ? new Date(group.date) : null
+                    if (!d || isNaN(d.getTime())) return 'Unknown time'
+                    return formatDistanceToNow(d, { addSuffix: true })
+                  })()}
                 </span>
               </div>
               
