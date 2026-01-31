@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
         solution_text: solutionData.solution_text,
         numerical_answer: solutionData.numerical_answer,
         approach_description: solutionData.approach_description,
+        correct_option: solutionData.correct_option,
+        avg_solve_time: solutionData.avg_solve_time || 0, // AI-generated estimated solve time in seconds
         is_ai_best: true, // Mark as AI generated/best
         likes: 0,
         updated_at: new Date().toISOString()
