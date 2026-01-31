@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { deleteCache, CACHE_KEYS } from '@/lib/cache/api-cache'
 
 export async function PATCH(
   request: NextRequest,
@@ -16,10 +17,9 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
-    // Verify ownership
     const { data: solution, error: fetchError } = await supabase
       .from('solutions')
-      .select('contributor_id')
+      .select('contributor_id, question_id')
       .eq('id', id)
       .single()
 
@@ -59,6 +59,10 @@ export async function PATCH(
 
     console.log('Solution updated successfully:', updated[0].id)
 
+    const cacheKey = CACHE_KEYS.ENTITY.QUESTION(solution.question_id)
+    await deleteCache(cacheKey)
+    console.log(`[Cache] INVALIDATED ${cacheKey} after solution update`)
+
     return NextResponse.json({ success: true, data: updated[0] })
   } catch (error) {
     return NextResponse.json(
@@ -82,10 +86,9 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Verify ownership
     const { data: solution, error: fetchError } = await supabase
       .from('solutions')
-      .select('contributor_id')
+      .select('contributor_id, question_id')
       .eq('id', id)
       .single()
 
@@ -97,7 +100,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Delete
     const { error: deleteError } = await supabase
       .from('solutions')
       .delete()
@@ -106,6 +108,10 @@ export async function DELETE(
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 })
     }
+
+    const cacheKey = CACHE_KEYS.ENTITY.QUESTION(solution.question_id)
+    await deleteCache(cacheKey)
+    console.log(`[Cache] INVALIDATED ${cacheKey} after solution deletion`)
 
     return NextResponse.json({ success: true })
   } catch (error) {
