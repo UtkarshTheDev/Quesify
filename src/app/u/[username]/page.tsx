@@ -4,10 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, GitFork, LayoutDashboard } from 'lucide-react'
 import { ContributionGraph } from '@/components/profile/contribution-graph'
 import { ProfileSidebar } from '@/components/profile/profile-sidebar'
-import { PaginatedActivityFeed } from '@/components/profile/paginated-activity-feed'
-import { PaginatedQuestionList } from '@/components/profile/paginated-questions'
-import { PaginatedSolutionList } from '@/components/profile/paginated-solutions'
-import type { ActivityItem } from '@/components/profile/activity-feed'
+import { InfiniteActivityFeed } from '@/components/profile/infinite-activity-feed'
+import { InfiniteProfileQuestions } from '@/components/profile/infinite-profile-questions'
+import { InfiniteProfileSolutions } from '@/components/profile/infinite-profile-solutions'
 import type { Metadata } from 'next'
 
 export const revalidate = 60
@@ -38,83 +37,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const { data: { user: currentUser } } = await supabase.auth.getUser()
 
-  const [
-    { data: initialActivities },
-    { data: createdQuestions },
-    { data: contributedSolutions },
-    { data: forkedQuestions },
-    { data: allActivityCounts }
-  ] = await Promise.all([
-    supabase
-      .from('user_activities')
-      .select('*')
-      .eq('user_id', profile.user_id)
-      .order('created_at', { ascending: false })
-      .limit(20),
-
-    supabase
-      .from('questions')
-      .select('*, user_question_stats(*)')
-      .eq('owner_id', profile.user_id)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(20),
-
-    supabase
-      .from('solutions')
-      .select(`
-        *,
-        question:questions (id, question_text, subject, chapter, owner_id),
-        author:user_profiles!contributor_id (display_name, avatar_url, username)
-      `)
-      .eq('contributor_id', profile.user_id)
-      .neq('question.owner_id', profile.user_id)
-      .order('created_at', { ascending: false })
-      .limit(20),
-
-    supabase
-      .from('user_questions')
-      .select('*, question:questions!inner(*, user_question_stats(*))')
-      .eq('user_id', profile.user_id)
-      .eq('is_owner', false)
-      .is('question.deleted_at', null)
-      .order('added_at', { ascending: false })
-      .limit(20),
-
-    supabase
-      .from('user_activities')
-      .select('created_at')
-      .eq('user_id', profile.user_id)
-      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
-  ])
-
-  const filteredSolutions = contributedSolutions?.filter((s: any) => 
-    s.question && s.question.owner_id !== profile.user_id
-  ) || []
-
-  const activityItems: ActivityItem[] = (initialActivities || []).map((act: any) => {
-    const getLocation = () => act.metadata.chapter || act.metadata.subject || 'General'
-    let title = ''
-    switch (act.activity_type) {
-      case 'question_created': title = `Created question in ${getLocation()}`; break
-      case 'solution_contributed': title = `Contributed solution to ${getLocation()}`; break
-      case 'question_solved': title = `Solved ${getLocation()} question`; break
-      case 'question_forked': title = `Added ${getLocation()} question to bank`; break
-      case 'question_deleted': title = `Deleted question in ${getLocation()}`; break
-      case 'solution_deleted': title = `Deleted solution`; break
-      case 'hint_updated': title = `Updated hint for ${getLocation()} question`; break
-      default: title = 'User activity'
-    }
-    return {
-      id: act.id,
-      type: act.activity_type as any,
-      date: act.created_at,
-      title: title,
-      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
-      meta: act.metadata.snippet || '',
-      metadata: act.metadata
-    }
-  })
+  const { data: allActivityCounts } = await supabase
+    .from('user_activities')
+    .select('created_at')
+    .eq('user_id', profile.user_id)
+    .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
 
   const contributionCounts: Record<string, number> = {}
   allActivityCounts?.forEach(act => {
@@ -124,11 +51,6 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const graphData = Object.entries(contributionCounts).map(([date, count]) => ({ date, count }))
   const totalContributions = allActivityCounts?.length || 0
-
-  const allQuestions = [
-    ...(createdQuestions || []).map(q => ({ ...q, _source: 'Created' })),
-    ...(forkedQuestions || []).map(f => f.question ? ({ ...f.question, _source: 'Forked' }) : null).filter(Boolean)
-  ].filter(q => !q.deleted_at)
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12 overflow-x-hidden">
@@ -165,7 +87,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   <GitFork className="w-5 h-5 md:w-6 h-6" />
                   <span>Solutions</span>
                   <span className="bg-muted px-2.5 py-1 rounded-full text-[11px] font-black flex items-center justify-center min-w-6 h-6">
-                    {filteredSolutions.length}
+                    {profile.total_solved}
                   </span>
                 </TabsTrigger>
               </TabsList>
@@ -190,18 +112,17 @@ export default async function PublicProfilePage({ params }: PageProps) {
                <div className="space-y-8">
                  <h2 className="text-xl font-bold tracking-tight">Activity Timeline</h2>
                  <div className="pl-2">
-                   <PaginatedActivityFeed initialItems={activityItems} userId={profile.user_id} />
+                   <InfiniteActivityFeed userId={profile.user_id} />
                  </div>
                </div>
             </TabsContent>
 
             <TabsContent value="questions" className="space-y-8 mt-0 animate-in fade-in duration-500">
-              <PaginatedQuestionList initialQuestions={allQuestions} userId={profile.user_id} />
+              <InfiniteProfileQuestions userId={profile.user_id} />
             </TabsContent>
 
             <TabsContent value="solutions" className="space-y-6 pt-8 mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <PaginatedSolutionList 
-                  initialSolutions={filteredSolutions} 
+               <InfiniteProfileSolutions 
                   userId={profile.user_id} 
                   currentUserId={currentUser?.id || null} 
                 />
