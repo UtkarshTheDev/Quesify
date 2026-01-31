@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
             numerical_answer: body.numerical_answer || null,
             correct_option: body.correct_option ?? null,
             avg_solve_time: body.avg_solve_time || 0,
-            approach_description: body.hint ? `Approach (Hint: ${body.hint})` : 'Alternative solution',
+            approach_description: body.hint || 'Alternative solution',
             is_ai_best: false, // variation solution
             updated_at: new Date().toISOString(),
           })
@@ -124,10 +124,11 @@ export async function POST(request: NextRequest) {
         .insert({
           question_id: question.id,
           contributor_id: user.id,
-           solution_text: body.solution,
+          solution_text: body.solution,
           numerical_answer: body.numerical_answer || null,
           correct_option: body.correct_option ?? null,
           avg_solve_time: body.avg_solve_time || 0,
+          approach_description: body.hint || null,
           is_ai_best: true,
           updated_at: new Date().toISOString(),
         })
