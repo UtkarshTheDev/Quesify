@@ -56,6 +56,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .from('questions')
       .select('*, user_question_stats(*)')
       .eq('owner_id', profile.user_id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
 
@@ -73,9 +74,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
     supabase
       .from('user_questions')
-      .select('*, question:questions(*, user_question_stats(*))')
+      .select('*, question:questions!inner(*, user_question_stats(*))')
       .eq('user_id', profile.user_id)
-      .eq('is_owner', false) 
+      .eq('is_owner', false)
+      .is('question.deleted_at', null)
       .order('added_at', { ascending: false })
       .limit(20),
 
@@ -107,7 +109,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       type: act.activity_type as any,
       date: act.created_at,
       title: title,
-      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.target_id}` : '#',
+      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
       meta: act.metadata.snippet || '',
       metadata: act.metadata
     }
@@ -125,7 +127,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const allQuestions = [
     ...(createdQuestions || []).map(q => ({ ...q, _source: 'Created' })),
     ...(forkedQuestions || []).map(f => f.question ? ({ ...f.question, _source: 'Forked' }) : null).filter(Boolean)
-  ]
+  ].filter(q => !q.deleted_at)
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12">
@@ -152,7 +154,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   <BookOpen className="w-5 h-5 md:w-6 h-6" />
                   <span>Questions</span>
                   <span className="bg-muted px-2.5 py-1 rounded-full text-[11px] font-black flex items-center justify-center min-w-6 h-6">
-                    {profile.total_uploaded + profile.total_solved}
+                    {profile.total_uploaded}
                   </span>
                 </TabsTrigger>
                 <TabsTrigger 

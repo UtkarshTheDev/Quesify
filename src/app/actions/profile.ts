@@ -56,7 +56,7 @@ export async function getMoreActivities(userId: string, page: number) {
       type: act.activity_type as any,
       date: act.created_at,
       title: title,
-      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.target_id}` : '#',
+      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
       meta: act.metadata.snippet || '',
       metadata: act.metadata
     }
@@ -80,14 +80,16 @@ export async function getMoreQuestions(userId: string, page: number) {
       .from('questions')
       .select('*, user_question_stats(*)')
       .eq('owner_id', userId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(limit),
 
     supabase
       .from('user_questions')
-      .select('*, question:questions(*, user_question_stats(*))')
+      .select('*, question:questions!inner(*, user_question_stats(*))')
       .eq('user_id', userId)
-      .eq('is_owner', false) 
+      .eq('is_owner', false)
+      .is('question.deleted_at', null)
       .order('added_at', { ascending: false })
       .limit(limit)
   ])
@@ -95,7 +97,7 @@ export async function getMoreQuestions(userId: string, page: number) {
   const allQuestions = [
     ...(createdQuestions || []).map(q => ({ ...q, _source: 'Created', sortDate: q.created_at })),
     ...(forkedQuestions || []).map(f => f.question ? ({ ...f.question, _source: 'Forked', sortDate: f.added_at }) : null).filter(Boolean)
-  ]
+  ].filter(q => !q.deleted_at)
 
   allQuestions.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
 
