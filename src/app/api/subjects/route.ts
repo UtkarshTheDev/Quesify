@@ -1,18 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { getSubjectsList } from '@/lib/services/syllabus'
+import { recordCacheHit, recordCacheMiss, resetCacheHitTracker } from '@/lib/cache/api-cache'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const supabase = await createClient()
+  resetCacheHitTracker()
 
-  const { data, error } = await supabase
-    .from('syllabus')
-    .select('subject')
-    
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    const subjects = await getSubjectsList()
+
+    return NextResponse.json({
+      subjects,
+      fromCache: true,
+    })
+  } catch (error) {
+    console.error('Error fetching subjects:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch subjects' },
+      { status: 500 }
+    )
   }
-
-  const subjects = Array.from(new Set(data.map(item => item.subject))).sort()
-
-  return NextResponse.json({ subjects })
 }
