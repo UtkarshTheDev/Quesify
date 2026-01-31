@@ -31,22 +31,21 @@ export const AI_CONFIG = {
         } as ModelConfig,
         
         // Feedback refinement & updates (Tweak / Regeneration)
-        // Second pass: Gemini 2.0 Flash (User requested "Gemini 3 Flash", mapping to latest 2.0)
         updates: {
             provider: (process.env.AI_PROVIDER_UPDATES as AIProvider) || "gemini",
-            model: process.env.AI_MODEL_UPDATES || "gemini-2.0-flash-exp",
+            model: process.env.AI_MODEL_UPDATES || "gemini-3.0-flash-preview",
         } as ModelConfig,
         
         // User Q&A / Chat
         qa: {
             provider: (process.env.AI_PROVIDER_QA as AIProvider) || "gemini",
-            model: process.env.AI_MODEL_QA || "gemini-2.0-flash-exp",
+            model: process.env.AI_MODEL_QA || "gemini-3.0-flash-preview",
         } as ModelConfig,
 
         // High Quality / Regeneration fallback (New category)
         best: {
             provider: "gemini",
-            model: "gemini-2.0-flash-exp", 
+            model: "gemini-3.0-flash-preview", 
         } as ModelConfig,
 
         // Embedding model (currently only gemini supported)
