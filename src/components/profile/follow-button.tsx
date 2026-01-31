@@ -1,61 +1,124 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { UserPlus, UserMinus, Loader2 } from 'lucide-react'
-import { toggleFollow } from '@/app/actions/social'
+import { UserPlus, UserCheck, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 interface FollowButtonProps {
-  followingId: string
-  initialIsFollowing: boolean
+  targetId: string
   className?: string
+  variant?: 'default' | 'outline' | 'ghost'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  onFollowChange?: (isFollowing: boolean) => void
 }
 
-export function FollowButton({ followingId, initialIsFollowing, className }: FollowButtonProps) {
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing)
-  const [isPending, startTransition] = useTransition()
+export function FollowButton({ 
+  targetId, 
+  className,
+  variant = 'outline',
+  size = 'default',
+  onFollowChange
+}: FollowButtonProps) {
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPending, setIsPending] = useState(false)
 
-  const handleToggle = () => {
-    startTransition(async () => {
-      const newState = !isFollowing
-      setIsFollowing(newState)
-      
+  // Fetch initial state
+  useEffect(() => {
+    const checkFollowStatus = async () => {
       try {
-        await toggleFollow(followingId)
-        toast.success(newState ? 'Following user' : 'Unfollowed user')
-      } catch (error: any) {
-        setIsFollowing(!newState)
-        toast.error(error.message || 'Failed to update follow status')
+        const res = await fetch(`/api/social/follow?target_id=${targetId}`)
+        const data = await res.json()
+        setIsFollowing(data.isFollowing)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Failed to check follow status', error)
+        setIsLoading(false)
       }
-    })
+    }
+
+    if (targetId) {
+      checkFollowStatus()
+    }
+  }, [targetId])
+
+  const handleToggleFollow = async () => {
+    if (isPending) return
+
+    // Optimistic update
+    const previousState = isFollowing
+    setIsFollowing(!previousState)
+    setIsPending(true)
+
+    try {
+      const endpoint = '/api/social/follow'
+      const method = previousState ? 'DELETE' : 'POST'
+      
+      const res = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_id: targetId })
+      })
+
+      if (!res.ok) {
+        throw new Error('Action failed')
+      }
+
+      const data = await res.json()
+      
+      // Update parent if needed
+      if (onFollowChange) {
+        onFollowChange(!previousState)
+      }
+
+      toast.success(previousState ? 'Unfollowed successfully' : 'Followed successfully')
+    } catch (error) {
+      // Revert on failure
+      setIsFollowing(previousState)
+      toast.error('Failed to update follow status')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <Button 
+        variant={variant} 
+        size={size} 
+        disabled 
+        className={cn("w-full gap-2", className)}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    )
   }
 
   return (
     <Button
-      onClick={handleToggle}
+      variant={isFollowing ? "default" : variant}
+      size={size}
+      onClick={handleToggleFollow}
       disabled={isPending}
-      variant={isFollowing ? "outline" : "default"}
       className={cn(
-        "w-full transition-all duration-300 font-bold",
+        "w-full gap-2 transition-all duration-300",
         isFollowing 
-          ? "border-primary/50 text-primary hover:bg-primary/5 hover:border-red-500/50 hover:text-red-500 group/follow" 
-          : "bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/20",
+          ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" 
+          : "hover:text-orange-500 hover:border-orange-500",
         className
       )}
     >
-      {isPending ? (
-        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-      ) : isFollowing ? (
+      {isFollowing ? (
         <>
-          <UserMinus className="w-4 h-4 mr-2 group-hover/follow:inline hidden" />
-          <span className="group-hover/follow:hidden inline">Following</span>
-          <span className="group-hover/follow:inline hidden">Unfollow</span>
+          <UserCheck className="h-4 w-4" />
+          Following
         </>
       ) : (
         <>
-          <UserPlus className="w-4 h-4 mr-2" />
+          <UserPlus className="h-4 w-4" />
           Follow
         </>
       )}

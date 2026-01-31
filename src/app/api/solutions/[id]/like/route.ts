@@ -16,8 +16,7 @@ export async function POST(
     const { id: solutionId } = await params
 
     const { data, error } = await supabase.rpc('toggle_solution_like', {
-      sol_id: solutionId,
-      u_id: user.id
+      sol_id: solutionId
     })
 
     if (error) throw error

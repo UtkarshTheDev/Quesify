@@ -7,8 +7,6 @@ import { ProfileSidebar } from '@/components/profile/profile-sidebar'
 import { PaginatedActivityFeed } from '@/components/profile/paginated-activity-feed'
 import { PaginatedQuestionList } from '@/components/profile/paginated-questions'
 import { PaginatedSolutionList } from '@/components/profile/paginated-solutions'
-import { getFollowStats, checkIsFollowing } from '@/app/actions/social'
-import { getAvailableSubjects } from '@/app/actions/profile'
 import type { ActivityItem } from '@/components/profile/activity-feed'
 import type { Metadata } from 'next'
 
@@ -45,10 +43,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
     { data: createdQuestions },
     { data: contributedSolutions },
     { data: forkedQuestions },
-    { data: allActivityCounts },
-    followStats,
-    isFollowing,
-    availableSubjects
+    { data: allActivityCounts }
   ] = await Promise.all([
     supabase
       .from('user_activities')
@@ -61,6 +56,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .from('questions')
       .select('*, user_question_stats(*)')
       .eq('owner_id', profile.user_id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
 
@@ -78,9 +74,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
     supabase
       .from('user_questions')
-      .select('*, question:questions(*, user_question_stats(*))')
+      .select('*, question:questions!inner(*, user_question_stats(*))')
       .eq('user_id', profile.user_id)
-      .eq('is_owner', false) 
+      .eq('is_owner', false)
+      .is('question.deleted_at', null)
       .order('added_at', { ascending: false })
       .limit(20),
 
@@ -88,11 +85,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
       .from('user_activities')
       .select('created_at')
       .eq('user_id', profile.user_id)
-      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()),
-    
-    getFollowStats(profile.user_id),
-    checkIsFollowing(profile.user_id),
-    getAvailableSubjects()
+      .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
   ])
 
   const filteredSolutions = contributedSolutions?.filter((s: any) => 
@@ -100,16 +93,16 @@ export default async function PublicProfilePage({ params }: PageProps) {
   ) || []
 
   const activityItems: ActivityItem[] = (initialActivities || []).map((act: any) => {
+    const getLocation = () => act.metadata.chapter || act.metadata.subject || 'General'
     let title = ''
     switch (act.activity_type) {
-      case 'question_created': title = `Created question in ${act.metadata.subject || 'unknown'}`; break
-      case 'solution_contributed': title = `Contributed solution to ${act.metadata.subject || 'unknown'}`; break
-      case 'question_solved': title = `Solved ${act.metadata.subject || 'unknown'} question`; break
-      case 'question_forked': title = `Added ${act.metadata.subject || 'unknown'} question to bank`; break
-      case 'question_deleted': title = `Deleted question in ${act.metadata.subject || 'unknown'}`; break
+      case 'question_created': title = `Created question in ${getLocation()}`; break
+      case 'solution_contributed': title = `Contributed solution to ${getLocation()}`; break
+      case 'question_solved': title = `Solved ${getLocation()} question`; break
+      case 'question_forked': title = `Added ${getLocation()} question to bank`; break
+      case 'question_deleted': title = `Deleted question in ${getLocation()}`; break
       case 'solution_deleted': title = `Deleted solution`; break
-      case 'hint_updated': title = `Updated hint for ${act.metadata.subject || 'unknown'} question`; break
-      case 'user_followed': title = `Followed ${act.metadata.following_username || 'a user'}`; break
+      case 'hint_updated': title = `Updated hint for ${getLocation()} question`; break
       default: title = 'User activity'
     }
     return {
@@ -117,14 +110,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
       type: act.activity_type as any,
       date: act.created_at,
       title: title,
-      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.target_id}` : '#',
+      url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
       meta: act.metadata.snippet || '',
       metadata: act.metadata
     }
   })
 
   const contributionCounts: Record<string, number> = {}
-  allActivityCounts?.forEach((act: any) => {
+  allActivityCounts?.forEach(act => {
     const date = act.created_at.split('T')[0]
     contributionCounts[date] = (contributionCounts[date] || 0) + 1
   })
@@ -135,28 +128,19 @@ export default async function PublicProfilePage({ params }: PageProps) {
   const allQuestions = [
     ...(createdQuestions || []).map(q => ({ ...q, _source: 'Created' })),
     ...(forkedQuestions || []).map(f => f.question ? ({ ...f.question, _source: 'Forked' }) : null).filter(Boolean)
-  ]
+  ].filter(q => !q.deleted_at)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+    <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12 overflow-x-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
         <div className="md:col-span-1">
-           <div className="sticky top-28">
-             <ProfileSidebar 
-                profile={profile} 
-                currentUser={currentUser} 
-                followersCount={followStats.followersCount}
-                followingCount={followStats.followingCount}
-                isFollowing={isFollowing}
-                availableSubjects={availableSubjects}
-             />
-           </div>
+           <ProfileSidebar profile={profile} currentUser={currentUser} />
         </div>
 
         <div className="md:col-span-3 space-y-12">
           <Tabs defaultValue="overview" className="w-full">
-            <div className="sticky top-0 bg-background/95 backdrop-blur z-20 border-b mb-8 overflow-x-auto scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
-              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10 min-w-max">
+            <div className="sticky top-0 bg-background/95 backdrop-blur z-20 border-b mb-8">
+              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10 overflow-x-auto no-scrollbar">
                 <TabsTrigger 
                   value="overview"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:shadow-none h-full px-2 bg-transparent font-bold text-base md:text-lg flex items-center gap-3 transition-all duration-300 hover:text-orange-500/80 data-[state=active]:text-orange-500"
@@ -171,7 +155,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
                   <BookOpen className="w-5 h-5 md:w-6 h-6" />
                   <span>Questions</span>
                   <span className="bg-muted px-2.5 py-1 rounded-full text-[11px] font-black flex items-center justify-center min-w-6 h-6">
-                    {profile.total_uploaded + profile.total_solved}
+                    {profile.total_uploaded}
                   </span>
                 </TabsTrigger>
                 <TabsTrigger 

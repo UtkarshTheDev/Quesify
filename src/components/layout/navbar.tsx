@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Home, Upload, Zap, User, LogOut } from "lucide-react";
-import { NotificationBell } from "./notification-bell";
+
+import { NotificationBell } from "@/components/layout/notification-bell";
 
 export async function Navbar() {
     const supabase = await createClient();
@@ -62,7 +63,7 @@ export async function Navbar() {
                             </span>
                         </Link>
                         <Link
-                            href="/daily"
+                            href="/dashboard/daily"
                             className="transition-colors hover:text-foreground/80 text-foreground/60"
                         >
                             <span className="flex items-center gap-2">
@@ -81,7 +82,7 @@ export async function Navbar() {
                         </div>
                     )}
 
-                    {user && <NotificationBell userId={user.id} />}
+                    <NotificationBell />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

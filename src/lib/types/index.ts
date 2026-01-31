@@ -14,6 +14,7 @@ export interface GeminiExtractionResult {
   has_diagram: boolean
   has_solution: boolean
   solution: string
+  type: 'MCQ' | 'VSA' | 'SA' | 'LA' | 'CASE_STUDY'
   numerical_answer: string | null
   subject: string
   chapter: string
