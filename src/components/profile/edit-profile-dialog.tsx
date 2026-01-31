@@ -131,7 +131,7 @@ export function EditProfileDialog({
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Interested Subjects
             </Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
               {isLoadingSubjects ? (
                 <span className="text-sm text-muted-foreground">Loading subjects...</span>
               ) : (

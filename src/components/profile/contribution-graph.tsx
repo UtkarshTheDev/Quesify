@@ -21,12 +21,6 @@ export function ContributionGraph({
 }: ContributionGraphProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-        }
-    }, []);
-
     const { weeks, monthLabels } = useMemo(() => {
         const today = new Date();
         const startDate = subDays(today, 364);
@@ -63,16 +57,37 @@ export function ContributionGraph({
             const firstDayOfWeek = week[0].date;
             const month = firstDayOfWeek.getMonth();
             if (month !== lastMonth) {
-                monthLabels.push({
-                    label: format(firstDayOfWeek, "MMM"),
-                    index,
-                });
-                lastMonth = month;
+                // Check if we have enough space (at least 3 weeks or >70% overlap logic)
+                // If it's the last few weeks and overlaps significantly with next month or end of chart
+                // We'll simplisticly check if index is not too close to previous label
+                const prevLabel = monthLabels[monthLabels.length - 1];
+                if (!prevLabel || index - prevLabel.index > 3) {
+                     monthLabels.push({
+                        label: format(firstDayOfWeek, "MMM"),
+                        index,
+                    });
+                    lastMonth = month;
+                }
             }
         });
 
+        // Filter out overlapping labels at the end if needed (simple heuristic)
+        if (monthLabels.length > 1) {
+            const lastLabel = monthLabels[monthLabels.length - 1];
+            if (weeks.length - lastLabel.index < 2) {
+                monthLabels.pop();
+            }
+        }
+
         return { weeks, monthLabels };
     }, [data]);
+
+    useEffect(() => {
+        // Scroll to end on mount
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+        }
+    }, [weeks]); // Re-run when data changes to ensure scroll is correct
 
     const getLevel = (count: number) => {
         if (count === 0) return 0;

@@ -131,7 +131,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
   ].filter(q => !q.deleted_at)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12">
+    <div className="max-w-7xl mx-auto px-4 py-12 pb-32 md:pb-12 overflow-x-hidden">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
         <div className="md:col-span-1">
            <ProfileSidebar profile={profile} currentUser={currentUser} />
@@ -140,7 +140,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
         <div className="md:col-span-3 space-y-12">
           <Tabs defaultValue="overview" className="w-full">
             <div className="sticky top-0 bg-background/95 backdrop-blur z-20 border-b mb-8">
-              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10">
+              <TabsList className="w-full justify-start h-16 p-0 bg-transparent gap-10 overflow-x-auto no-scrollbar">
                 <TabsTrigger 
                   value="overview"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:shadow-none h-full px-2 bg-transparent font-bold text-base md:text-lg flex items-center gap-3 transition-all duration-300 hover:text-orange-500/80 data-[state=active]:text-orange-500"
