@@ -8,6 +8,8 @@ import { Solution } from '@/lib/types'
 
 import { useRouter } from 'next/navigation'
 
+import { ListEndDivider } from '@/components/ui/list-end-divider'
+
 interface InfiniteProfileSolutionsProps {
   userId: string
   currentUserId: string | null
@@ -103,16 +105,8 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
             </div>
           )}
 
-          {!hasMore && solutions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No solutions contributed yet</p>
-            </div>
-          )}
-
-          {!hasMore && solutions.length > 0 && (
-            <div className="text-center py-4 text-muted-foreground text-sm">
-              No more solutions
-            </div>
+          {!hasMore && (
+            <ListEndDivider />
           )}
         </>
       )}

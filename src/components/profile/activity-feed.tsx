@@ -28,6 +28,7 @@ export interface ActivityItem {
 
 interface ActivityFeedProps {
   items: ActivityItem[]
+  showEmptyState?: boolean
 }
 
 interface GroupedActivity {
@@ -38,7 +39,7 @@ interface GroupedActivity {
   items: ActivityItem[]
 }
 
-export function ActivityFeed({ items }: ActivityFeedProps) {
+export function ActivityFeed({ items, showEmptyState = true }: ActivityFeedProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   const groupedActivities = useMemo(() => {
@@ -93,6 +94,7 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
   }, [items])
 
   if (items.length === 0) {
+    if (!showEmptyState) return null;
     return (
       <ProfileEmptyState 
         icon={<History className="w-10 h-10" />}

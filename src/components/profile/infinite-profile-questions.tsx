@@ -6,6 +6,8 @@ import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
 import { Question } from '@/lib/types'
 
+import { ListEndDivider } from '@/components/ui/list-end-divider'
+
 interface InfiniteProfileQuestionsProps {
   userId: string
 }
@@ -87,10 +89,8 @@ export function InfiniteProfileQuestions({ userId }: InfiniteProfileQuestionsPro
             </div>
           )}
 
-          {!hasMore && questions.length > 0 && (
-            <div className="text-center py-4 text-muted-foreground text-sm">
-              No more questions
-            </div>
+          {!hasMore && (
+            <ListEndDivider />
           )}
         </>
       )}
