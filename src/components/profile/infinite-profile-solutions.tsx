@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { SolutionCard } from '@/components/questions/solution-card'
+import { SolutionCardList } from '@/components/questions/solution-card-list'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
 import { Solution } from '@/lib/types'
+
+import { useRouter } from 'next/navigation'
 
 interface InfiniteProfileSolutionsProps {
   userId: string
@@ -16,6 +18,7 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
   const [cursor, setCursor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [initialLoaded, setInitialLoaded] = useState(false)
+  const router = useRouter()
 
   const loadMore = useCallback(async () => {
     try {
@@ -56,6 +59,17 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
     enabled: !initialLoaded || !!cursor,
   })
 
+  const handleSelectSolution = useCallback((solutionId: string) => {
+    // Navigate to the question page with the solution
+    // We need to get the question_id from the solution
+    const solution = solutions.find(s => s.id === solutionId)
+    if (solution?.question_id) {
+      router.push(`/question/${solution.question_id}?solution=${solutionId}`)
+    } else {
+      router.push(`/question/${solutionId}`)
+    }
+  }, [solutions, router])
+
   if (error && solutions.length === 0) {
     return (
       <div className="text-center py-8 text-red-500">
@@ -72,31 +86,35 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
         </div>
       ) : (
         <>
-          <div className="space-y-4">
-            {solutions.map((solution) => (
-              <SolutionCard
-                key={solution.id}
-                solution={solution}
+          {solutions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No solutions contributed yet</p>
+            </div>
+          ) : (
+            <>
+              <SolutionCardList
+                solutions={solutions}
+                onSelect={handleSelectSolution}
                 currentUserId={currentUserId}
               />
-            ))}
-          </div>
 
-          {hasMore && (
-            <div ref={sentinelRef} className="flex justify-center py-4">
-              {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm">Loading more...</span>
+              {hasMore && (
+                <div ref={sentinelRef} className="flex justify-center py-4">
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm">Loading more...</span>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {!hasMore && solutions.length > 0 && (
-            <div className="text-center py-4 text-muted-foreground text-sm">
-              No more solutions
-            </div>
+              {!hasMore && solutions.length > 0 && (
+                <div className="text-center py-4 text-muted-foreground text-sm">
+                  No more solutions
+                </div>
+              )}
+            </>
           )}
         </>
       )}
