@@ -61,7 +61,7 @@ export async function Navbar() {
                             </span>
                         </Link>
                         <Link
-                            href="/daily"
+                            href="/dashboard/daily"
                             className="transition-colors hover:text-foreground/80 text-foreground/60"
                         >
                             <span className="flex items-center gap-2">
