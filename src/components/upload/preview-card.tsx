@@ -39,9 +39,9 @@ interface PreviewCardProps {
     ) => Promise<void>;
     isSaving: boolean;
     onReFinalize?: (text: string, solution?: string) => void;
-    onRetryExtract?: () => void;
-    onRetrySolve?: () => void;
-    onRetryClassify?: () => void;
+    onRetryExtract?: (regenerate?: boolean) => void;
+    onRetrySolve?: (regenerate?: boolean) => void;
+    onRetryClassify?: (regenerate?: boolean) => void;
 }
 
 export function PreviewCard({

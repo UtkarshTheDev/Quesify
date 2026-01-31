@@ -122,7 +122,8 @@ export const ai = {
     questionA: string,
     solutionA: string,
     questionB: string,
-    solutionB: string
+    solutionB: string,
+    options?: { useBestModel?: boolean }
   ): Promise<DuplicateCheckResult> {
     const client = getAIClient()
 
@@ -133,7 +134,8 @@ export const ai = {
       solutionB,
     })
 
-    const response = await client.generateText(prompt, 'fast')
+    const modelType = options?.useBestModel ? 'best' : 'fast'
+    const response = await client.generateText(prompt, modelType as any)
     const parsed = client.parseAiJson<DuplicateAnalysisResponse>(response)
 
     if (AI_CONFIG.debug) {

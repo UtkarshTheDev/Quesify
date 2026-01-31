@@ -19,7 +19,7 @@ interface QuestionSectionProps {
         extracting: boolean;
         extractError: string | null;
     };
-    onRetryExtract?: () => void;
+    onRetryExtract?: (regenerate?: boolean) => void;
     delay?: number;
 }
 
@@ -85,52 +85,52 @@ export function QuestionSection({
                                 <p className="text-xs sm:text-sm text-destructive font-medium">
                                     {status.extractError}
                                 </p>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={onRetryExtract}
-                                >
-                                    Try Again
-                                </Button>
-                            </div>
-                        ) : status.extracting ? (
-                            <Skeleton 
-                                className="h-40 w-full rounded-2xl" 
-                                statusText="AI is scanning for text and formulas..." 
-                            />
-                        ) : editMode ? (
-                            <textarea
-                                className="w-full min-h-32 p-3 sm:p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-[13px] sm:text-sm lg:text-base leading-relaxed"
-                                value={displayData.question_text}
-                                onChange={(e) =>
-                                    setLocalEdits({
-                                        ...localEdits,
-                                        question_text: e.target.value,
-                                    })
-                                }
-                            />
-                        ) : (
-                            <div className="space-y-3">
-                                <div className="p-4 sm:p-5 rounded-2xl bg-primary/[0.02] ring-1 ring-white/5 shadow-inner text-sm sm:text-base lg:text-lg leading-relaxed font-charter">
-                                    <Latex>{displayData.question_text}</Latex>
-                                </div>
-                                <div className="flex items-center justify-between px-2 pt-3 border-t border-border/40 mt-4">
-                                    <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium flex items-center gap-2">
-                                        <AlertCircle className="h-3.5 w-3.5 opacity-70 text-orange-500" />
-                                        AI may be inaccurate with formulas.
-                                    </p>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={onRetryExtract}
-                                        className="h-9 text-xs font-bold text-muted-foreground hover:text-orange-600 hover:bg-orange-500/5 px-4 rounded-xl border-border/40 hover:border-orange-500/50 transition-all gap-2"
+                                        onClick={() => onRetryExtract?.(false)}
                                     >
-                                        <RefreshCw className="h-3.5 w-3.5" />
-                                        Regenerate
+                                        Try Again
                                     </Button>
                                 </div>
-                            </div>
-                        )}
+                            ) : status.extracting ? (
+                                <Skeleton 
+                                    className="h-40 w-full rounded-2xl" 
+                                    statusText="AI is scanning for text and formulas..." 
+                                />
+                            ) : editMode ? (
+                                <textarea
+                                    className="w-full min-h-32 p-3 sm:p-4 rounded-xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-[13px] sm:text-sm lg:text-base leading-relaxed"
+                                    value={displayData.question_text}
+                                    onChange={(e) =>
+                                        setLocalEdits({
+                                            ...localEdits,
+                                            question_text: e.target.value,
+                                        })
+                                    }
+                                />
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="p-4 sm:p-5 rounded-2xl bg-primary/[0.02] ring-1 ring-white/5 shadow-inner text-sm sm:text-base lg:text-lg leading-relaxed font-charter">
+                                        <Latex>{displayData.question_text}</Latex>
+                                    </div>
+                                    <div className="flex items-center justify-between px-2 pt-3 border-t border-border/40 mt-4">
+                                        <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium flex items-center gap-2">
+                                            <AlertCircle className="h-3.5 w-3.5 opacity-70 text-orange-500" />
+                                            AI may be inaccurate with formulas.
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => onRetryExtract?.(true)}
+                                            className="h-9 text-xs font-bold text-muted-foreground hover:text-orange-600 hover:bg-orange-500/5 px-4 rounded-xl border-border/40 hover:border-orange-500/50 transition-all gap-2"
+                                        >
+                                            <RefreshCw className="h-3.5 w-3.5" />
+                                            Regenerate
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                     </div>
 
                     {!status.extractError && !status.extracting &&
