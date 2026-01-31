@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { deleteCache, CACHE_KEYS } from '@/lib/cache/api-cache'
 
 export async function DELETE(
   request: NextRequest,
@@ -88,6 +89,10 @@ export async function DELETE(
         }
       }
 
+      const cacheKey = CACHE_KEYS.ENTITY.QUESTION(id)
+      await deleteCache(cacheKey)
+      console.log(`[Cache] INVALIDATED ${cacheKey} after question deletion`)
+
       return NextResponse.json({
         success: true,
         message: 'Question permanently deleted'
@@ -157,6 +162,10 @@ export async function PATCH(
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
+
+    const cacheKey = CACHE_KEYS.ENTITY.QUESTION(id)
+    await deleteCache(cacheKey)
+    console.log(`[Cache] INVALIDATED ${cacheKey} after question update`)
 
     return NextResponse.json({ success: true })
   } catch (error) {
