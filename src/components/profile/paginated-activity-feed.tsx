@@ -1,12 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useInView } from '@/hooks/use-in-view'
 import { getMoreActivities } from '@/app/actions/profile'
 import { ActivityFeed, type ActivityItem } from './activity-feed'
-import { ProfileEmptyState } from './empty-state'
-import { History } from 'lucide-react'
 
 interface PaginatedActivityFeedProps {
   initialItems: ActivityItem[]
@@ -20,13 +18,7 @@ export function PaginatedActivityFeed({ initialItems, userId }: PaginatedActivit
   const [isLoading, setIsLoading] = useState(false)
   const { ref, inView } = useInView()
 
-  useEffect(() => {
-    if (inView && hasMore && !isLoading) {
-      loadMore()
-    }
-  }, [inView, hasMore, isLoading])
-
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     setIsLoading(true)
     const nextPage = page + 1
     try {
@@ -43,7 +35,13 @@ export function PaginatedActivityFeed({ initialItems, userId }: PaginatedActivit
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, userId])
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      loadMore()
+    }
+  }, [inView, hasMore, isLoading, loadMore])
 
   return (
     <div className="space-y-4">

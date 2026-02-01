@@ -100,14 +100,7 @@ export interface SolutionLike {
   user_id: string
   solution_id: string
   created_at: string
-}
-
-export interface ReviseLater {
-  id: string
-  user_id: string
-  question_id: string
-  added_at: string
-}
+  }
 
 export type ActivityType = 
   | 'question_created' 
@@ -124,12 +117,11 @@ export interface UserActivity {
   activity_type: ActivityType
   target_id: string | null
   target_type: 'question' | 'solution' | null
-  metadata: {
+  metadata: Record<string, unknown> & {
     title?: string
     subject?: string
     chapter?: string
     snippet?: string
-    [key: string]: any
   }
   created_at: string
 }

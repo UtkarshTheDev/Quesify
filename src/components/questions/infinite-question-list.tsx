@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { QuestionCard } from '@/components/questions/question-card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Filter } from 'lucide-react'
@@ -33,6 +33,14 @@ export function InfiniteQuestionList({
   const [cursor, setCursor] = useState<string | null>(initialCursor)
   const [error, setError] = useState<string | null>(null)
 
+  const settersRef = useRef<{
+    setHasMore: (value: boolean) => void
+    setIsLoading: (value: boolean) => void
+  }>({
+    setHasMore: () => {},
+    setIsLoading: () => {}
+  })
+
   const loadMore = useCallback(async () => {
     if (!cursor) return
 
@@ -60,12 +68,12 @@ export function InfiniteQuestionList({
       setCursor(data.next_cursor)
       
       if (!data.has_more) {
-        setHasMore(false)
+        settersRef.current.setHasMore(false)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load more')
     } finally {
-      setIsLoading(false)
+      settersRef.current.setIsLoading(false)
     }
   }, [cursor, userId, filters])
 
@@ -73,6 +81,10 @@ export function InfiniteQuestionList({
     onLoadMore: loadMore,
     enabled: !!cursor,
   })
+
+  useEffect(() => {
+    settersRef.current = { setHasMore, setIsLoading }
+  }, [setHasMore, setIsLoading])
 
   if (questions.length === 0) {
     return (

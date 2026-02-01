@@ -1,6 +1,6 @@
-'use client'
+ 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Share2, Link2, Check, Twitter, Facebook } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,12 +20,12 @@ interface ShareProfileProps {
 export function ShareProfile({ username }: ShareProfileProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [hasCopied, setHasCopied] = useState(false)
-  const [profileUrl, setProfileUrl] = useState('')
 
-  useEffect(() => {
+  const profileUrl = useMemo(() => {
     if (typeof window !== 'undefined') {
-      setProfileUrl(`${window.location.origin}/u/${username}`)
+      return `${window.location.origin}/u/${username}`
     }
+    return ''
   }, [username])
 
   const copyToClipboard = () => {

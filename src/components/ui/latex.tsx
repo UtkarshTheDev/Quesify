@@ -25,22 +25,15 @@ export function Latex({ children, className }: LatexProps) {
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
-          code({ node, inline, className, children, ...props }: any) {
-            const match = /language-(\w+)/.exec(className || '');
+          code({ inline, children }: React.HTMLAttributes<HTMLElement> & { inline?: boolean }) {
             return !inline ? (
               <pre className="bg-slate-900/70 rounded-xl p-4 border border-slate-700 overflow-x-auto my-4">
                 <code className="text-sm font-mono text-slate-200">{children}</code>
               </pre>
             ) : (
               <code className="bg-slate-900/50 px-1.5 py-0.5 rounded text-xs font-mono border border-slate-700 text-slate-200">{children}</code>
-            );
-          },
-          p: ({ children }) => <p className="mb-4 leading-relaxed last:mb-0">{children}</p>,
-          blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-indigo-500 pl-6 italic bg-slate-900/50 py-4 my-6 rounded-r-xl">
-              {children}
-            </blockquote>
-          )
+            )
+          }
         }}
       >
         {content}

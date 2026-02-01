@@ -66,7 +66,7 @@ export function FollowButton({
         throw new Error('Action failed')
       }
 
-      const data = await res.json()
+      await res.json()
       
       // Update parent if needed
       if (onFollowChange) {
@@ -74,7 +74,7 @@ export function FollowButton({
       }
 
       toast.success(previousState ? 'Unfollowed successfully' : 'Followed successfully')
-    } catch (error) {
+    } catch {
       // Revert on failure
       setIsFollowing(previousState)
       toast.error('Failed to update follow status')

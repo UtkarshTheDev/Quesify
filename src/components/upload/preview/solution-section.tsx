@@ -23,7 +23,7 @@ interface SolutionSectionProps {
     };
     displayData: GeminiExtractionResult;
     localEdits: Partial<GeminiExtractionResult> | null;
-    setLocalEdits: (edits: any) => void;
+    setLocalEdits: (edits: Partial<GeminiExtractionResult> | ((prev: Partial<GeminiExtractionResult> | null) => Partial<GeminiExtractionResult> | null)) => void;
     activeSolutionTab: "preview" | "edit";
     setActiveSolutionTab: (tab: "preview" | "edit") => void;
     isSolutionModified: boolean;
@@ -37,7 +37,6 @@ interface SolutionSectionProps {
 export function SolutionSection({
     status,
     displayData,
-    localEdits,
     setLocalEdits,
     activeSolutionTab,
     setActiveSolutionTab,
@@ -48,7 +47,6 @@ export function SolutionSection({
     solutionRef,
     delay = 0,
 }: SolutionSectionProps) {
-    const isActuallyLoaded = !!displayData.solution && !status.solving && !status.extracting;
     const showSkeleton = status.solving || status.extracting || (!displayData.solution?.trim() && !status.solveError);
 
     return (
@@ -135,7 +133,7 @@ export function SolutionSection({
                                         >
                                             <Tabs
                                                 value={activeSolutionTab}
-                                                onValueChange={(v) => setActiveSolutionTab(v as any)}
+                                                onValueChange={(v) => setActiveSolutionTab(v as "preview" | "edit")}
                                                 className="w-full"
                                             >
                                                 <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -173,7 +171,7 @@ export function SolutionSection({
                                                             className="w-full min-h-64 p-4 sm:p-6 rounded-2xl bg-muted/50 border-none ring-1 ring-border/50 focus:ring-primary/40 focus:bg-muted/80 transition-all font-mono text-[13px] sm:text-sm leading-relaxed"
                                                             value={displayData.solution}
                                                             onChange={(e) =>
-                                                                setLocalEdits((prev: any) => ({
+                                                                setLocalEdits((prev) => ({
                                                                     ...prev,
                                                                     solution: e.target.value,
                                                                 }))
@@ -251,13 +249,13 @@ export function SolutionSection({
                                     content={displayData.solution}
                                     contentType="solution"
                                     onContentChange={(val) => {
-                                        setLocalEdits((prev: any) => ({
+                                        setLocalEdits((prev) => ({
                                             ...prev,
                                             solution: val,
                                         }));
                                     }}
                                     onComplexUpdate={(update) => {
-                                        setLocalEdits((prev: any) => ({
+                                        setLocalEdits((prev) => ({
                                             ...prev,
                                             solution: update.tweakedContent,
                                             ...(update.syncedApproach

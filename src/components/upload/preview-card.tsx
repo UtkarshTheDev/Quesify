@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { GeminiExtractionResult, DuplicateCheckResult } from "@/lib/types";
 
@@ -77,12 +74,12 @@ export function PreviewCard({
             data.duplicate_check?.is_duplicate &&
             data.duplicate_check.matched_question_id
         ) {
-            await onSave({
-                ...displayData,
-                existing_question_id: data.duplicate_check.matched_question_id,
-            } as any);
+             await onSave({
+                 ...displayData,
+                 existing_question_id: data.duplicate_check?.matched_question_id ?? undefined,
+             });
         } else {
-            await onSave(displayData as any);
+            await onSave(displayData);
         }
     };
 
@@ -116,7 +113,7 @@ export function PreviewCard({
             } else {
                 toast.success("Changes verified (Same approach)");
             }
-        } catch (e) {
+        } catch {
             toast.error("Failed to verify strategy changes");
         } finally {
             setIsVerifying(false);

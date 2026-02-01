@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
+
 import Link from "next/link";
-import { Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PublicNavProps {
@@ -14,19 +15,21 @@ export function PublicNav({ userId }: PublicNavProps) {
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link
                     href="/"
-                    className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95"
-                >
-                    <div className="h-8 w-8 rounded-lg overflow-hidden transition-transform group-hover:rotate-3">
-                        <img
+                     className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95"
+                    >
+                        <Image
                             src="/logo.png"
                             alt="Quesify Logo"
+                            width={100}
+                            height={100}
                             className="h-full w-full object-cover"
                         />
-                    </div>
-                    <span className="font-outfit text-xl font-black tracking-tighter text-foreground">
-                        QUESIFY
-                    </span>
-                </Link>
+                        <div className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95">
+                            <span className="font-outfit text-xl font-black tracking-tighter">
+                                QUESIFY
+                            </span>
+                        </div>
+                    </Link>
 
                 <div className="flex items-center gap-4">
                     {userId ? (

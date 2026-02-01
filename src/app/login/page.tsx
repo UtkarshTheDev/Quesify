@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import { LoginButton } from "@/components/auth/login-button";
 
 export default function LoginPage() {
@@ -7,9 +8,11 @@ export default function LoginPage() {
             <div className="w-full max-w-md space-y-8 text-center">
                 <div className="space-y-4">
                     <div className="flex justify-center flex-col items-center gap-4">
-                        <img
+                        <Image
                             src="/logo.png"
                             alt="Quesify Logo"
+                            width={80}
+                            height={80}
                             className="h-20 w-20 rounded-2xl shadow-2xl"
                         />
                         <h1 className="font-outfit text-5xl font-black tracking-tighter">

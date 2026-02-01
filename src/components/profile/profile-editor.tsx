@@ -12,8 +12,19 @@ import { updateProfile } from '@/app/actions/profile'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+interface UserProfile {
+  id: string
+  user_id: string
+  username: string | null
+  display_name: string | null
+  avatar_url: string | null
+  bio: string | null
+  subjects: string[]
+  [key: string]: unknown
+}
+
 interface ProfileEditorProps {
-  profile: any
+  profile: UserProfile
   isOpen: boolean
   onClose: () => void
   availableSubjects: string[]
@@ -39,7 +50,7 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.username) return toast.error('Username is required')
     if (formData.username.length < 3) return toast.error('Username too short')
 
@@ -47,14 +58,15 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
       try {
         await updateProfile(profile.user_id, formData)
         toast.success('Profile updated successfully')
-        
+
         if (profile.username !== formData.username) {
           router.push(`/u/${formData.username}`)
         }
-        
+
         onClose()
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to update profile')
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+        toast.error(errorMessage)
       }
     })
   }
@@ -71,7 +83,7 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
             <Label htmlFor="display_name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
               Full Name
             </Label>
-            <Input 
+            <Input
               id="display_name"
               placeholder="Your Name"
               className="bg-muted/30 h-11 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
@@ -86,7 +98,7 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">@</span>
-              <Input 
+              <Input
                 id="username"
                 placeholder="username"
                 className="bg-muted/30 h-11 border-border/60 pl-8 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
@@ -109,8 +121,8 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
                     variant={isSelected ? "default" : "outline"}
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium rounded-lg cursor-pointer transition-all border",
-                      isSelected 
-                        ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90" 
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
                         : "bg-transparent border-border hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                     )}
                     onClick={() => toggleSubject(subject)}
@@ -124,22 +136,22 @@ export function ProfileEditor({ profile, isOpen, onClose, availableSubjects }: P
           </div>
 
           <div className="pt-2 flex gap-3">
-             <Button 
-                type="button" 
-                variant="ghost" 
-                className="flex-1 h-11 font-semibold"
-                onClick={onClose}
-             >
-               Cancel
-             </Button>
-             <Button 
-                type="submit" 
-                className="flex-[2] h-11 font-bold bg-primary hover:bg-primary/90"
-                disabled={isPending}
-             >
-               {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-               Save Changes
-             </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex-1 h-11 font-semibold"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-[2] h-11 font-bold bg-primary hover:bg-primary/90"
+              disabled={isPending}
+            >
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
           </div>
         </form>
       </DialogContent>

@@ -132,7 +132,7 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     }
   }
 
-  const handleAddToBank = async () => {
+  const handleAddToBank = useCallback(async () => {
     if (!userId) {
       const currentPath = window.location.pathname
       const nextUrl = `${currentPath}?action=add-to-bank`
@@ -158,7 +158,7 @@ export function useQuestionDetail({ question, userId }: UseQuestionDetailParams)
     } finally {
       setIsAddingToBank(false)
     }
-  }
+  }, [userId, router, question.id])
 
   useEffect(() => {
     if (userId && searchParams.get('action') === 'add-to-bank' && !hasAttemptedAutoAdd.current) {

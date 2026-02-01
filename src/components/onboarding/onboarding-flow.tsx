@@ -18,7 +18,6 @@ import {
     Stepper,
     StepperItem,
     StepperTrigger,
-    StepperContent,
 } from "@/components/ui/stepper";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,7 @@ export function OnboardingFlow() {
     const router = useRouter();
     const supabase = createClient();
     const [activeStep, setActiveStep] = useState(1);
-    const [user, setUser] = useState<any>(null);
+    const [, setUser] = useState<{ id: string } | null>(null);
 
     const [username, setUsername] = useState("");
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
@@ -51,7 +50,7 @@ export function OnboardingFlow() {
             }
         };
         checkUser();
-    }, []);
+    }, [supabase.auth]);
 
     useEffect(() => {
         if (activeStep === 3) {
@@ -144,7 +143,7 @@ export function OnboardingFlow() {
                         Welcome to Quesify
                     </h1>
                     <p className="text-muted-foreground">
-                        Let's set up your profile in a few steps.
+                        Let&apos;s set up your profile in a few steps.
                     </p>
                 </div>
 
@@ -192,9 +191,9 @@ export function OnboardingFlow() {
                                 className="space-y-6 text-center py-8"
                             >
                                 <div className="space-y-2">
-                                    <h2 className="text-xl font-semibold">
-                                        First, let's get you signed in
-                                    </h2>
+                                 <h2 className="text-xl font-semibold">
+                                         First, let&apos;s get you signed in
+                                     </h2>
                                     <p className="text-sm text-muted-foreground">
                                         Join the community to track your
                                         progress and share solutions.
@@ -222,10 +221,10 @@ export function OnboardingFlow() {
                                     <h2 className="text-xl font-semibold">
                                         Choose your username
                                     </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        This is how you'll appear to others on
-                                        Quesify.
-                                    </p>
+                                     <p className="text-sm text-muted-foreground">
+                                         This is how you&apos;ll appear to others on
+                                         Quesify.
+                                     </p>
                                 </div>
 
                                 <div className="max-w-xs mx-auto space-y-4">
@@ -293,13 +292,13 @@ export function OnboardingFlow() {
                                 className="space-y-6 py-4"
                             >
                                 <div className="space-y-2 text-center">
-                                    <h2 className="text-xl font-semibold">
-                                        What are you studying?
-                                    </h2>
-                                    <p className="text-sm text-muted-foreground">
-                                        Select the subjects you're interested
-                                        in.
-                                    </p>
+                                     <h2 className="text-xl font-semibold">
+                                         What are you studying?
+                                     </h2>
+                                     <p className="text-sm text-muted-foreground">
+                                         Select subjects you&apos;re interested
+                                         in.
+                                     </p>
                                 </div>
 
                                 {isLoadingSubjects ? (

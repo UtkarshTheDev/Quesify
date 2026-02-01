@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,6 @@ interface QuestionContentProps {
   revealed?: boolean
   correctOption?: number | null
   fetchSharingStats?: () => Promise<{ count: number }>
-  sharingStats?: { count: number } | null
 }
 
 const difficultyColors = {
@@ -25,7 +24,7 @@ const difficultyColors = {
   very_hard: 'bg-red-500/10 text-red-500 hover:bg-red-500/20',
 }
 
-export function QuestionContent({ question, userId, setShowDeleteDialog, revealed, correctOption, fetchSharingStats, sharingStats }: QuestionContentProps) {
+export function QuestionContent({ question, userId, setShowDeleteDialog, revealed, correctOption, fetchSharingStats }: QuestionContentProps) {
   return (
     <Card>
       <CardHeader>
@@ -102,9 +101,12 @@ export function QuestionContent({ question, userId, setShowDeleteDialog, reveale
 
         {question.image_url && (
           <div className="mt-4 rounded-lg overflow-hidden border">
-            <img
+            <Image
               src={question.image_url}
               alt="Question diagram"
+              width={0}
+              height={0}
+              sizes="100vw"
               className="w-full h-auto max-h-[400px] object-contain bg-black/5 dark:bg-white/5"
             />
           </div>

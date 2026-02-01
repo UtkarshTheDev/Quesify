@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "./skeleton";
 import { SectionFade } from "./section-fade";
-import { Latex } from "@/components/ui/latex";
 import { RefreshCw, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 
 interface ClassificationSummaryProps {

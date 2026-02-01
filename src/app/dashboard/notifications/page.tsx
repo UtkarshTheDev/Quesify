@@ -20,7 +20,10 @@ interface Notification {
     username: string | null
     avatar_url: string | null
   }
-  entityDetails?: any
+  entityDetails?: {
+    question_id?: string
+    [key: string]: unknown
+  }
 }
 
 export default function NotificationsPage() {
@@ -38,7 +41,7 @@ export default function NotificationsPage() {
       const res = await fetch('/api/social/notifications?limit=50')
       const data = await res.json()
       setNotifications(data.notifications || [])
-    } catch (error) {
+    } catch {
       toast.error('Failed to load notifications')
     } finally {
       setIsLoading(false)
@@ -69,7 +72,6 @@ export default function NotificationsPage() {
   }
 
   const getMessage = (notif: Notification) => {
-    const name = notif.sender.display_name || 'Someone'
     switch (notif.type) {
       case 'follow': return <><span className="font-bold">@{notif.sender.username}</span> started following you</>
       case 'like': return <><span className="font-bold">@{notif.sender.username}</span> liked your solution</>

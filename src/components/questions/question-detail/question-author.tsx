@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from 'next/image'
 import { Hash } from 'lucide-react'
 import Link from 'next/link'
 
@@ -20,7 +20,7 @@ export function QuestionAuthor({ author }: QuestionAuthorProps) {
     >
       <div className="h-8 w-8 rounded-full overflow-hidden border border-primary/20 bg-background flex items-center justify-center shrink-0 group-hover:border-primary/40 transition-colors">
         {author.avatar_url ? (
-          <img src={author.avatar_url} alt="" className="h-full w-full object-cover" />
+          <Image src={author.avatar_url} alt="" width={32} height={32} className="h-full w-full object-cover" />
         ) : (
           <Hash className="h-4 w-4 text-primary/40" />
         )}

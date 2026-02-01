@@ -8,7 +8,6 @@ import {
     Loader2,
     Sparkles,
     BookOpen,
-    MessageSquare,
     CheckCircle2,
 } from "lucide-react";
 
@@ -462,7 +461,7 @@ export function QuestionTabs({
                 </TabsContent>
 
                 <TabsContent value="chat" className="mt-6 outline-none">
-                    <AIChatTab question={question} userId={userId} />
+                    <AIChatTab question={question} />
                 </TabsContent>
             </Tabs>
         </div>

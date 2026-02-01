@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, Loader2, Clipboard } from 'lucide-react'
@@ -59,9 +60,12 @@ export function Dropzone({ onFileSelect, isProcessing, selectedFile, onClear }: 
   if (selectedFile) {
     return (
       <div className="relative rounded-lg border border-border overflow-hidden">
-        <img
+        <Image
           src={URL.createObjectURL(selectedFile)}
           alt="Selected question"
+          width={0}
+          height={0}
+          sizes="100vw"
           className="w-full max-h-96 object-contain bg-muted"
         />
         {isProcessing ? (

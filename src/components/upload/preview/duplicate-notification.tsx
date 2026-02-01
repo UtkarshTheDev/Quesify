@@ -51,10 +51,10 @@ export function DuplicateNotification({ duplicateCheck, isFinalizing }: Duplicat
                     </div>
 
                     <div className="p-4 rounded-xl bg-yellow-500/[0.05] border border-yellow-500/10">
-                        <p className="text-xs text-yellow-700/80 leading-relaxed font-medium italic">
-                            "{duplicateCheck.differences || "This question is already available in our global question bank."}"
-                        </p>
-                    </div>
+                           <p className="text-xs text-yellow-700/80 leading-relaxed font-medium italic">
+                              {duplicateCheck.differences || "This question is already available in our global question bank."}
+                            </p>
+                     </div>
                 </div>
 
                 <Button

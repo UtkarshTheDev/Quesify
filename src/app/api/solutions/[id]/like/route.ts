@@ -53,7 +53,7 @@ export async function GET(
       .maybeSingle()
 
     return NextResponse.json({ liked: !!like })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ liked: false })
   }
 }

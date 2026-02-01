@@ -76,9 +76,8 @@ export default function UploadPage() {
       setExtractedData(initialData)
       setAnalysisStatus(prev => ({ ...prev, extracting: false }))
 
-      // Kick off background tasks automatically after extraction
-      runSolve(result.data.question_text, result.data.isMCQ, result.data.subject, result.data.options, regenerate)
-      runClassify(result.data.question_text, result.data.subject, regenerate)
+      runSolve(result.data.question_text, result.data.isMCQ, result.data.subject, result.data.options, regenerate, result.data.has_diagram)
+      runClassify(result.data.question_text, result.data.subject, regenerate, result.data.has_diagram)
     } catch (error) {
       setAnalysisStatus(prev => ({
         ...prev,
@@ -89,14 +88,13 @@ export default function UploadPage() {
     }
   }
 
-  // Phase 2: Solving
-  const runSolve = async (text: string, isMCQ: boolean, subject: string, options: string[] = [], regenerate = false) => {
+  const runSolve = async (text: string, isMCQ: boolean, subject: string, options: string[] = [], regenerate = false, hasDiagram = false) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, solving: true, solveError: null }))
     finalizationLock.current = false
     isBestModelActive.current = regenerate || isBestModelActive.current
-    
-    if (regenerate && !analysisStatus.extracting) {
+
+    if ((regenerate || hasDiagram) && !analysisStatus.extracting) {
       toast.info("High-quality model is being used. It may take some time, please be patient.")
     }
 
@@ -104,12 +102,13 @@ export default function UploadPage() {
       const res = await fetch('/api/upload/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question_text: text, 
-          isMCQ, 
-          subject, 
+        body: JSON.stringify({
+          question_text: text,
+          isMCQ,
+          subject,
           options,
-          regenerate: regenerate || undefined
+          regenerate: regenerate || undefined,
+          has_diagram: hasDiagram || undefined
         })
       })
       const result = await res.json()
@@ -137,13 +136,13 @@ export default function UploadPage() {
   }
 
   // Phase 3: Classification
-  const runClassify = async (text: string, subject: string, regenerate = false) => {
+  const runClassify = async (text: string, subject: string, regenerate = false, hasDiagram = false) => {
     const start = performance.now()
     setAnalysisStatus(prev => ({ ...prev, classifying: true, classifyError: null }))
     finalizationLock.current = false
     isBestModelActive.current = regenerate || isBestModelActive.current
 
-    if (regenerate && !analysisStatus.extracting) {
+    if ((regenerate || hasDiagram) && !analysisStatus.extracting) {
       toast.info("High-quality model is being used. It may take some time, please be patient.")
     }
 
@@ -151,10 +150,11 @@ export default function UploadPage() {
       const res = await fetch('/api/upload/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question_text: text, 
+        body: JSON.stringify({
+          question_text: text,
           subject,
-          regenerate: regenerate || undefined
+          regenerate: regenerate || undefined,
+          has_diagram: hasDiagram || undefined
         })
       })
       const result = await res.json()
@@ -219,7 +219,7 @@ export default function UploadPage() {
         }) : null)
       }
       setAnalysisStatus(prev => ({ ...prev, finalizing: false }))
-    } catch (error) {
+    } catch {
       setAnalysisStatus(prev => ({ ...prev, finalizing: false, finalizeError: 'Deduplication check failed' }))
     }
   }
@@ -315,8 +315,8 @@ export default function UploadPage() {
           isSaving={isSaving}
           onReFinalize={handleReFinalize}
           onRetryExtract={(regen) => selectedFile && runExtract(selectedFile, regen)}
-          onRetrySolve={(regen) => extractedData && runSolve(extractedData.question_text, extractedData.isMCQ, extractedData.subject, extractedData.options, regen)}
-          onRetryClassify={(regen) => extractedData && runClassify(extractedData.question_text, extractedData.subject, regen)}
+          onRetrySolve={(regen) => extractedData && runSolve(extractedData.question_text, extractedData.isMCQ, extractedData.subject, extractedData.options, regen, extractedData.has_diagram)}
+          onRetryClassify={(regen) => extractedData && runClassify(extractedData.question_text, extractedData.subject, regen, extractedData.has_diagram)}
         />
       )}
     </div>

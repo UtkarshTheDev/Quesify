@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCache, recordCacheHit, recordCacheMiss, resetCacheHitTracker, setCache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/api-cache'
-import type { CachedResult } from '@/lib/cache/api-cache'
+import type { Question, UserQuestionStats } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
+
+interface UserQuestionWithStats extends Question {
+  solutions: { count: number }[]
+  user_question_stats: UserQuestionStats[]
+}
+
+interface QuestionJoinItem {
+  added_at: string
+  question: UserQuestionWithStats | UserQuestionWithStats[] | null
+}
 
 export async function GET(request: NextRequest) {
   resetCacheHitTracker()
@@ -71,7 +81,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('question.type', 'MCQ')
     }
 
-    let data: any[] = []
+    let data: QuestionJoinItem[] = []
     let count = 0
     let hasMore = false
     let nextCursor: string | null = null
@@ -125,8 +135,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const questions = data.map((item: any) => {
-      const q = item.question
+    const questions = data.map((item: QuestionJoinItem) => {
+      const q = Array.isArray(item.question) ? item.question[0] : item.question
+      if (!q) throw new Error('Invalid question data')
+
       return {
         ...q,
         user_question_stats: q.user_question_stats?.[0] || null,

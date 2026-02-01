@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -34,9 +35,11 @@ export async function Navbar() {
                         href="/dashboard"
                         className="mr-6 flex items-center space-x-2 transition-transform hover:scale-105 active:scale-95"
                     >
-                        <img
+                        <Image
                             src="/logo.png"
                             alt="Quesify Logo"
+                            width={80}
+                            height={80}
                             className="h-8 w-8 rounded-lg"
                         />
                         <span className="font-outfit font-bold text-xl tracking-tighter">
