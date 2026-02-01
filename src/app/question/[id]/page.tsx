@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { QuestionDetail } from '@/components/questions/question-detail'
 import { QuestionSkeleton } from '@/components/questions/question-skeleton'
+import { OpenInAppBanner } from '@/components/questions/open-in-app-banner'
 import { Question, Solution, UserQuestionStats } from '@/lib/types'
 import { PublicNav } from '@/components/layout/public-nav'
 import type { Metadata } from 'next'
@@ -136,6 +137,7 @@ export default async function PublicQuestionPage({ params }: PageProps) {
                         totalSolutionsCount={totalSolutionsCount || 0}
                     />
                 </Suspense>
+                <OpenInAppBanner questionId={id} />
             </main>
         </div>
     )
