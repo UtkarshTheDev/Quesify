@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.quesify.twa",
+    "sha256_cert_fingerprints": ["0C:25:60:75:2B:E6:37:AB:39:1A:78:2D:5D:2A:E4:C6:FE:89:E4:B2:B7:3B:65:69:DB:8C:00:A0:42:34:31:D2"]
+  }
+}]
