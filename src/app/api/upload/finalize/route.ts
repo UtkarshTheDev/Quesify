@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export async function POST(request: NextRequest) {
     const routeStart = performance.now()
+    
+    const rateLimitResult = await applyRateLimit(request, 'upload')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+    
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
