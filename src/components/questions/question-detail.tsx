@@ -100,7 +100,6 @@ export function QuestionDetail({ question, userId, isPublic = false, totalSoluti
         revealed={isRevealed}
         correctOption={currentSolution?.correct_option}
         fetchSharingStats={fetchSharingStats}
-        sharingStats={sharingStats}
       />
           <QuestionTabs
             question={question}

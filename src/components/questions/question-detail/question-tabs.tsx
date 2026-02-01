@@ -461,7 +461,30 @@ export function QuestionTabs({
                 </TabsContent>
 
                 <TabsContent value="chat" className="mt-6 outline-none">
-                    <AIChatTab question={question} />
+                    {userId ? (
+                        <AIChatTab question={question} />
+                    ) : (
+                        <Card className="border-dashed bg-muted/5">
+                            <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-6">
+                                <div className="h-16 w-16 rounded-full bg-orange-500/10 flex items-center justify-center">
+                                    <Sparkles className="h-8 w-8 text-orange-500" />
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="font-semibold text-lg">Unlock AI Study Assistant</p>
+                                    <p className="text-sm text-muted-foreground max-w-[300px]">
+                                        Sign in to ask questions, get explanations, and chat with our AI about this problem.
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={() => router.push("/login")}
+                                    className="gap-2 bg-orange-600 hover:bg-orange-700 text-white"
+                                >
+                                    <Sparkles className="h-4 w-4" />
+                                    Sign In to Continue
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
