@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Upload, BookOpen, ChevronRight, LayoutGrid, Sparkles } from 'lucide-react'
+import { Upload, LayoutGrid, Sparkles, BookOpen, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { QuestionCard } from '@/components/questions/question-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartsSection, ChartsSkeleton } from '@/components/dashboard/charts-section'
+import { EmptyDashboard } from '@/components/dashboard/empty-state'
 import { Suspense } from 'react'
 import {
   UserQuestionWithStatsJoinResult,
@@ -16,33 +17,15 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Get user's questions count
   const { count: questionCount } = await supabase
     .from('user_questions')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user?.id)
 
   if (!questionCount || questionCount === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Welcome to Quesify!</h1>
-          <p className="text-muted-foreground max-w-md">
-            Upload your first question screenshot to get started. Our AI will organize it automatically.
-          </p>
-        </div>
-
-        <Button asChild size="lg">
-          <Link href="/upload" className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload Your First Question
-          </Link>
-        </Button>
-      </div>
-    )
+    return <EmptyDashboard />
   }
 
-  // Fetch recent questions with stats and solutions
   const { data: recentQuestions } = await supabase
     .from('user_questions')
     .select(`
@@ -57,7 +40,6 @@ export default async function DashboardPage() {
     .order('added_at', { ascending: false })
     .limit(6)
 
-  // Fetch subject distribution (using a raw query or manual aggregation since simple group by is tricky with ORM)
   const { data: allQuestions } = await supabase
     .from('user_questions')
     .select(`
@@ -65,7 +47,6 @@ export default async function DashboardPage() {
     `)
     .eq('user_id', user?.id)
 
-  // Aggregate subjects
   const subjectCounts: Record<string, number> = {}
   const questionsData = allQuestions as UserQuestionSubjectJoinResult[] | null
   questionsData?.forEach((item) => {
@@ -76,11 +57,10 @@ export default async function DashboardPage() {
 
   const subjects = Object.entries(subjectCounts)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 5) // Top 5 subjects
+    .slice(0, 5)
 
   return (
     <div className="space-y-8">
-      {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -104,7 +84,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* AI Charts Section */}
       <section>
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-yellow-500 fill-yellow-500/20" />
@@ -115,7 +94,6 @@ export default async function DashboardPage() {
         </Suspense>
       </section>
 
-      {/* Subjects Overview */}
       <section>
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
@@ -138,7 +116,6 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Recent Questions */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Recently Added</h2>
