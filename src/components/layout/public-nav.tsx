@@ -15,21 +15,19 @@ export function PublicNav({ userId }: PublicNavProps) {
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link
                     href="/"
-                     className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95"
-                    >
-                        <Image
-                            src="/logo.png"
-                            alt="Quesify Logo"
-                            width={100}
-                            height={100}
-                            className="h-full w-full object-cover"
-                        />
-                        <div className="flex items-center gap-2 group transition-transform hover:scale-105 active:scale-95">
-                            <span className="font-outfit text-xl font-black tracking-tighter">
-                                QUESIFY
-                            </span>
-                        </div>
-                    </Link>
+                    className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95"
+                >
+                    <Image
+                        src="/logo.png"
+                        alt="Quesify Logo"
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 object-cover rounded-lg"
+                    />
+                    <span className="font-outfit text-xl font-black tracking-tighter">
+                        QUESIFY
+                    </span>
+                </Link>
 
                 <div className="flex items-center gap-4">
                     {userId ? (
