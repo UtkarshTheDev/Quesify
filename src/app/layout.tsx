@@ -1,22 +1,24 @@
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import localFont from "next/font/local";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
-const geistSans = Geist({
+const geistSans = localFont({
+    src: "../../public/fonts/geist/Geist-Variable.woff2",
     variable: "--font-geist-sans",
-    subsets: ["latin"],
+    weight: "100 900",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+    src: "../../public/fonts/geist-mono/GeistMono-Variable.woff2",
     variable: "--font-geist-mono",
-    subsets: ["latin"],
+    weight: "100 900",
 });
 
-const outfit = Outfit({
+const outfit = localFont({
+    src: "../../public/fonts/outfit/Outfit-Variable.woff2",
     variable: "--font-outfit",
-    subsets: ["latin"],
+    weight: "100 900",
 });
 
 const charter = localFont({
