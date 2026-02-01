@@ -11,10 +11,9 @@ import type { Solution, Question } from '@/lib/types'
 interface PaginatedSolutionListProps {
   initialSolutions: (Solution & { question: Question })[]
   userId: string
-  currentUserId: string | null
 }
 
-export function PaginatedSolutionList({ initialSolutions, userId, currentUserId }: PaginatedSolutionListProps) {
+export function PaginatedSolutionList({ initialSolutions, userId }: PaginatedSolutionListProps) {
   const [solutions, setSolutions] = useState(initialSolutions)
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -59,7 +58,6 @@ export function PaginatedSolutionList({ initialSolutions, userId, currentUserId 
           <ProfileSolutionCard
             key={s.id}
             solution={s}
-            currentUserId={currentUserId}
           />
         ))}
       </div>
