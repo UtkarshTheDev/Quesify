@@ -42,7 +42,7 @@ export async function PATCH(
     if (body.numerical_answer !== undefined) updateData.numerical_answer = body.numerical_answer
     if (body.approach_description !== undefined) updateData.approach_description = body.approach_description
 
-    const { data: updated, error: updateError, count } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from('solutions')
       .update(updateData)
       .eq('id', id)

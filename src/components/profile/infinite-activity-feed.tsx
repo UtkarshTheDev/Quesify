@@ -34,12 +34,16 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
         throw new Error('Failed to load activities')
       }
 
-      const data = await response.json()
+      const data = await response.json() as { data: ActivityItem[]; next_cursor: string | null; has_more: boolean }
 
-      const transformedActivities: ActivityItem[] = (data.data || []).map((act: any) => {
+      const transformedActivities: ActivityItem[] = (data.data || []).map((act: ActivityItem) => {
         const getLocation = () => act.metadata?.chapter || act.metadata?.subject || 'General'
         let title = ''
-        switch (act.activity_type) {
+        const activityType = act.activity_type || act.type
+        const createdAt = act.created_at || act.date
+        const targetType = act.target_type
+
+        switch (activityType) {
           case 'question_created': title = `Created question in ${getLocation()}`; break
           case 'solution_contributed': title = `Contributed solution to ${getLocation()}`; break
           case 'question_solved': title = `Solved ${getLocation()} question`; break
@@ -51,10 +55,10 @@ export function InfiniteActivityFeed({ userId }: InfiniteActivityFeedProps) {
         }
         return {
           id: act.id,
-          type: act.activity_type,
-          date: act.created_at,
+          type: act.activity_type || act.type,
+          date: createdAt,
           title: title,
-          url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
+          url: targetType === 'question' ? `/question/${act.target_id}` : targetType === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',
           meta: act.metadata?.snippet || '',
           metadata: act.metadata
         }

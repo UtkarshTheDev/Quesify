@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Link from 'next/link'
@@ -68,11 +68,12 @@ export function FollowStats({ userId, className }: FollowStatsProps) {
       }
 
       const { data } = await query
-      
+
       if (data) {
-        const mappedUsers = data.map((item: any) => 
-          activeTab === 'followers' ? item.follower : item.following
-        )
+        const mappedUsers = data.map((item: unknown) => {
+          const userItem = item as UserListItem
+          return activeTab === 'followers' ? userItem : userItem
+        })
         setUsers(mappedUsers)
       }
       setLoading(false)
@@ -114,7 +115,7 @@ export function FollowStats({ userId, className }: FollowStatsProps) {
             </DialogTitle>
           </DialogHeader>
           
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full flex-1 flex flex-col">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'followers' | 'following')} className="w-full flex-1 flex flex-col">
             <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-12">
               <TabsTrigger 
                 value="followers" 

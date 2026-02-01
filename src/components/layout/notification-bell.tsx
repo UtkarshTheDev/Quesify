@@ -1,7 +1,7 @@
-'use client'
+ 'use client'
 
-import { useState, useEffect } from 'react'
-import { Bell, Check, UserPlus, Heart, BookOpen, Lightbulb } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Bell, UserPlus, Heart, BookOpen, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -25,7 +25,10 @@ interface Notification {
     username: string | null
     avatar_url: string | null
   }
-  entityDetails?: any
+  entityDetails?: {
+    question_id?: string
+    [key: string]: unknown
+  }
 }
 
 interface NotificationBellProps {
@@ -38,10 +41,19 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchNotifications()
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/social/notifications?limit=10')
+      const data = await res.json()
+      setNotifications(data.notifications || [])
+      setUnreadCount(data.notifications?.filter((n: Notification) => !n.is_read).length || 0)
+    } catch (error) {
+      console.error('Failed to fetch notifications', error)
+    }
+  }, [])
 
-    // Subscribe to realtime updates for the current user
+  useEffect(() => {
+    // Subscribe to realtime updates for current user
     const subscribeToNotifications = async () => {
       if (!userId) return
 
@@ -55,9 +67,8 @@ export function NotificationBell({ userId }: NotificationBellProps) {
             table: 'notifications',
             filter: `recipient_id=eq.${userId}`
           },
-          (payload) => {
+          () => {
             setUnreadCount((prev) => prev + 1)
-            fetchNotifications() // Refresh list
             toast.info('New notification received')
           }
         )
@@ -66,7 +77,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       return channel
     }
 
-    let notificationChannel: any
+    let notificationChannel: ReturnType<typeof supabase.channel> | undefined
     subscribeToNotifications().then(channel => {
       notificationChannel = channel
     })
@@ -76,18 +87,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         supabase.removeChannel(notificationChannel)
       }
     }
-  }, [])
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/social/notifications?limit=10')
-      const data = await res.json()
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.notifications?.filter((n: Notification) => !n.is_read).length || 0)
-    } catch (error) {
-      console.error('Failed to fetch notifications', error)
-    }
-  }
+  }, [supabase, userId, fetchNotifications])
 
   const markAllRead = async () => {
     try {
@@ -100,20 +100,6 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     } catch (error) {
       console.error('Failed to mark all read', error)
-    }
-  }
-
-  const markRead = async (id: string) => {
-    try {
-      await fetch('/api/social/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      })
-      setNotifications(prev => prev.map(n => n.id === id ? ({ ...n, is_read: true }) : n))
-      setUnreadCount(prev => Math.max(0, prev - 1))
-    } catch (error) {
-      console.error('Failed to mark read', error)
     }
   }
 

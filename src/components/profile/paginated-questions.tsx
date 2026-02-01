@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { QuestionCard } from '@/components/questions/question-card'
 import { useInView } from '@/hooks/use-in-view'
 import { getMoreQuestions } from '@/app/actions/profile'
 import { Loader2, BookOpen } from 'lucide-react'
 import { ProfileEmptyState } from './empty-state'
+import type { Question } from '@/lib/types'
 
 interface PaginatedQuestionListProps {
-  initialQuestions: any[]
+  initialQuestions: Question[]
   userId: string
 }
 
@@ -19,13 +20,7 @@ export function PaginatedQuestionList({ initialQuestions, userId }: PaginatedQue
   const [isLoading, setIsLoading] = useState(false)
   const { ref, inView } = useInView()
 
-  useEffect(() => {
-    if (inView && hasMore && !isLoading) {
-      loadMore()
-    }
-  }, [inView, hasMore, isLoading])
-
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     setIsLoading(true)
     const nextPage = page + 1
     try {
@@ -38,7 +33,13 @@ export function PaginatedQuestionList({ initialQuestions, userId }: PaginatedQue
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, userId])
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      loadMore()
+    }
+  }, [inView, hasMore, isLoading, loadMore])
 
   if (questions.length === 0) {
     return (
@@ -53,7 +54,7 @@ export function PaginatedQuestionList({ initialQuestions, userId }: PaginatedQue
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
-        {questions.map((q: any) => (
+        {questions.map((q) => (
           <QuestionCard key={q.id} question={q} />
         ))}
       </div>

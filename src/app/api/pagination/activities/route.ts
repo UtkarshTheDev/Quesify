@@ -34,13 +34,18 @@ export async function GET(request: NextRequest) {
     recordCacheMiss()
     console.log(`[Cache] MISS ${cacheKey}`)
 
-    let query = supabase
+    const query = supabase
       .from('user_activities')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
-    let data: any[] = []
+    let data: {
+      id: string
+      created_at: string
+      activity_type: string
+      [key: string]: unknown
+    }[] = []
     let hasMore = false
     let nextCursor: string | null = null
 

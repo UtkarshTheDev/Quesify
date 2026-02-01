@@ -4,26 +4,36 @@ import { useState, useMemo } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
 import { 
   Link2, Lightbulb, CheckCircle2, PlusCircle, 
-  Loader2, Edit3, Trash2, ChevronDown, ChevronRight, History, UserPlus
+  Edit3, Trash2, ChevronDown, ChevronRight, History, UserPlus
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Latex } from '@/components/ui/latex'
 import { ProfileEmptyState } from './empty-state'
 
-export type ActivityType = 
+export type ActivityType =
   | 'created_question' | 'contributed_solution' | 'solved_question' | 'added_to_bank'
-  | 'question_created' | 'solution_contributed' | 'question_solved' | 'question_forked' 
+  | 'question_created' | 'solution_contributed' | 'solution_updated' | 'question_solved' | 'question_forked'
   | 'hint_updated' | 'question_deleted' | 'solution_deleted' | 'user_followed'
 
 export interface ActivityItem {
   id: string
   type: ActivityType
+  activity_type?: ActivityType
   date: string
+  created_at?: string
   title: string
   url: string
   meta?: string
-  metadata?: any
+  target_type?: 'question' | 'solution' | null
+  target_id?: string
+  metadata?: {
+    subject?: string
+    chapter?: string
+    snippet?: string
+    question_id?: string
+    [key: string]: unknown
+  }
 }
 
 interface ActivityFeedProps {

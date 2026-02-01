@@ -159,7 +159,7 @@ class AIClient {
       // Step 3: Attempt direct parse
       try {
         return JSON.parse(cleaned) as T
-      } catch (e) {}
+      } catch {}
 
 
         const repaired = cleaned.replace(/(\\\\)|(\\)(?![n"\\/u])/g, (match, p1) => {
@@ -171,7 +171,7 @@ class AIClient {
 
       try {
         return JSON.parse(repaired) as T
-      } catch (e) {}
+      } catch {}
 
       // Step 5: Aggressive repair - try to fix broken quotes
       // This is a last resort for malformed JSON

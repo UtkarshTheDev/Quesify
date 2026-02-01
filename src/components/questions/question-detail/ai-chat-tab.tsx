@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Send, Sparkles, Loader2, Maximize2, Minimize2 } from 'lucide-react'
+import { Send, Sparkles, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Latex } from '@/components/ui/latex'
@@ -17,10 +17,9 @@ interface Message {
 
 interface AIChatTabProps {
   question: Question & { solutions: Solution[] }
-  userId: string | null
 }
 
-export function AIChatTab({ question, userId }: AIChatTabProps) {
+export function AIChatTab({ question }: AIChatTabProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',

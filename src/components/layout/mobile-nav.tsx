@@ -25,7 +25,7 @@ export function MobileNav() {
         }
     }
     getProfile()
-  }, [])
+  }, [supabase])
 
   const navItems = [
     { href: '/dashboard', label: 'Home', icon: Home },

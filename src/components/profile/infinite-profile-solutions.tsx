@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { SolutionCardList } from '@/components/questions/solution-card-list'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
@@ -21,6 +21,14 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
   const [error, setError] = useState<string | null>(null)
   const [initialLoaded, setInitialLoaded] = useState(false)
   const router = useRouter()
+
+  const settersRef = useRef<{
+    setHasMore: (value: boolean) => void
+    setIsLoading: (value: boolean) => void
+  }>({
+    setHasMore: () => {},
+    setIsLoading: () => {}
+  })
 
   const loadMore = useCallback(async () => {
     try {
@@ -43,7 +51,7 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
       setCursor(data.next_cursor)
 
       if (!data.has_more) {
-        setHasMore(false)
+        settersRef.current.setHasMore(false)
       }
 
       if (!initialLoaded) {
@@ -52,7 +60,7 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load solutions')
     } finally {
-      setIsLoading(false)
+      settersRef.current.setIsLoading(false)
     }
   }, [cursor, userId, initialLoaded])
 
@@ -60,6 +68,10 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
     onLoadMore: loadMore,
     enabled: !initialLoaded || !!cursor,
   })
+
+  useEffect(() => {
+    settersRef.current = { setHasMore, setIsLoading }
+  }, [setHasMore, setIsLoading])
 
   const handleSelectSolution = useCallback((solutionId: string) => {
     // Navigate to the question page with the solution
@@ -70,7 +82,7 @@ export function InfiniteProfileSolutions({ userId, currentUserId }: InfiniteProf
     } else {
       router.push(`/question/${solutionId}`)
     }
-  }, [solutions, router])
+  }, [solutions, router])  
 
   if (error && solutions.length === 0) {
     return (

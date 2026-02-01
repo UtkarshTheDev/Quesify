@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { QuestionCard } from '@/components/questions/question-card'
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { Loader2 } from 'lucide-react'
@@ -17,6 +17,14 @@ export function InfiniteProfileQuestions({ userId }: InfiniteProfileQuestionsPro
   const [cursor, setCursor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [initialLoaded, setInitialLoaded] = useState(false)
+  
+  const settersRef = useRef<{
+    setHasMore: (value: boolean) => void
+    setIsLoading: (value: boolean) => void
+  }>({
+    setHasMore: () => {},
+    setIsLoading: () => {}
+  })
 
   const loadMore = useCallback(async () => {
     try {
@@ -38,7 +46,7 @@ export function InfiniteProfileQuestions({ userId }: InfiniteProfileQuestionsPro
       setCursor(data.next_cursor)
 
       if (!data.has_more) {
-        setHasMore(false)
+        settersRef.current.setHasMore(false)
       }
 
       if (!initialLoaded) {
@@ -47,7 +55,7 @@ export function InfiniteProfileQuestions({ userId }: InfiniteProfileQuestionsPro
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load questions')
     } finally {
-      setIsLoading(false)
+      settersRef.current.setIsLoading(false)
     }
   }, [cursor, userId, initialLoaded])
 
@@ -55,6 +63,10 @@ export function InfiniteProfileQuestions({ userId }: InfiniteProfileQuestionsPro
     onLoadMore: loadMore,
     enabled: !initialLoaded || !!cursor,
   })
+
+  useEffect(() => {
+    settersRef.current = { setHasMore, setIsLoading }
+  }, [setHasMore, setIsLoading])
 
   if (error && questions.length === 0) {
     return (

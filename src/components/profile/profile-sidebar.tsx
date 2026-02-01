@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar, MapPin, Link as LinkIcon, Users, Edit } from "lucide-react";
+import { Calendar, Edit } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import type { UserProfile } from "@/lib/types";
 
 interface ProfileSidebarProps {
     profile: UserProfile;
-    currentUser: any;
+    currentUser: { id: string } | null;
 }
 
 export function ProfileSidebar({ profile, currentUser }: ProfileSidebarProps) {

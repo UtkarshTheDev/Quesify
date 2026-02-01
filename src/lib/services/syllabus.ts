@@ -224,8 +224,8 @@ export async function getSubjectsList(): Promise<string[]> {
     try {
       const cached = await redis.get<string[]>(CACHE_KEYS.SUBJECTS_LIST)
       if (cached) return cached
-    } catch (e) {
-      console.warn('Redis error:', e)
+    } catch {
+      console.warn('Redis error')
     }
   }
 
@@ -252,7 +252,7 @@ export async function getSubjectsList(): Promise<string[]> {
     }
 
     return subjects
-  } catch (e) {
+  } catch {
     return Array.from(new Set(class12Syllabus.map(s => s.subject)))
   }
 }
@@ -418,13 +418,14 @@ export async function getChapterNames(subject: string): Promise<string[]> {
       .eq('subject', subject)
       .order('priority', { ascending: false })
 
+     
     if (error || !data) {
       // Fallback to static data
       return getChaptersBySubject(subject)
     }
 
     return data.map(entry => entry.chapter)
-  } catch (error) {
+  } catch {
     // Fallback to static data
     return getChaptersBySubject(subject)
   }
@@ -458,7 +459,7 @@ export async function getAllChapterNames(): Promise<Record<string, string[]>> {
     }, {} as Record<string, string[]>)
 
     return grouped
-  } catch (error) {
+  } catch {
     // Fallback to static data
     return getFallbackChapterNames()
   }

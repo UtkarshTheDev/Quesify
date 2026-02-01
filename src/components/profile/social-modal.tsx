@@ -1,14 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Loader2, UserPlus, UserMinus, Search } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
 import { getFollowers, getFollowing, checkIsFollowing } from '@/app/actions/social'
 import { FollowButton } from './follow-button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+
+interface SocialUser {
+  user_id?: string
+  display_name?: string | null
+  avatar_url?: string | null
+  username?: string | null
+}
 
 interface SocialModalProps {
   userId: string
@@ -19,33 +25,34 @@ interface SocialModalProps {
 }
 
 export function SocialModal({ userId, type, isOpen, onClose, currentUserId }: SocialModalProps) {
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<(SocialUser & { isFollowing?: boolean })[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchUsers()
-    }
-  }, [isOpen, type, userId])
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true)
     try {
       const data = type === 'followers' ? await getFollowers(userId) : await getFollowing(userId)
       
-      const enrichedUsers = await Promise.all((data || []).map(async (u: any) => {
-        const isFollowing = currentUserId ? await checkIsFollowing(u.user_id) : false
+      const enrichedUsers = await Promise.all((data || []).map(async (u) => {
+        if (!u) return null
+        const isFollowing = currentUserId ? await checkIsFollowing(u.user_id!) : false
         return { ...u, isFollowing }
       }))
       
-      setUsers(enrichedUsers)
+      setUsers(enrichedUsers.filter((u): u is NonNullable<typeof u> => u !== null))
     } catch (error) {
       console.error('Failed to fetch social list', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [type, userId, currentUserId])
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUsers()
+    }
+  }, [isOpen, fetchUsers])
 
   const filteredUsers = users.filter(u => 
     u.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -112,10 +119,9 @@ export function SocialModal({ userId, type, isOpen, onClose, currentUserId }: So
                     </div>
                   </Link>
                   
-                  {currentUserId && currentUserId !== user.user_id && (
-                    <FollowButton 
-                      followingId={user.user_id} 
-                      initialIsFollowing={user.isFollowing} 
+                  {currentUserId && user.user_id && currentUserId !== user.user_id && (
+                    <FollowButton
+                      targetId={user.user_id}
                       className="h-8 w-24 text-[10px] uppercase tracking-widest px-0"
                     />
                   )}

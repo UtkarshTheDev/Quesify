@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ProfileSolutionCard } from '@/components/profile/profile-solution-card'
 import { useInView } from '@/hooks/use-in-view'
 import { getMoreSolutions } from '@/app/actions/profile'
 import { Loader2, GitFork } from 'lucide-react'
 import { ProfileEmptyState } from './empty-state'
+import type { Solution, Question } from '@/lib/types'
 
 interface PaginatedSolutionListProps {
-  initialSolutions: any[]
+  initialSolutions: (Solution & { question: Question })[]
   userId: string
   currentUserId: string | null
 }
@@ -20,13 +21,7 @@ export function PaginatedSolutionList({ initialSolutions, userId, currentUserId 
   const [isLoading, setIsLoading] = useState(false)
   const { ref, inView } = useInView()
 
-  useEffect(() => {
-    if (inView && hasMore && !isLoading) {
-      loadMore()
-    }
-  }, [inView, hasMore, isLoading])
-
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     setIsLoading(true)
     const nextPage = page + 1
     try {
@@ -39,7 +34,13 @@ export function PaginatedSolutionList({ initialSolutions, userId, currentUserId 
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, userId])
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      loadMore()
+    }
+  }, [inView, hasMore, isLoading, loadMore])
 
   if (solutions.length === 0) {
     return (
@@ -54,11 +55,11 @@ export function PaginatedSolutionList({ initialSolutions, userId, currentUserId 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
-        {solutions.map((s: any) => (
-          <ProfileSolutionCard 
-            key={s.id} 
-            solution={s} 
-            currentUserId={currentUserId} 
+        {solutions.map((s) => (
+          <ProfileSolutionCard
+            key={s.id}
+            solution={s}
+            currentUserId={currentUserId}
           />
         ))}
       </div>

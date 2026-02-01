@@ -55,7 +55,7 @@ export async function getMoreActivities(userId: string, page: number) {
 
     return {
       id: act.id,
-      type: act.activity_type as any,
+      type: act.activity_type,
       date: act.created_at,
       title: title,
       url: act.target_type === 'question' ? `/question/${act.target_id}` : act.target_type === 'solution' ? `/question/${act.metadata?.question_id || act.target_id}` : '#',

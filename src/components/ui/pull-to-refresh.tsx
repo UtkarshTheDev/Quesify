@@ -12,7 +12,7 @@ interface PullToRefreshProps {
 }
 
 export function PullToRefresh({ children, onRefresh, className = '' }: PullToRefreshProps) {
-  const { containerRef, pullProgress, isPulling, isRefreshing } = usePullToRefresh({
+  const { containerRef, pullProgress, isRefreshing } = usePullToRefresh({
     onRefresh,
     threshold: 80,
   })

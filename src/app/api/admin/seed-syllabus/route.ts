@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
  * GET /api/admin/seed-syllabus
  * Get information about the syllabus seeding without actually seeding
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient()
 

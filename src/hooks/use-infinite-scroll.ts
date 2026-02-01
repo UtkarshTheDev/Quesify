@@ -30,7 +30,9 @@ export function useInfiniteScroll({
   const observerRef = useRef<IntersectionObserver | null>(null)
   const isLoadingRef = useRef(isLoading)
 
-  isLoadingRef.current = isLoading
+  useEffect(() => {
+    isLoadingRef.current = isLoading
+  }, [isLoading])
 
   const handleIntersection = useCallback(
     (entries: IntersectionObserverEntry[]) => {

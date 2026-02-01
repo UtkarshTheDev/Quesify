@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ai } from '@/lib/ai'
 
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -76,7 +76,7 @@ export async function POST(_request: NextRequest) {
 
     // Determine weak chapters (> 30% fail rate)
     const weakChapters = Object.entries(chapterStats)
-      .filter(([_, data]) => (data.failed / data.total) > 0.3)
+      .filter(([, data]) => (data.failed / data.total) > 0.3)
       .map(([chapter]) => chapter)
 
     // Calculate struggle rates for AI context

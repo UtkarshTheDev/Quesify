@@ -1,22 +1,19 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Latex } from '@/components/ui/latex'
 import { Sparkles, ArrowRight, ThumbsUp, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import type { Solution, Question } from '@/lib/types'
 
 interface ProfileSolutionCardProps {
-  solution: any
-  currentUserId: string | null
+  solution: Solution & { question: Question }
 }
 
-export function ProfileSolutionCard({ solution, currentUserId }: ProfileSolutionCardProps) {
+export function ProfileSolutionCard({ solution }: ProfileSolutionCardProps) {
   if (!solution.question) return null
 
   return (

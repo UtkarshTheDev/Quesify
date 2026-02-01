@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
     Sparkles,
-    Loader2,
     SendHorizontal,
     Wand2,
     Type,

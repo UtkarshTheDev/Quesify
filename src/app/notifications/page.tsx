@@ -11,6 +11,17 @@ import Link from 'next/link'
 import { Navbar } from '@/components/layout/navbar'
 import { MobileNav } from '@/components/layout/mobile-nav'
 
+interface NotificationItem {
+  id: string
+  type: 'follow' | 'solution_like' | 'solution_linked' | 'new_contribution'
+  is_read: boolean
+  created_at: string
+  sender?: {
+    username: string | null
+  }
+  target_id?: string
+}
+
 export default async function NotificationsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,7 +39,7 @@ export default async function NotificationsPage() {
     }
   }
 
-  const getContent = (notification: any) => {
+  const getContent = (notification: NotificationItem) => {
     switch (notification.type) {
       case 'follow': return `started following you`
       case 'solution_like': return `liked your solution`
@@ -48,7 +59,7 @@ export default async function NotificationsPage() {
     }
   }
 
-  const getUrl = (notification: any) => {
+  const getUrl = (notification: NotificationItem) => {
     switch (notification.type) {
       case 'follow': return `/u/${notification.sender?.username}`
       case 'solution_like':

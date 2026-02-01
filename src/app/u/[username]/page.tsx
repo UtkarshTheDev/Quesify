@@ -37,11 +37,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   const { data: { user: currentUser } } = await supabase.auth.getUser()
 
+  // eslint-disable-next-line react-hooks/purity -- Date.now is safe in server components
+  const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+
   const { data: allActivityCounts } = await supabase
     .from('user_activities')
     .select('created_at')
     .eq('user_id', profile.user_id)
-    .gte('created_at', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString())
+    .gte('created_at', oneYearAgo)
 
   const contributionCounts: Record<string, number> = {}
   allActivityCounts?.forEach(act => {

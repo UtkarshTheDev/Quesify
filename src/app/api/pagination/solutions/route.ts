@@ -2,6 +2,37 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCache, recordCacheHit, recordCacheMiss, resetCacheHitTracker, setCache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/api-cache'
 
+interface QuestionBasic {
+  id: string
+  question_text: string
+  subject: string | null
+  chapter: string | null
+  owner_id: string
+}
+
+interface SolutionAuthor {
+  display_name: string | null
+  avatar_url: string | null
+  username: string | null
+}
+
+interface SolutionWithQuestion {
+  id: string
+  question_id: string
+  contributor_id: string
+  solution_text: string
+  numerical_answer: string | null
+  approach_description: string | null
+  likes: number
+  is_ai_best: boolean
+  correct_option: number | null
+  avg_solve_time: number
+  created_at: string
+  updated_at: string
+  question: QuestionBasic | QuestionBasic[] | null
+  author: SolutionAuthor | SolutionAuthor[] | null
+}
+
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
@@ -51,7 +82,7 @@ export async function GET(request: NextRequest) {
       query = query.neq('question.owner_id', userId)
     }
 
-    let data: any[] = []
+    let data: SolutionWithQuestion[] = []
     let hasMore = false
     let nextCursor: string | null = null
 

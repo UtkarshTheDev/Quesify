@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { extractQuestion } from '@/lib/types'
 
@@ -17,7 +17,7 @@ interface ExportJoinResult {
   question: ExportQuestionData | ExportQuestionData[] | null
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

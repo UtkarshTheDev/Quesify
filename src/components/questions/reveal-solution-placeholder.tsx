@@ -6,10 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface RevealSolutionPlaceholderProps {
   onReveal: () => void
-  solutionCount: number
+  solutionCount?: number
 }
 
-export function RevealSolutionPlaceholder({ onReveal, solutionCount }: RevealSolutionPlaceholderProps) {
+export function RevealSolutionPlaceholder({ onReveal }: RevealSolutionPlaceholderProps) {
   return (
     <Card className="relative overflow-hidden border-dashed border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30 animate-in fade-in zoom-in-95 duration-500">
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`, backgroundSize: '24px 24px' }} />
@@ -22,9 +22,9 @@ export function RevealSolutionPlaceholder({ onReveal, solutionCount }: RevealSol
           Solution Locked
         </h3>
         
-        <p className="text-muted-foreground max-w-sm mb-8">
-          Give it a try first! Solving it yourself builds stronger understanding. Reveal when you're ready to check.
-        </p>
+         <p className="text-muted-foreground max-w-sm mb-8">
+           Give it a try first! Solving it yourself builds stronger understanding. Reveal when you&apos;re ready to check.
+         </p>
 
         <Button 
           onClick={onReveal} 
