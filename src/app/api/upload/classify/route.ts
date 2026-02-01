@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { question_text, subject, regenerate } = await request.json()
+        const { question_text, subject, regenerate, has_diagram } = await request.json()
 
         if (!question_text) {
             return NextResponse.json({ error: 'Question text is required' }, { status: 400 })
@@ -31,12 +31,12 @@ export async function POST(request: NextRequest) {
             syllabusPromptText = "Subject unknown. Please infer based on general knowledge."
         }
 
-        // Analyze Classification
         const classStart = performance.now()
+        const useBestModel = !!regenerate || !!has_diagram
         const classificationResult = await ai.classifyQuestion(
             question_text,
             syllabusPromptText,
-            { useBestModel: !!regenerate }
+            { useBestModel }
         )
         console.log(`[Route/Classify] AI Classification took ${(performance.now() - classStart).toFixed(2)}ms`)
 
