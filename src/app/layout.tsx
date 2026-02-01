@@ -52,10 +52,17 @@ export const metadata: Metadata = {
     title: "Quesify - AI-Powered Question Bank",
     description:
         "Upload question screenshots, AI auto-organizes them, and get personalized daily practice feeds.",
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "Quesify",
+    },
+    formatDetection: {
+        telephone: false,
+    },
     icons: {
-        //   icon: '/logo.png',
-        //   shortcut: '/logo.png',
-        //   apple: '/logo.png',
+        apple: "/apple-touch-icon.png",
     },
 };
 
