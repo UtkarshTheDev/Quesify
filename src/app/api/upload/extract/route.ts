@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
             difficulty: 'medium',
             importance: 3,
             correct_option: null, // Will be filled in Solution phase
+            has_diagram: rawExtraction.has_diagram ?? false,
         }
 
         // Step 2: Upload image to storage
