@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAIClient } from '@/lib/ai/client'
 import { PROMPTS, formatPrompt } from '@/lib/ai/prompts'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export async function POST(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'chat')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
   try {
     const { message, questionContext } = await request.json()
 
