@@ -4,6 +4,7 @@ import withPWA from "@ducanh2912/next-pwa";
 const config: NextConfig = {
    turbopack: {},
    images: {
+    unoptimized: true,
     qualities: [75, 100],
     remotePatterns: [
       {
