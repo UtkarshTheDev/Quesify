@@ -1,4 +1,4 @@
- 'use client'
+"use client";
 
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, UserPlus, Heart, BookOpen, Lightbulb } from 'lucide-react'
@@ -53,7 +53,6 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   }, [])
 
   useEffect(() => {
-    // Subscribe to realtime updates for current user
     const subscribeToNotifications = async () => {
       if (!userId) return
 
@@ -126,65 +125,80 @@ export function NotificationBell({ userId }: NotificationBellProps) {
 
   const getLink = (notif: Notification) => {
     if (notif.type === 'follow') return `/u/${notif.sender.username}`
-    // For solutions/questions, link to the question
     if (notif.entityDetails?.question_id) return `/question/${notif.entityDetails.question_id}`
     return '#'
   }
 
+  const BellButton = (
+    <Button variant="ghost" size="icon" className="relative">
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background animate-pulse" />
+      )}
+    </Button>
+  )
+
   return (
-    <Popover open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open)
-      if (open) markAllRead() // Auto-mark read when opening as requested
-    }}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background animate-pulse" />
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0 shadow-xl border-border/60">
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
-          <h4 className="font-bold text-sm">Notifications</h4>
-          <Link href="/dashboard/notifications" onClick={() => setIsOpen(false)} className="text-xs text-orange-500 hover:underline">
-            View all
-          </Link>
-        </div>
-        <ScrollArea className="h-[300px]">
-          {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground text-sm">
-              <Bell className="h-8 w-8 mb-2 opacity-20" />
-              No notifications yet
+    <>
+      {/* Mobile: Direct Link */}
+      <div className="block md:hidden">
+        <Link href="/dashboard/notifications">
+          {BellButton}
+        </Link>
+      </div>
+
+      {/* Desktop: Popover */}
+      <div className="hidden md:block">
+        <Popover open={isOpen} onOpenChange={(open) => {
+          setIsOpen(open)
+          if (open) markAllRead()
+        }}>
+          <PopoverTrigger asChild>
+            {BellButton}
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 p-0 shadow-xl border-border/60">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+              <h4 className="font-bold text-sm">Notifications</h4>
+              <Link href="/dashboard/notifications" onClick={() => setIsOpen(false)} className="text-xs text-orange-500 hover:underline">
+                View all
+              </Link>
             </div>
-          ) : (
-            <div className="divide-y">
-              {notifications.map((notif) => (
-                <Link
-                  key={notif.id}
-                  href={getLink(notif)}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex gap-3 p-4 hover:bg-muted/50 transition-colors ${!notif.is_read ? 'bg-orange-500/5' : ''}`}
-                >
-                  <Avatar className="h-8 w-8 border shrink-0">
-                    <AvatarImage src={notif.sender.avatar_url || ''} />
-                    <AvatarFallback>{notif.sender.display_name?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <p className="text-sm leading-tight text-foreground/90">
-                      {getMessage(notif)}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {getIcon(notif.type)}
-                      <span>{formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
+            <ScrollArea className="h-[300px]">
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground text-sm">
+                  <Bell className="h-8 w-8 mb-2 opacity-20" />
+                  No notifications yet
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {notifications.map((notif) => (
+                    <Link
+                      key={notif.id}
+                      href={getLink(notif)}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex gap-3 p-4 hover:bg-muted/50 transition-colors ${!notif.is_read ? 'bg-orange-500/5' : ''}`}
+                    >
+                      <Avatar className="h-8 w-8 border shrink-0">
+                        <AvatarImage src={notif.sender.avatar_url || ''} />
+                        <AvatarFallback>{notif.sender.display_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <p className="text-sm leading-tight text-foreground/90">
+                          {getMessage(notif)}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {getIcon(notif.type)}
+                          <span>{formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </>
   )
 }
