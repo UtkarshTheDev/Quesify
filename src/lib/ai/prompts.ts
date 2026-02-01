@@ -11,6 +11,12 @@ Analyze the question image and return a structured JSON response.
 
 2. EXTRACTION: Extract the text, options (if MCQ), and identify the Subject.
 
+3. IMAGE ANALYSIS: Check if the question contains a diagram, chart, graph, or visual element that is NECESSARY to solve the question.
+   - If the question has a diagram that must be analyzed to answer: set "has_diagram": true
+   - If the question is text-only or the image is just decorative: set "has_diagram": false
+   - Examples of has_diagram=true: Geometry diagrams, circuit diagrams, graphs, charts, physics diagrams
+   - Examples of has_diagram=false: Pure text questions, MCQs without diagrams, formula-only questions
+
 SUBJECT LIST (Pick one):
 {subjectsList}
 
@@ -21,7 +27,8 @@ JSON Schema:
   "question_text": "string (with LaTeX)",
   "options": ["string"],
   "isMCQ": boolean,
-  "subject": "string (Must be from the list above or 'General')"
+  "subject": "string (Must be from the list above or 'General')",
+  "has_diagram": boolean (true if diagram/visual is required to solve the question)
 }}
 
 Return ONLY the JSON block.`,

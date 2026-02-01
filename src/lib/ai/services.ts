@@ -102,7 +102,7 @@ export const ai = {
       imageBase64,
       mimeType,
       prompt,
-      modelType as any // Cast because 'best' is added to config but TS might not infer it immediately in this file context without full reload
+      modelType
     )
 
     const result = client.parseAiJson<GeminiExtractionResult & { isValid: boolean; reason?: string }>(response)
@@ -135,7 +135,7 @@ export const ai = {
     })
 
     const modelType = options?.useBestModel ? 'best' : 'fast'
-    const response = await client.generateText(prompt, modelType as any)
+    const response = await client.generateText(prompt, modelType)
     const parsed = client.parseAiJson<DuplicateAnalysisResponse>(response)
 
     if (AI_CONFIG.debug) {
@@ -175,7 +175,7 @@ export const ai = {
     })
 
     const modelType = config?.useBestModel ? 'best' : 'reasoning'
-    const response = await client.generateText(prompt, modelType as any)
+    const response = await client.generateText(prompt, modelType)
     return client.parseAiJson<SolutionGenerationResponse>(response)
   },
 
@@ -195,7 +195,7 @@ export const ai = {
     })
 
     const modelType = options?.useBestModel ? 'best' : 'fast'
-    const response = await client.generateText(prompt, modelType as any)
+    const response = await client.generateText(prompt, modelType)
     return client.parseAiJson<GeminiExtractionResult>(response)
   },
 
