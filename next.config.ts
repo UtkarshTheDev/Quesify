@@ -24,4 +24,5 @@ export default withPWA({
   workboxOptions: {
     disableDevLogs: true,
   },
+  customWorkerSrc: "src/worker",
 })(config);
