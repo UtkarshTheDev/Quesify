@@ -2,6 +2,7 @@ import localFont from "next/font/local";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = localFont({
     src: "../../public/fonts/geist/Geist-Variable.woff2",
@@ -76,6 +77,7 @@ export default function RootLayout({
                 className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${charter.variable} antialiased`}
             >
                 <Providers>{children}</Providers>
+                <Analytics />
             </body>
         </html>
     );
