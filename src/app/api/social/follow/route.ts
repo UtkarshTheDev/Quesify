@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export async function POST(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'social')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -45,6 +51,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'social')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
