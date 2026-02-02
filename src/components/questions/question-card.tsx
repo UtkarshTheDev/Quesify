@@ -54,11 +54,9 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
                 >
                   {question.difficulty}
                 </Badge>
-                {question.type === 'MCQ' && (
-                  <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 font-medium text-[11px] px-3 py-1 rounded-full border shadow-lg">
-                    MCQ
-                  </Badge>
-                )}
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 font-medium text-[11px] px-3 py-1 rounded-full border shadow-lg">
+                  {question.type}
+                </Badge>
               </div>
               <div className="flex items-center gap-2 text-[11px] text-stone-500">
                 {stats?.solved && (

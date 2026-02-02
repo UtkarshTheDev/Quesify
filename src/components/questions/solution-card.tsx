@@ -157,55 +157,44 @@ export function SolutionCard({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {!isEditing && (
-                            <Link
-                                href={
-                                    solution.author?.username
-                                        ? `/u/${solution.author.username}`
-                                        : "#"
-                                }
-                                className={cn(
-                                    "flex items-center gap-3",
-                                    !solution.author?.username &&
-                                        "pointer-events-none",
-                                )}
-                            >
+                            <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8 border shadow-sm overflow-hidden">
-                                    {solution.is_ai_best ? (
-                                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-                                            <Sparkles className="h-4 w-4 fill-current" />
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <AvatarImage
-                                                src={
-                                                    solution.author?.avatar_url ||
-                                                    ""
-                                                }
-                                                loading="lazy"
-                                            />
-                                            <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
-                                                {solution.author?.display_name?.charAt(
-                                                    0,
-                                                ) ||
-                                                    solution.author?.username?.charAt(
-                                                        0,
-                                                    ) ||
-                                                    "U"}
-                                            </AvatarFallback>
-                                        </>
-                                    )}
+                                    <AvatarImage
+                                        src={
+                                            solution.author?.avatar_url ||
+                                            ""
+                                        }
+                                        loading="lazy"
+                                    />
+                                    <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold text-center uppercase flex items-center justify-center h-full w-full">
+                                        {solution.author?.display_name?.charAt(
+                                            0,
+                                        ) ||
+                                            solution.author?.username?.charAt(
+                                                0,
+                                            ) ||
+                                            "U"}
+                                    </AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col gap-0.5">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm font-semibold hover:underline">
-                                            {solution.is_ai_best
-                                                ? "Quesify AI"
-                                                : solution.author
-                                                      ?.display_name ||
-                                                  (solution.author?.username
-                                                      ? `@${solution.author.username}`
-                                                      : "Contributor")}
-                                        </span>
+                                        <Link
+                                            href={
+                                                solution.author?.username
+                                                    ? `/u/${solution.author.username}`
+                                                    : "#"
+                                            }
+                                            className={cn(
+                                                "text-sm font-semibold hover:underline",
+                                                !solution.author?.username &&
+                                                    "pointer-events-none",
+                                            )}
+                                        >
+                                            {solution.author?.display_name ||
+                                                (solution.author?.username
+                                                    ? `@${solution.author.username}`
+                                                    : "Contributor")}
+                                        </Link>
                                         <Badge
                                             variant={
                                                 solution.is_ai_best
@@ -243,7 +232,7 @@ export function SolutionCard({
                                         )}
                                     </div>
                                 </div>
-                            </Link>
+                            </div>
                         )}
                         {isEditing && (
                             <div className="flex flex-col gap-0.5">

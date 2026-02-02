@@ -15,6 +15,7 @@ interface ClassificationSummaryProps {
         subject: string;
         chapter: string;
         isMCQ: boolean;
+        type: string;
         difficulty: string;
         avg_solve_time?: number;
         topics: string[];
@@ -90,9 +91,9 @@ export function ClassificationSummary({
                             <div className="flex flex-wrap gap-2">
                                 <Badge
                                     variant="outline"
-                                    className="text-[10px] px-3 py-1 border-primary/20 bg-primary/5 uppercase"
+                                    className="text-[10px] px-3 py-1 border-primary/20 bg-primary/5 uppercase font-black tracking-widest"
                                 >
-                                    {data.isMCQ ? "MCQ" : "Subjective"}
+                                    {data.type || (data.isMCQ ? "MCQ" : "Subjective")}
                                 </Badge>
                                 <Badge
                                     className={`text-[10px] px-3 py-1 border uppercase ${difficultyColors[data.difficulty || "medium"]}`}
