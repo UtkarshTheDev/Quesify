@@ -23,6 +23,7 @@ import { RevealSolutionPlaceholder } from "@/components/questions/reveal-solutio
 import { SolutionCardList } from "@/components/questions/solution-card-list";
 import { cn } from "@/lib/utils";
 import { AIChatTab } from "@/components/questions/question-detail/ai-chat-tab";
+import { PWAPromptCard } from "@/components/questions/pwa-prompt-card";
 
 interface QuestionTabsProps {
     question: Question & { solutions: Solution[] };
@@ -487,6 +488,8 @@ export function QuestionTabs({
                     )}
                 </TabsContent>
             </Tabs>
+            
+            <PWAPromptCard />
         </div>
     );
 }
