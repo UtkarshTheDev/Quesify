@@ -72,6 +72,18 @@ const rateLimiters: Record<RateLimitKey, Ratelimit> = {
     prefix: 'ratelimit:social',
     analytics: true,
   }),
+  search: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(30, '1 m'),
+    prefix: 'ratelimit:search',
+    analytics: true,
+  }),
+  feed: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(60, '1 m'),
+    prefix: 'ratelimit:feed',
+    analytics: true,
+  }),
 };
 
 async function getIdentifier(request: NextRequest, supabaseClient?: SupabaseClient): Promise<string> {
@@ -83,9 +95,9 @@ async function getIdentifier(request: NextRequest, supabaseClient?: SupabaseClie
     }
   }
 
-  const ip = request.headers.get('x-forwarded-for') || 
-             request.headers.get('x-real-ip') || 
-             'unknown';
+  const ip = request.headers.get('x-forwarded-for') ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
   return `ip_${ip}`;
 }
 

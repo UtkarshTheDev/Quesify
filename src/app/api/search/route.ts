@@ -1,10 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { SearchResponse, SearchedUser, SearchedQuestion } from '@/lib/types'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'search')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
     try {
         const requestUrl = new URL(request.url)
         const queryRaw = requestUrl.searchParams.get('q')?.trim() || ''

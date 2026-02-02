@@ -59,6 +59,18 @@ export const RATE_LIMITS = {
     prefix: 'ratelimit:social',
     message: 'Too many social actions. Please wait a moment.'
   },
+  search: {
+    limit: 30,
+    window: '1 m',
+    prefix: 'ratelimit:search',
+    message: 'Search limit reached. Please wait a moment.'
+  },
+  feed: {
+    limit: 60,
+    window: '1 m',
+    prefix: 'ratelimit:feed',
+    message: 'Feed refresh limit reached. Please wait a moment.'
+  },
 } as const;
 
 export type RateLimitKey = keyof typeof RATE_LIMITS;

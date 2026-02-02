@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { deleteCache } from '@/lib/cache/api-cache'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export async function POST(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'feed')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()

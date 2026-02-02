@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCache, setCache, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/api-cache'
+import { applyRateLimit } from '@/lib/ratelimit/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,11 @@ export interface RecommendedUser {
 }
 
 export async function GET(request: NextRequest) {
+    const rateLimitResult = await applyRateLimit(request, 'feed')
+    if (!rateLimitResult.success && rateLimitResult.response) {
+        return rateLimitResult.response
+    }
+
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
