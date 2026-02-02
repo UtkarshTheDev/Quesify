@@ -1,3 +1,4 @@
+import type { Difficulty, QuestionType } from './database'
 export * from './database'
 
 // API response types
@@ -48,3 +49,54 @@ export interface Chart {
   count: number
   type: 'daily_feed' | 'topic_review' | 'quick_mcq' | 'weak_areas' | 'custom'
 }
+
+// Feed Recommendation Types
+export interface FeedItem {
+  id: string
+  type: 'question' | 'user_suggestion'
+  data: RecommendedQuestion | RecommendedUser
+  score: number
+  createdAt: string
+}
+
+export interface RecommendedQuestion {
+  id: string
+  question_text: string
+  subject: string | null
+  chapter: string | null
+  topics: string[]
+  difficulty: Difficulty
+  popularity: number
+  image_url: string | null
+  type: QuestionType
+  has_diagram: boolean
+  solutions_count: number
+  is_in_bank: boolean
+  due_for_review: boolean
+  uploader: {
+    user_id: string
+    display_name: string | null
+    username: string | null
+    avatar_url: string | null
+  }
+}
+
+export interface RecommendedUser {
+  user_id: string
+  display_name: string | null
+  username: string | null
+  avatar_url: string | null
+  common_subjects: string[]
+  mutual_follows_count: number
+  total_questions: number
+  total_solutions: number
+  is_following: boolean
+}
+
+export interface FeedResponse {
+  items: FeedItem[]
+  nextCursor: string | null
+  hasMore: boolean
+  offset: number
+}
+
