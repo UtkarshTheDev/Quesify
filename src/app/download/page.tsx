@@ -63,7 +63,7 @@ export default function DownloadPage() {
                                     </div>
                                 </div>
                                 <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 rounded-xl font-bold group">
-                                    <Link href="/quesify.apk" download>
+                                    <Link href="/downloads/Quesify.apk" download>
                                         <Download className="w-4 h-4 mr-2 group-hover:translate-y-0.5 transition-transform" />
                                         Download APK
                                     </Link>
