@@ -2,6 +2,18 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  if (
+    path.startsWith('/api') ||
+    path.startsWith('/_next') ||
+    path.startsWith('/static') ||
+    path.includes('.') ||
+    path === '/auth/callback'
+  ) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -31,19 +43,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const path = request.nextUrl.pathname
-
-  if (
-    path.startsWith('/api') ||
-    path.startsWith('/_next') ||
-    path.startsWith('/static') ||
-    path.includes('.') ||
-    path === '/auth/callback'
-  ) {
-    return supabaseResponse
-  }
-
-  // Protected routes
   const protectedPaths = ['/dashboard', '/upload', '/daily', '/profile']
   const isProtectedPath = protectedPaths.some(p =>
     path.startsWith(p)
@@ -55,7 +54,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect logged-in users away from login
   if (path === '/login' && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
