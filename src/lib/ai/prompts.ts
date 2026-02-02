@@ -26,7 +26,8 @@ JSON Schema:
   "reason": "string (only if invalid)",
   "question_text": "string (with LaTeX)",
   "options": ["string"],
-  "isMCQ": boolean,
+  "isMCQ": boolean (Set to true ONLY if there are 2 or more explicit options like A, B, C, D in the image),
+  "type": "string (Pick the most accurate: 'MCQ' if it has options, 'VSA' for Very Short Answer/1-mark, 'SA' for Short Answer/2-3 marks, 'LA' for Long Answer/5+ marks, or 'CASE_STUDY' for context-based/passage questions)",
   "subject": "string (Must be from the list above or 'General')",
   "has_diagram": boolean (true if diagram/visual is required to solve the question)
 }}
@@ -176,6 +177,7 @@ JSON Schema:
   "subject": "string",
   "chapter": "string",
   "topics": ["string"],
+  "type": "string (Pick the most accurate: 'MCQ' if it has options, 'VSA' for Very Short Answer/1-mark, 'SA' for Short Answer/2-3 marks, 'LA' for Long Answer/5+ marks, or 'CASE_STUDY' for context-based/passage questions)",
   "difficulty": "easy | medium | hard | very_hard",
   "importance": number (1-5)
 }}
