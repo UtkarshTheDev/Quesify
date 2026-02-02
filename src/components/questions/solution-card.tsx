@@ -148,8 +148,8 @@ export function SolutionCard({
             className={cn(
                 "transition-all duration-300 border shadow-sm",
                 isHighlighted
-                    ? "bg-card/50 border-primary/20 shadow-md ring-1 ring-primary/5"
-                    : "bg-muted/10 border-border/60",
+                    ? "bg-card/50 border-white/10 shadow-md ring-1 ring-white/5"
+                    : "bg-muted/10 border-border/40",
                 isEditing ? "ring-2 ring-primary/30 border-primary/40" : "",
             )}
         >
@@ -169,22 +169,42 @@ export function SolutionCard({
                                         "pointer-events-none",
                                 )}
                             >
-                                <Avatar className="h-8 w-8 border shadow-sm">
-                                    <AvatarImage
-                                        src={solution.author?.avatar_url || ""}
-                                        loading="lazy"
-                                    />
-                                    <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
-                                        {solution.author?.username?.charAt(0) ||
-                                            "U"}
-                                    </AvatarFallback>
+                                <Avatar className="h-8 w-8 border shadow-sm overflow-hidden">
+                                    {solution.is_ai_best ? (
+                                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                                            <Sparkles className="h-4 w-4 fill-current" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <AvatarImage
+                                                src={
+                                                    solution.author?.avatar_url ||
+                                                    ""
+                                                }
+                                                loading="lazy"
+                                            />
+                                            <AvatarFallback className="bg-muted text-muted-foreground text-[10px] font-bold">
+                                                {solution.author?.display_name?.charAt(
+                                                    0,
+                                                ) ||
+                                                    solution.author?.username?.charAt(
+                                                        0,
+                                                    ) ||
+                                                    "U"}
+                                            </AvatarFallback>
+                                        </>
+                                    )}
                                 </Avatar>
                                 <div className="flex flex-col gap-0.5">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-semibold hover:underline">
-                                            @
-                                            {solution.author?.username ||
-                                                "contributor"}
+                                            {solution.is_ai_best
+                                                ? "Quesify AI"
+                                                : solution.author
+                                                      ?.display_name ||
+                                                  (solution.author?.username
+                                                      ? `@${solution.author.username}`
+                                                      : "Contributor")}
                                         </span>
                                         <Badge
                                             variant={
@@ -395,8 +415,8 @@ export function SolutionCard({
                                 className={cn(
                                     "p-6 rounded-2xl transition-all border relative overflow-hidden group/approach",
                                     isHighlighted
-                                        ? "bg-primary/[0.04] border-primary/20 shadow-lg shadow-primary/5"
-                                        : "bg-accent/40 border-accent/20 text-foreground",
+                                        ? "bg-primary/[0.04] border-white/10 shadow-lg"
+                                        : "bg-accent/40 border-white/5 text-foreground",
                                 )}
                             >
                                 <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
