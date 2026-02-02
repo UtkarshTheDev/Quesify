@@ -77,7 +77,7 @@ export const QuestionFeedCard = memo(function QuestionFeedCard({
                     {/* Header: Uploader + Badges */}
                     <div className="flex items-center justify-between gap-3">
                         <Link
-                            href={`/profile/${question.uploader.username || question.uploader.user_id}`}
+                            href={`/u/${question.uploader.username || question.uploader.user_id}`}
                             className="flex items-center gap-2.5 group/uploader"
                             onClick={(e) => e.stopPropagation()}
                         >
