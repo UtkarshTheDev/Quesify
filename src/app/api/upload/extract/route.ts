@@ -52,15 +52,16 @@ export async function POST(request: NextRequest) {
             }, { status: 400 })
         }
 
-        // Data Normalization (Fix "object object" and missing fields)
+        const isActuallyMCQ = !!rawExtraction.isMCQ;
         const normalizedData = {
             ...rawExtraction,
-            // Ensure options are plain strings, handles { A: "..." } format
-            options: (rawExtraction.options || []).map(opt =>
-                typeof opt === 'object' ? Object.values(opt)[0] : String(opt)
-            ),
-            // Ensure specific fields have defaults
-            isMCQ: rawExtraction.isMCQ ?? (rawExtraction.options && rawExtraction.options.length > 0),
+            options: isActuallyMCQ 
+                ? (rawExtraction.options || []).map(opt =>
+                    typeof opt === 'object' ? Object.values(opt)[0] : String(opt)
+                  )
+                : [],
+            isMCQ: isActuallyMCQ,
+            type: rawExtraction.type || (isActuallyMCQ ? 'MCQ' : 'SA'),
             subject: rawExtraction.subject || 'Uncategorized',
             chapter: 'Pending...', // Will be filled in Classify phase
             topics: [],
