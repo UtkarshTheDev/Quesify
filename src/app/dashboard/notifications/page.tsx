@@ -86,9 +86,6 @@ export default function NotificationsPage() {
       return (
         <div className="flex gap-2">
           <FollowButton targetId={notif.sender_id} size="sm" />
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/u/${notif.sender.username}`}>View Profile</Link>
-          </Button>
         </div>
       )
     }
