@@ -122,9 +122,9 @@ export default async function NotificationsPage() {
                   </Avatar>
                 </Link>
 
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5">
-                    <p className="text-sm md:text-base leading-snug">
+                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <p className="text-sm md:text-base leading-tight break-words">
                       <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
                         @{n.sender?.username || 'user'}
                       </Link>{' '}
@@ -133,7 +133,7 @@ export default async function NotificationsPage() {
                       </span>
                     </p>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         {getIcon(n.type)}
                         {n.type.replace('_', ' ')}
@@ -144,11 +144,13 @@ export default async function NotificationsPage() {
                     </div>
                   </div>
 
-                  <Button variant="outline" size="sm" className="h-9 px-4 shrink-0 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap ml-auto sm:ml-0" asChild>
-                    <Link href={getUrl(n)}>
-                      {getActionLabel(n.type)}
-                    </Link>
-                  </Button>
+                  <div className="flex items-center md:shrink-0">
+                    <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full md:w-auto rounded-xl" asChild>
+                      <Link href={getUrl(n)}>
+                        {getActionLabel(n.type)}
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
