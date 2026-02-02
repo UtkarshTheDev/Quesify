@@ -6,6 +6,7 @@ export const CACHE_TTL = {
   USER_DATA: 60 * 60,
   QUESTION_DETAIL: 60 * 10,
   REALTIME_STATS: 60 * 5,
+  FEED: 60 * 60, // 1 hour for feed recommendations
 }
 
 export const CACHE_KEYS = {
@@ -32,6 +33,11 @@ export const CACHE_KEYS = {
     QUESTION: (questionId: string) => `question:${questionId}`,
     SOLUTION: (solutionId: string) => `solution:${solutionId}`,
     USER_STATS: (questionId: string, userId: string) => `stats:question:${questionId}:${userId || 'guest'}`,
+  },
+  FEED: {
+    MIXED: (userId: string, offset: number, limit: number) => `feed:mixed:${userId}:${offset}:${limit}`,
+    QUESTIONS: (userId: string, offset: number, limit: number) => `feed:questions:${userId}:${offset}:${limit}`,
+    USERS: (userId: string, offset: number, limit: number) => `feed:users:${userId}:${offset}:${limit}`,
   },
 }
 
