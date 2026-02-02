@@ -100,3 +100,17 @@ export interface FeedResponse {
   offset: number
 }
 
+
+// Search Result Types
+export interface SearchedUser extends RecommendedUser {
+  similarity_score: number
+}
+
+export interface SearchedQuestion extends RecommendedQuestion {
+  similarity_score: number
+}
+
+export interface SearchResponse {
+  users: SearchedUser[]
+  questions: SearchedQuestion[]
+}
