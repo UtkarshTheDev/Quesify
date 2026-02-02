@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Scenario 2: Creating a new question
-    // TODO: Check for duplicates using embedding similarity
-    // For MVP, we'll skip duplicate detection and save directly
+    const finalType = body.isMCQ ? 'MCQ' : body.type
+    const finalOptions = body.isMCQ ? (body.options || []) : []
 
     // Create question
     const { data: question, error: questionError } = await supabase
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
       .insert({
         owner_id: user.id,
         question_text: body.question_text,
-        options: body.options,
-        type: body.type,
+        options: finalOptions,
+        type: finalType,
         has_diagram: body.has_diagram,
         image_url: body.image_url,
         subject: body.subject,
