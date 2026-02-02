@@ -11,19 +11,27 @@ export function PWAPromptCard() {
     const [isPWA, setIsPWA] = useState(false);
 
     useEffect(() => {
-        const ua = navigator.userAgent.toLowerCase();
-        const mobile = /android|iphone|ipad|ipod/.test(ua);
+        const checkPWA = () => {
+            const ua = navigator.userAgent.toLowerCase();
+            const mobile = /android|iphone|ipad|ipod/.test(ua);
+            
+            const isStandalone = 
+                window.matchMedia('(display-mode: standalone)').matches || 
+                (window.navigator as any).standalone || 
+                document.referrer.includes('android-app://') ||
+                ua.includes('twa') ||
+                ua.includes('wv');
+            
+            setIsMobile(mobile);
+            setIsPWA(!!isStandalone);
+        };
+
+        checkPWA();
         
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                           ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone) || 
-                           document.referrer.includes('android-app://');
+        const mql = window.matchMedia('(display-mode: standalone)');
+        mql.addEventListener('change', checkPWA);
         
-        if (mobile && !isStandalone) {
-            setTimeout(() => {
-                setIsMobile(true);
-                setIsPWA(false);
-            }, 100);
-        }
+        return () => mql.removeEventListener('change', checkPWA);
     }, []);
 
     if (!isMobile || isPWA) return null;
