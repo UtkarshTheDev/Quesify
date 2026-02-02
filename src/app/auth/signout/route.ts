@@ -6,5 +6,6 @@ export async function POST(request: Request) {
   await supabase.auth.signOut()
 
   const { origin } = new URL(request.url)
-  return NextResponse.redirect(`${origin}/login`)
+  // Use 303 See Other to ensure the redirect is a GET request
+  return NextResponse.redirect(`${origin}/login`, 303)
 }
