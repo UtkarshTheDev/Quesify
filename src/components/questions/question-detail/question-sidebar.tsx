@@ -155,10 +155,12 @@ export function QuestionSidebar({
           </div>
 
           <div className="space-y-2">
-            <span className="text-xs text-muted-foreground">Type</span>
+            <span className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-40">Type</span>
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{question.type}</span>
+              <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold px-2 py-0 h-6">
+                {question.type}
+              </Badge>
             </div>
           </div>
 
