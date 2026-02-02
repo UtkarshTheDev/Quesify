@@ -99,63 +99,72 @@ export default async function NotificationsPage() {
           />
         ) : (
           <div className="grid gap-4">
-            {notifications.map((n) => (
-              <div 
-                key={n.id} 
-                className={cn(
-                  "flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 relative overflow-hidden group",
-                  n.is_read 
-                    ? "bg-card/30 border-border/40" 
-                    : "bg-orange-500/5 border-orange-500/20 shadow-lg shadow-orange-500/5"
-                )}
-              >
-                {!n.is_read && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
-                )}
-                
-                <Link href={`/u/${n.sender?.username}`} className="shrink-0">
-                  <Avatar className="h-12 w-12 border-2 border-background shadow-md">
-                    <AvatarImage src={n.sender?.avatar_url || ''} />
-                    <AvatarFallback className="bg-muted font-bold text-muted-foreground uppercase">
-                      {n.sender?.display_name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
+            {notifications.map((n) => {
+              const isFollow = n.type === 'follow'
+              const targetUrl = getUrl(n)
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <p className="text-sm md:text-base leading-tight break-words">
-                        <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
-                          @{n.sender?.username || 'user'}
-                        </Link>{' '}
-                        <span className="text-muted-foreground">
-                          {getContent(n)}
-                        </span>
-                      </p>
-                      
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          {getIcon(n.type)}
-                          {n.type.replace('_', ' ')}
+              return (
+                <div 
+                  key={n.id} 
+                  className={cn(
+                    "flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 relative overflow-hidden group",
+                    n.is_read 
+                      ? "bg-card/30 border-border/40" 
+                      : "bg-orange-500/5 border-orange-500/20 shadow-lg shadow-orange-500/5"
+                  )}
+                >
+                  <Link href={targetUrl} className="absolute inset-0 z-0" aria-label="View Details" />
+                  
+                  {!n.is_read && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)] z-10" />
+                  )}
+                  
+                  <Link href={`/u/${n.sender?.username}`} className="shrink-0 relative z-10">
+                    <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+                      <AvatarImage src={n.sender?.avatar_url || ''} />
+                      <AvatarFallback className="bg-muted font-bold text-muted-foreground uppercase">
+                        {n.sender?.display_name?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+
+                  <div className="flex-1 min-w-0 relative z-10 pointer-events-none">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <p className="text-sm md:text-base leading-tight break-words pointer-events-auto">
+                          <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
+                            @{n.sender?.username || 'user'}
+                          </Link>{' '}
+                          <span className="text-muted-foreground">
+                            {getContent(n)}
+                          </span>
+                        </p>
+                        
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            {getIcon(n.type)}
+                            {n.type.replace('_', ' ')}
+                          </div>
+                          <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                        </span>
                       </div>
-                    </div>
 
-                    <div className="flex items-center sm:shrink-0 w-full sm:w-auto">
-                      <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full sm:w-auto rounded-xl shadow-sm" asChild>
-                        <Link href={getUrl(n)}>
-                          {getActionLabel(n.type)}
-                        </Link>
-                      </Button>
+                      {!isFollow && (
+                        <div className="flex items-center sm:shrink-0 w-full sm:w-auto pointer-events-auto">
+                          <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full sm:w-auto rounded-xl shadow-sm" asChild>
+                            <Link href={targetUrl}>
+                              {getActionLabel(n.type)}
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>
