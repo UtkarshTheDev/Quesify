@@ -151,7 +151,7 @@ export default async function NotificationsPage() {
                         </div>
                       </div>
 
-                      {!isFollow && (
+                      {n.type !== 'follow' && (
                         <div className="flex items-center sm:shrink-0 w-full sm:w-auto pointer-events-auto">
                           <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full sm:w-auto rounded-xl shadow-sm" asChild>
                             <Link href={targetUrl}>
