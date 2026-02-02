@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
         *,
         author:user_profiles!contributor_id (
           display_name,
-          avatar_url
+          avatar_url,
+          username
         )
       `
       )
