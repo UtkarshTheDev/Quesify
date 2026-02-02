@@ -70,9 +70,14 @@ export function FollowStats({ userId, className }: FollowStatsProps) {
       const { data } = await query
 
       if (data) {
-        const mappedUsers = data.map((item: unknown) => {
-          const userItem = item as UserListItem
-          return activeTab === 'followers' ? userItem : userItem
+        const mappedUsers = data.map((item: any) => {
+          const profile = activeTab === 'followers' ? item.follower : item.following
+          return {
+            user_id: profile.user_id,
+            display_name: profile.display_name,
+            username: profile.username,
+            avatar_url: profile.avatar_url
+          }
         })
         setUsers(mappedUsers)
       }
