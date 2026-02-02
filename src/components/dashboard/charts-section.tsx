@@ -7,8 +7,8 @@ export async function ChartsSection({ userId }: { userId: string }) {
 
   if (charts.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg bg-muted/10 border-dashed">
-        <p className="text-muted-foreground">
+      <div className="text-center py-10 px-4 border rounded-2xl bg-muted/5 border-dashed">
+        <p className="text-muted-foreground text-sm md:text-base max-w-[280px] mx-auto leading-relaxed">
           Upload more questions to get personalized AI practice feeds.
         </p>
       </div>

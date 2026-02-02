@@ -15,8 +15,8 @@ export function ProfileEmptyState({ icon, title, description }: ProfileEmptyStat
       <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-6 border border-primary/10 shadow-inner text-primary/40">
         {icon}
       </div>
-      <h3 className="text-2xl font-bold tracking-tight mb-2 text-foreground">{title}</h3>
-      <p className="text-muted-foreground text-sm max-w-[320px] leading-relaxed font-medium">
+      <h3 className="text-xl md:text-2xl font-bold tracking-tight mb-2 text-foreground">{title}</h3>
+      <p className="text-muted-foreground text-xs md:text-sm max-w-[320px] leading-relaxed font-medium">
         {description}
       </p>
     </Card>
