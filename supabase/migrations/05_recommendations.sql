@@ -230,11 +230,18 @@ BEGIN
                 'question_text', rq.question_text,
                 'subject', rq.subject,
                 'chapter', rq.chapter,
+                'topics', rq.topics,
                 'difficulty', rq.difficulty,
+                'created_at', rq.created_at,
+                'image_url', rq.image_url,
+                'solutions_count', rq.solutions_count,
+                'is_in_bank', rq.is_in_bank,
+                'due_for_review', rq.due_for_review,
                 'uploader', jsonb_build_object(
                     'user_id', rq.uploader_user_id,
                     'display_name', rq.uploader_display_name,
-                    'username', rq.uploader_username
+                    'username', rq.uploader_username,
+                    'avatar_url', rq.uploader_avatar_url
                 )
             ) AS src_data,
             rq.score::INT AS src_score,
@@ -251,7 +258,11 @@ BEGIN
                 'display_name', ru.display_name,
                 'username', ru.username,
                 'avatar_url', ru.avatar_url,
-                'is_following', ru.is_following
+                'total_questions', ru.total_questions,
+                'total_solutions', ru.total_solutions,
+                'is_following', ru.is_following,
+                'mutual_follows_count', ru.mutual_follows_count,
+                'common_subjects', ru.common_subjects
             ) AS src_data,
             ru.score::INT AS src_score,
             ru.last_active AS src_created_at,

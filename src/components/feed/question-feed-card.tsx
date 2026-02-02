@@ -3,7 +3,7 @@
 import { memo } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
-import { Clock, ArrowRight, Plus, Check, RefreshCw } from 'lucide-react'
+import { MessageSquare, ArrowRight, Plus, Check, RefreshCw } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Latex } from '@/components/ui/latex'
@@ -147,37 +147,31 @@ export const QuestionFeedCard = memo(function QuestionFeedCard({
                             </div>
 
                             <div className="flex items-center gap-2 shrink-0">
-                                {/* Time */}
+                                {/* Time/Solutions */}
                                 <div className="flex items-center gap-1 text-[10px] text-stone-500">
-                                    <Clock className="w-3 h-3" />
+                                    <MessageSquare className="w-3 h-3" />
                                     <span>{question.solutions_count} solutions</span>
                                 </div>
 
                                 {/* Add to Bank Button */}
-                                <Button
-                                    size="sm"
-                                    variant={isInBank ? 'default' : 'outline'}
-                                    onClick={handleAddToBank}
-                                    disabled={isAdding || isInBank}
-                                    className={`h-8 px-3 text-xs font-medium transition-all duration-300 ${isInBank
-                                            ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
-                                            : 'border-stone-700 hover:border-orange-500/50 hover:text-orange-400'
-                                        }`}
-                                >
-                                    {isAdding ? (
-                                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                    ) : isInBank ? (
-                                        <>
-                                            <Check className="h-3.5 w-3.5 mr-1" />
-                                            Added
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="h-3.5 w-3.5 mr-1" />
-                                            Add to Bank
-                                        </>
-                                    )}
-                                </Button>
+                                {!isInBank && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleAddToBank}
+                                        disabled={isAdding}
+                                        className="h-8 px-3 text-xs font-medium transition-all duration-300 border-stone-700 hover:border-orange-500/50 hover:text-orange-400"
+                                    >
+                                        {isAdding ? (
+                                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Plus className="h-3.5 w-3.5 mr-1" />
+                                                Add to Bank
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
 
                                 {/* View Arrow */}
                                 <Link href={`/dashboard/questions/${question.id}`}>
