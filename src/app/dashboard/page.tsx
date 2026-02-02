@@ -61,24 +61,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            You have {questionCount} questions in your bank
+          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            You have {questionCount} {questionCount === 1 ? 'question' : 'questions'} in your bank
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm" className="h-9 md:h-10 px-3 md:px-4">
             <Link href="/dashboard/questions">
               <LayoutGrid className="mr-2 h-4 w-4" />
-              All Questions
+              <span className="whitespace-nowrap">All Questions</span>
             </Link>
           </Button>
-          <Button asChild>
+          <Button asChild size="sm" className="h-9 md:h-10 px-3 md:px-4">
             <Link href="/upload">
               <Upload className="mr-2 h-4 w-4" />
-              Upload New
+              <span className="whitespace-nowrap">Upload New</span>
             </Link>
           </Button>
         </div>
