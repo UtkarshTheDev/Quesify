@@ -65,73 +65,80 @@ export const UserSuggestionCard = memo(function UserSuggestionCard({
                 </span>
             </div>
 
-            <CardContent className="p-5 pt-10 relative z-10">
-                <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <Link
-                        href={`/profile/${user.username || user.user_id}`}
-                        className="shrink-0 group/avatar"
-                    >
-                        <Avatar className="h-14 w-14 ring-2 ring-blue-500/30 group-hover/avatar:ring-blue-500/60 transition-all shadow-lg">
-                            <AvatarImage src={user.avatar_url || undefined} />
-                            <AvatarFallback className="bg-blue-950 text-blue-300 text-lg font-medium">
-                                {user.display_name?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                        </Avatar>
-                    </Link>
+            <CardContent className="p-5 pt-12 relative z-10">
+                <div className="flex flex-col gap-5">
+                    {/* Top Row: Avatar, Info, and Follow Button */}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                            {/* Avatar */}
+                            <Link
+                                href={`/profile/${user.username || user.user_id}`}
+                                className="shrink-0 group/avatar"
+                            >
+                                <Avatar className="h-14 w-14 ring-2 ring-blue-500/30 group-hover/avatar:ring-blue-500/60 transition-all shadow-lg">
+                                    <AvatarImage src={user.avatar_url || undefined} />
+                                    <AvatarFallback className="bg-blue-950 text-blue-300 text-lg font-medium">
+                                        {user.display_name?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </Link>
 
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                        <Link
-                            href={`/profile/${user.username || user.user_id}`}
-                            className="flex flex-col"
-                        >
-                            <span className="text-base font-medium text-stone-100 group-hover:text-blue-400 transition-colors truncate">
-                                {user.display_name || user.username || 'Anonymous'}
-                            </span>
-                            <span className="text-sm text-stone-500 truncate">
-                                @{user.username || 'user'}
-                            </span>
-                        </Link>
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-3 mt-2">
-                            <div className="flex items-center gap-1 text-[11px] text-stone-400">
-                                <BookOpen className="h-3 w-3" />
-                                <span>{user.total_questions} questions</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[11px] text-stone-400">
-                                <Lightbulb className="h-3 w-3" />
-                                <span>{user.total_solutions} solutions</span>
+                            {/* User Info */}
+                            <div className="min-w-0">
+                                <Link
+                                    href={`/profile/${user.username || user.user_id}`}
+                                    className="flex flex-col"
+                                >
+                                    <span className="text-base font-semibold text-stone-100 group-hover:text-blue-400 transition-colors truncate">
+                                        {user.display_name || user.username || 'Anonymous'}
+                                    </span>
+                                    <span className="text-sm text-stone-500 truncate">
+                                        @{user.username || 'user'}
+                                    </span>
+                                </Link>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Follow Button */}
-                    <Button
-                        onClick={handleFollow}
-                        disabled={isPending}
-                        variant={isFollowing ? 'default' : 'outline'}
-                        size="sm"
-                        className={`shrink-0 h-9 px-4 font-medium transition-all duration-300 ${isFollowing
+                        {/* Follow Button */}
+                        <Button
+                            onClick={handleFollow}
+                            disabled={isPending}
+                            variant={isFollowing ? 'default' : 'outline'}
+                            size="sm"
+                            className={`shrink-0 h-9 px-4 font-medium transition-all duration-300 ${isFollowing
                                 ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500'
                                 : 'border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500'
-                            }`}
-                    >
-                        {isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : isFollowing ? (
-                            <>
-                                <UserCheck className="h-4 w-4 mr-1.5" />
-                                Following
-                            </>
-                        ) : (
-                            <>
-                                <UserPlus className="h-4 w-4 mr-1.5" />
-                                Follow
-                            </>
-                        )}
-                    </Button>
+                                }`}
+                        >
+                            {isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isFollowing ? (
+                                <>
+                                    <UserCheck className="h-4 w-4 mr-1.5" />
+                                    <span className="hidden xs:inline">Following</span>
+                                    <span className="xs:hidden">Yes</span>
+                                </>
+                            ) : (
+                                <>
+                                    <UserPlus className="h-4 w-4 mr-1.5" />
+                                    <span className="hidden xs:inline">Follow</span>
+                                    <span className="xs:hidden">Add</span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
+
+                    {/* Stats Row: Below Name/Handle and Button */}
+                    <div className="flex items-center gap-6 pt-1 border-t border-blue-500/10">
+                        <div className="flex items-center gap-2 text-xs text-stone-400">
+                            <BookOpen className="h-3.5 w-3.5 text-blue-400/70" />
+                            <span className="whitespace-nowrap"><span className="text-stone-200 font-medium">{user.total_questions}</span> questions</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-stone-400">
+                            <Lightbulb className="h-3.5 w-3.5 text-orange-400/70" />
+                            <span className="whitespace-nowrap"><span className="text-stone-200 font-medium">{user.total_solutions}</span> solutions</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Connection Info */}
