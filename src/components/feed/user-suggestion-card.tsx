@@ -72,7 +72,7 @@ export const UserSuggestionCard = memo(function UserSuggestionCard({
                         <div className="flex items-center gap-4 min-w-0">
                             {/* Avatar */}
                             <Link
-                                href={`/profile/${user.username || user.user_id}`}
+                                href={`/u/${user.username || user.user_id}`}
                                 className="shrink-0 group/avatar"
                             >
                                 <Avatar className="h-14 w-14 ring-2 ring-blue-500/30 group-hover/avatar:ring-blue-500/60 transition-all shadow-lg">
@@ -86,7 +86,7 @@ export const UserSuggestionCard = memo(function UserSuggestionCard({
                             {/* User Info */}
                             <div className="min-w-0">
                                 <Link
-                                    href={`/profile/${user.username || user.user_id}`}
+                                    href={`/u/${user.username || user.user_id}`}
                                     className="flex flex-col"
                                 >
                                     <span className="text-base font-semibold text-stone-100 group-hover:text-blue-400 transition-colors truncate">
