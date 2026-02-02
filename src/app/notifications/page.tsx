@@ -122,34 +122,36 @@ export default async function NotificationsPage() {
                   </Avatar>
                 </Link>
 
-                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <p className="text-sm md:text-base leading-tight break-words">
-                      <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
-                        @{n.sender?.username || 'user'}
-                      </Link>{' '}
-                      <span className="text-muted-foreground">
-                        {getContent(n)}
-                      </span>
-                    </p>
-                    
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        {getIcon(n.type)}
-                        {n.type.replace('_', ' ')}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <p className="text-sm md:text-base leading-tight break-words">
+                        <Link href={`/u/${n.sender?.username}`} className="font-bold text-foreground hover:text-orange-500 transition-colors">
+                          @{n.sender?.username || 'user'}
+                        </Link>{' '}
+                        <span className="text-muted-foreground">
+                          {getContent(n)}
+                        </span>
+                      </p>
+                      
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/30 border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {getIcon(n.type)}
+                          {n.type.replace('_', ' ')}
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold text-muted-foreground/40 whitespace-nowrap uppercase tracking-tighter">
-                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                      </span>
                     </div>
-                  </div>
 
-                  <div className="flex items-center md:shrink-0">
-                    <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full md:w-auto rounded-xl" asChild>
-                      <Link href={getUrl(n)}>
-                        {getActionLabel(n.type)}
-                      </Link>
-                    </Button>
+                    <div className="flex items-center sm:shrink-0 w-full sm:w-auto">
+                      <Button variant="outline" size="sm" className="h-9 px-4 font-bold border-border/60 hover:bg-muted/50 whitespace-nowrap w-full sm:w-auto rounded-xl shadow-sm" asChild>
+                        <Link href={getUrl(n)}>
+                          {getActionLabel(n.type)}
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
