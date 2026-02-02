@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Home, Upload, Zap, User, LogOut } from "lucide-react";
+import { Home, Upload, Zap, User, LogOut, Search } from "lucide-react";
 
 import { NotificationBell } from "@/components/layout/notification-bell";
 
@@ -84,6 +84,13 @@ export async function Navbar() {
                             <span>{profile.streak_count} day streak</span>
                         </div>
                     )}
+
+                    <Button variant="ghost" size="icon" asChild className="mr-1">
+                        <Link href="/dashboard/search">
+                            <Search className="h-5 w-5" />
+                            <span className="sr-only">Search</span>
+                        </Link>
+                    </Button>
 
                     <NotificationBell userId={user?.id} />
 
