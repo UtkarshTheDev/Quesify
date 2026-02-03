@@ -93,8 +93,8 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
 
   const hasMore = allQuestions.length > limit
   const questions = hasMore ? allQuestions.slice(0, limit) : allQuestions
-  const initialCursor = hasMore && questions.length > 0 
-    ? questionsData?.[questions.length - 1]?.added_at 
+  const initialCursor = hasMore && questions.length > 0
+    ? questionsData?.[questions.length - 1]?.added_at
     : null
 
   const { data: allSubjects } = await supabase
@@ -116,11 +116,11 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     const withQuestions = currentSubjectData.chapters
       .filter(ch => ch.questionCount > 0)
       .sort((a, b) => b.questionCount - a.questionCount)
-    
+
     const withoutQuestions = currentSubjectData.chapters
       .filter(ch => ch.questionCount === 0)
       .sort((a, b) => b.priority - a.priority)
-      
+
     return [...withQuestions, ...withoutQuestions]
   })() : []
 
@@ -129,15 +129,15 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-             <h1 className="text-3xl font-bold">
-               {title ? title : (subject || 'All Questions')}
-             </h1>
-             {chapter && (
-               <>
-                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                 <span className="text-xl text-muted-foreground">{chapter}</span>
-               </>
-             )}
+            <h1 className="text-3xl font-bold">
+              {title ? title : (subject || 'All Questions')}
+            </h1>
+            {chapter && (
+              <>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xl text-muted-foreground">{chapter}</span>
+              </>
+            )}
           </div>
           <p className="text-muted-foreground">
             {title ? 'Practice session based on your analytics' : 'Manage and review your question bank'}
@@ -176,43 +176,43 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
 
         {subject && currentSubjectData && (
           <div className="w-full overflow-x-auto pb-2">
-             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground shrink-0">Chapters:</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground shrink-0">Chapters:</span>
+              <Button
+                variant={!chapter ? "secondary" : "outline"}
+                size="sm"
+                asChild
+                className="rounded-full h-8"
+              >
+                <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
+                  All Chapters
+                </Link>
+              </Button>
+              {sortedChapters.map((ch) => (
                 <Button
-                  variant={!chapter ? "secondary" : "outline"}
+                  key={ch.chapter}
+                  variant={chapter === ch.chapter ? "secondary" : "outline"}
                   size="sm"
                   asChild
-                  className="rounded-full h-8"
+                  className={cn(
+                    "rounded-full h-8 whitespace-nowrap",
+                    chapter === ch.chapter ? "border-primary" : "border-dashed"
+                  )}
                 >
-                  <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
-                    All Chapters
+                  <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(ch.chapter)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
+                    {ch.chapter}
+                    <span className={cn(
+                      "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
+                      ch.questionCount > 0
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "bg-muted-foreground/10 text-muted-foreground"
+                    )}>
+                      {ch.questionCount}
+                    </span>
                   </Link>
                 </Button>
-                {sortedChapters.map((ch) => (
-                  <Button
-                    key={ch.chapter}
-                    variant={chapter === ch.chapter ? "secondary" : "outline"}
-                    size="sm"
-                    asChild
-                    className={cn(
-                      "rounded-full h-8 whitespace-nowrap",
-                      chapter === ch.chapter ? "border-primary" : "border-dashed"
-                    )}
-                  >
-                    <Link href={`/dashboard/questions?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(ch.chapter)}${difficulty ? `&difficulty=${difficulty}` : ''}${isMCQ ? `&isMCQ=${isMCQ}` : ''}`}>
-                      {ch.chapter}
-                      <span className={cn(
-                        "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
-                        ch.questionCount > 0 
-                          ? "bg-primary/10 text-primary font-medium" 
-                          : "bg-muted-foreground/10 text-muted-foreground"
-                      )}>
-                        {ch.questionCount}
-                      </span>
-                    </Link>
-                  </Button>
-                ))}
-             </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -278,7 +278,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
               </Button>
             </div>
           </div>
-          
+
           {(difficulty || isMCQ) && (
             <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground ml-auto">
               <Link href={`/dashboard/questions?${new URLSearchParams({
@@ -303,6 +303,13 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
           isMCQ,
           ids: idsParam,
         }}
+        key={JSON.stringify({
+          subject,
+          chapter,
+          difficulty,
+          isMCQ,
+          ids: idsParam
+        })}
       />
     </div>
   )
