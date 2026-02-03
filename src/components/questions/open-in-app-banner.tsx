@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Smartphone, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsPWA } from "@/hooks/use-is-pwa";
 
 interface OpenInAppBannerProps {
     questionId: string;
@@ -10,19 +11,25 @@ interface OpenInAppBannerProps {
 
 export function OpenInAppBanner({ questionId }: OpenInAppBannerProps) {
     const [isVisible, setIsVisible] = useState(false);
+    const isPWA = useIsPWA();
 
     useEffect(() => {
+        if (isPWA) {
+            setIsVisible(false);
+            return;
+        }
+
         const ua = navigator.userAgent.toLowerCase();
         const isAndroidDevice = /android/.test(ua);
         const isIosDevice = /iphone|ipad|ipod/.test(ua);
-        
+
         if (isAndroidDevice || isIosDevice) {
             const isDismissed = sessionStorage.getItem("app_banner_dismissed");
             if (!isDismissed) {
                 setTimeout(() => setIsVisible(true), 100);
             }
         }
-    }, []);
+    }, [isPWA]);
 
     const handleOpenInApp = () => {
         const customScheme = `quesify://question/${questionId}`;
@@ -54,17 +61,17 @@ export function OpenInAppBanner({ questionId }: OpenInAppBannerProps) {
                         <p className="text-xs opacity-90">Better experience for practice</p>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
-                    <Button 
-                        size="sm" 
-                        variant="secondary" 
+                    <Button
+                        size="sm"
+                        variant="secondary"
                         className="rounded-full bg-white text-orange-600 hover:bg-white/90 font-bold px-4"
                         onClick={handleOpenInApp}
                     >
                         Open <ExternalLink className="w-3 h-3 ml-1" />
                     </Button>
-                    <button 
+                    <button
                         onClick={handleDismiss}
                         className="p-1 hover:bg-white/10 rounded-full transition-colors"
                     >
