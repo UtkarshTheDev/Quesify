@@ -5,33 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useIsPWA } from "@/hooks/use-is-pwa";
 
 export function PWAPromptCard() {
     const [isMobile, setIsMobile] = useState(false);
-    const [isPWA, setIsPWA] = useState(false);
+    const isPWA = useIsPWA();
 
     useEffect(() => {
-        const checkPWA = () => {
-            const ua = navigator.userAgent.toLowerCase();
-            const mobile = /android|iphone|ipad|ipod/.test(ua);
-            
-            const isStandalone = 
-                window.matchMedia('(display-mode: standalone)').matches || 
-                (window.navigator as any).standalone || 
-                document.referrer.includes('android-app://') ||
-                ua.includes('twa') ||
-                ua.includes('wv');
-            
-            setIsMobile(mobile);
-            setIsPWA(!!isStandalone);
-        };
-
-        checkPWA();
-        
-        const mql = window.matchMedia('(display-mode: standalone)');
-        mql.addEventListener('change', checkPWA);
-        
-        return () => mql.removeEventListener('change', checkPWA);
+        const ua = navigator.userAgent.toLowerCase();
+        setIsMobile(/android|iphone|ipad|ipod/.test(ua));
     }, []);
 
     if (!isMobile || isPWA) return null;
@@ -41,12 +23,12 @@ export function PWAPromptCard() {
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                 <Smartphone className="w-20 h-20 rotate-12" />
             </div>
-            
+
             <CardContent className="flex flex-col items-center justify-center py-10 px-6 text-center space-y-6 relative z-10">
                 <div className="h-16 w-16 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-inner">
                     <Sparkles className="h-8 w-8 text-orange-500" />
                 </div>
-                
+
                 <div className="space-y-2">
                     <h3 className="font-black text-xl tracking-tight">Upgrade Your Experience</h3>
                     <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
