@@ -36,10 +36,9 @@ export async function POST(request: NextRequest) {
         try {
             const dupStart = performance.now()
             // We join with solutions to get the existing solution for comparison
-            // DEBUG: Lowered threshold to 0.6 to debug matching issues
             const { data: similarQuestions, error: matchError } = await supabase.rpc('match_questions_with_solutions', {
                 query_embedding: embedding,
-                match_threshold: 0.60, 
+                match_threshold: 0.80,
                 match_count: 1
             })
 
