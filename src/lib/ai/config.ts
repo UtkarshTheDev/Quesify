@@ -44,8 +44,8 @@ export const AI_CONFIG = {
 
         // High Quality / Regeneration fallback (New category)
         best: {
-            provider: "gemini",
-            model: "gemini-3-flash-preview", 
+            provider: "groq",
+            model: "meta-llama/llama-4-scout-17b-16e-instruct", 
         } as ModelConfig,
 
         // Embedding model (currently only gemini supported)
