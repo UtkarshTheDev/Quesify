@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
         // Step 1: Generate embedding
         const embedStart = performance.now()
-        const embedding = await ai.generateEmbedding(question_text)
+        const embedding = await ai.generateEmbedding(question_text, 'retrieval_document')
         console.log(`[Route/Finalize] AI Embedding generated. Length: ${embedding.length}, Sample: [${embedding.slice(0, 3)}...]`)
         console.log(`[Route/Finalize] AI Embedding took ${(performance.now() - embedStart).toFixed(2)}ms`)
 

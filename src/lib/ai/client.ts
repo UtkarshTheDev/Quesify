@@ -111,26 +111,30 @@ class AIClient {
     return text
   }
 
-  async generateEmbedding(text: string): Promise<number[]> {
+  async generateEmbedding(
+    text: string,
+    taskType: 'retrieval_document' | 'retrieval_query' = 'retrieval_document'
+  ): Promise<number[]> {
     const config = AI_CONFIG.models.embedding
     const start = performance.now()
-    
+
     if (config.provider !== 'gemini') {
       throw new Error('Only Gemini provider is supported for embeddings currently')
     }
 
     const model = this.getGeminiModel(config.model)
-    
+
     const request = {
       content: { role: 'user', parts: [{ text }] },
+      taskType: taskType,
       outputDimensionality: 768,
     } as unknown as EmbedContentRequest
-    
+
     const result = await model.embedContent(request)
 
     const duration = performance.now() - start
     if (AI_CONFIG.debug) {
-      console.log(`[AI/Embedding] took ${duration.toFixed(2)}ms`)
+      console.log(`[AI/Embedding] task=${taskType} dim=768 took ${duration.toFixed(2)}ms`)
     }
     return result.embedding.values
   }
