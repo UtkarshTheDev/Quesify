@@ -33,6 +33,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.4",
     "framer-motion": "^12.29.2",
     "groq-sdk": "^0.37.0",
     "katex": "^0.16.28",
@@ -56,6 +57,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/dotenv": "^8.2.3",
     "@types/katex": "^0.16.8",
     "@types/node": "^20",
     "@types/react": "^19",
