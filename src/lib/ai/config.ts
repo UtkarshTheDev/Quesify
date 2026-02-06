@@ -48,10 +48,11 @@ export const AI_CONFIG = {
             model: "meta-llama/llama-4-scout-17b-16e-instruct", 
         } as ModelConfig,
 
-        // Embedding model (currently only gemini supported)
+        // Embedding model (Gemini embedding for semantic search)
+        // Uses gemini-embedding-001 with 768 dimensions
         embedding: {
             provider: "gemini",
-            model: process.env.AI_MODEL_EMBEDDING || "text-embedding-004",
+            model: process.env.AI_MODEL_EMBEDDING || "gemini-embedding-001",
         } as ModelConfig,
     },
 

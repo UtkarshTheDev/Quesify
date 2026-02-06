@@ -251,9 +251,12 @@ export const ai = {
   /**
    * Generate text embedding for semantic search
    */
-  async generateEmbedding(text: string): Promise<number[]> {
+  async generateEmbedding(
+    text: string,
+    taskType: 'retrieval_document' | 'retrieval_query' = 'retrieval_document'
+  ): Promise<number[]> {
     const client = getAIClient()
-    return client.generateEmbedding(text)
+    return client.generateEmbedding(text, taskType)
   },
 
   /**
