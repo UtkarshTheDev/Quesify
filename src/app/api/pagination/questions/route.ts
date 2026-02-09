@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       chapter,
       difficulty,
       isMCQ,
-    })
+    }, cursor)
 
     const cached = await getCache(cacheKey)
 

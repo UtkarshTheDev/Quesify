@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const cacheKey = CACHE_KEYS.PAGINATION.SOLUTIONS(userId)
+    const cacheKey = CACHE_KEYS.PAGINATION.SOLUTIONS(userId, cursor)
     const cached = await getCache(cacheKey)
 
     if (cached.fromCache) {
