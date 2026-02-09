@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const cacheKey = CACHE_KEYS.PAGINATION.ACTIVITIES(userId)
+    const cacheKey = CACHE_KEYS.PAGINATION.ACTIVITIES(userId, cursor)
     const cached = await getCache(cacheKey)
 
     if (cached.fromCache) {
