@@ -21,13 +21,16 @@ export const CACHE_KEYS = {
   PAGINATION: {
     QUESTIONS: (
       userId: string | null,
-      filters: { subject?: string; chapter?: string; difficulty?: string; isMCQ?: string | null }
+      filters: { subject?: string; chapter?: string; difficulty?: string; isMCQ?: string | null },
+      cursor?: string | null
     ) => {
-      const parts = ['questions', filters.subject || '', filters.chapter || '', filters.difficulty || '', filters.isMCQ || '']
+      const parts = ['questions', filters.subject || '', filters.chapter || '', filters.difficulty || '', filters.isMCQ || '', cursor || 'initial']
       return `user:questions:${userId || 'guest'}:${parts.join(':')}`
     },
-    ACTIVITIES: (userId: string) => `user:activities:${userId || 'guest'}`,
-    SOLUTIONS: (userId: string) => `user:solutions:${userId || 'guest'}`,
+    ACTIVITIES: (userId: string, cursor?: string | null) =>
+      `user:activities:${userId || 'guest'}:${cursor || 'initial'}`,
+    SOLUTIONS: (userId: string, cursor?: string | null) =>
+      `user:solutions:${userId || 'guest'}:${cursor || 'initial'}`,
   },
   ENTITY: {
     QUESTION: (questionId: string) => `question:${questionId}`,
